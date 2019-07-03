@@ -37,7 +37,7 @@ image.onload = () => {
 	const r = new Render(image);
 	let t = [];
 	t.push(r.createObject([1, 1], [2, 2], [0, 0], [1, 1], 5));
-	t.push(r.createObject([2, 2], [3, 3], [0, 0], [1, 1], 5));
+	t.push(r.createObject([2.5, 2.5], [4, 4], [0, 0], [1, 1], 5));
 	r.render(1, 0, 6, t);
 };
 
@@ -96,7 +96,7 @@ class Render {
 				0,0,0,1]);
 	}
 	createObject(a, b, ai, bi, slice) {
-		if (height <= 0) {
+		if (slice <= 0) {
 			throw new Error("Invalid object: slice <= 0");
 		}
 		slice *= -1;

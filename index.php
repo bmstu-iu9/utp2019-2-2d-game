@@ -34,4 +34,5 @@
 	</script>
 	<!-- JavaScript -- Сюда писать ваши скрипты -->
 	<script src="engine.js"></script>
+	<script src="example.js"></script> <!-- Пример -->
 </body>

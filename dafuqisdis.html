@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+
+    <meta name = "viewport" content = "user-scalable=no,width=device-width" charset="utf-8">
+    <link rel = "stylesheet" type = "text/css">
+    <title>dafuqisdis</title>
+
+  </head>
+
+  <body>
+
+    <canvas></canvas>
+
+    <script type = "text/javascript">
+
+    let controller = document.createElement("script");
+    controller.setAttribute("type", "text/javascript");
+    controller.setAttribute("src", "controller.js");
+    document.head.appendChild(controller);
+
+    let display = document.createElement("script");
+    display.setAttribute("type", "text/javascript");
+    display.setAttribute("src", "display.js");
+    document.head.appendChild(display);
+
+    let engine = document.createElement("script");
+    engine.setAttribute("type", "text/javascript");
+    engine.setAttribute("src", "engine.js");
+    document.head.appendChild(engine);
+
+    let game = document.createElement("script");
+    game.setAttribute("type", "text/javascript");
+    game.setAttribute("src", "game.js");
+    document.head.appendChild(game);
+
+    let main = document.createElement("script");
+    main.setAttribute("type", "text/javascript");
+    main.setAttribute("src", "main.js");
+    document.head.appendChild(main);
+
+    </script>
+
+  </body>
+
+</html>

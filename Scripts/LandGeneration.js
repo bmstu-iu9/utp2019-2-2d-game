@@ -3,8 +3,8 @@ const landGen = (minHeight, maxHeight, widthWorld, heightWorld) => {
     let i = 1;
     let lastSign = 0;
     while (i < widthWorld) {
-        let sectionLength = Math.round(random() * 9) + 1; // Длина сектора возрастания или убывания
-        let sign = Math.floor(random() * 2);
+        let sectionLength = Math.round(Math.random() * 9) + 1; // Длина сектора возрастания или убывания
+        let sign = Math.floor(Math.random() * 2);
         if (sign === 0) sign = -1;
         i += sectionLength;
         let lastDelta = 1;
@@ -14,10 +14,10 @@ const landGen = (minHeight, maxHeight, widthWorld, heightWorld) => {
         lastSign = sign;
         while (sectionLength > 0) {
             let delta = 0;
-            if(lastDelta == 0 && random() > 0.07){
+            if(lastDelta == 0 && Math.random() > 0.07){
                 delta = 0;
             }else{
-                delta = Math.ceil(random() * 3); // Максимальная разница в уровнях = 2
+                delta = Math.ceil(Math.random() * 3); // Максимальная разница в уровнях = 2
             }
             lastDelta = delta;
             let nextHeight = heights[heights.length - 1] + delta * sign;

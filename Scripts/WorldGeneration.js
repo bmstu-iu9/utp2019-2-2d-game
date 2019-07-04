@@ -430,4 +430,4 @@ const visualisator = (gameArea) => {
 }
 
 // Пример генерации
-visualisator(generate(1024, 1024, 1341241));
+/* visualisator(generate(1024, 1024, 1341241)); */

@@ -1,5 +1,5 @@
 // Генерация массива уровней поверхности
-const landGen = (minHeight, maxHeight, widthWorld) => {
+const landGen = (minHeight, maxHeight, widthWorld, heightWorld) => {
     let heights = [Math.floor((maxHeight + minHeight) / 2)];
     let i = 1;
 
@@ -19,6 +19,13 @@ const landGen = (minHeight, maxHeight, widthWorld) => {
             sectionLength--;
         }
     }
-
-    return heights;
+    // Преобразование карты высот в матрицу
+    let arr = new Array;
+    for(let x = 0; x < widthWorld; x++){
+        arr[x] = new Array;
+        for(let y = 0; y < heightWorld; y++){
+            arr[x][y] = (y <= heights[x]);
+        }
+    }
+    return arr;
 }

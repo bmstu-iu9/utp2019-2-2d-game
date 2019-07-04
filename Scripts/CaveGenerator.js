@@ -1,16 +1,3 @@
-// Преобразование карты высот в матрицу
-const hightToArr = (heights, worldHight, worldWidth) => {
-    let arr = new Array;
-    for(let x = 0; x < worldWidth; x++){
-        arr[x] = new Array;
-        for(let y = 0; y < worldHight; y++){
-            arr[x][y] = (y <= heights[x]);
-        }
-    }
-
-    return arr;
-}
-
 // Расширение пещеры по её "направляющей"
 const holeGen = (worldArr, caveX, caveY, maxRadius, isCaveX, countCaveX) => {
     // Выбор радиуса

@@ -194,7 +194,6 @@ class Render {
 				left, t, z,
 				right, b, z,
 				right, t, z]), this.gl.STATIC_DRAW);
-			console.log(m);
 		} else {
 			// растянуть по высоте
 			const l = x - height * this.backgroundAsp / 2;

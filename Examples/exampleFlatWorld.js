@@ -5,7 +5,7 @@ const playerPos = {x: 10, y: 20};
 const flatGen = (x, y, height) => {
     let arr = new Array
     for (let i = 0; i < x; i++) {
-        arr[i]=new Array
+        arr[i] = new Array
         for (let j = 0; j < y; j++) {
             arr[i][j] = (j <= height)
         }
@@ -14,10 +14,10 @@ const flatGen = (x, y, height) => {
 }
 
 const image = new Image();
-image.src = 'image.png';
+image.src = 'Images/image.png';
 image.onload = () => {
 	const background = new Image();
-	background.src = 'background.png';
+	background.src = 'Images/background.png';
 	background.onload = () => {
         const r = new Render(image, background);
         let t = [];
@@ -32,13 +32,13 @@ image.onload = () => {
                     if (j >= 0 && j < blocks[Math.floor(i)].length) {
                         if (blocks[Math.floor(i)][Math.floor(j)]) {
                             t.push(r.createObject([i - Math.floor(playerPos.x), j - Math.floor(playerPos.y)], 
-                                [i - Math.floor(playerPos.x) + 1, j - Math.floor(playerPos.y) + 1], [0, 0], [1, 1], 6))
+                                [i - Math.floor(playerPos.x) + 1, j - Math.floor(playerPos.y) + 1], [0, 0], [1, 1], 8))
                         }
                     }
                 }
             }
         }
-		let e = -70;
+		let e = 0;
 		let oldtime = 0;
 		const update = (newtime) => {
 			newtime *= 0.006;

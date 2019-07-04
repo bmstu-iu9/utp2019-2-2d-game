@@ -1,10 +1,10 @@
 'use strict';
 
 const image = new Image();
-image.src = 'image.png';
+image.src = 'Images/image.png';
 image.onload = () => {
 	const background = new Image();
-	background.src = 'background.png';
+	background.src = 'Images/background.png';
 	background.onload = () => {
 		const r = new Render(image, background);
 		let t = [];

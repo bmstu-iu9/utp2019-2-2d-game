@@ -3,6 +3,7 @@ window.addEventListener("load", (event) => {
 
   const render = () => {
     display.fill(game.world.backgroundColor);
+    display.drawMap(game.world.map);
     display.drawRectangle(game.player.x, game.player.y, game.player.w, game.player.h, game.player.color);
     display.render();
   };

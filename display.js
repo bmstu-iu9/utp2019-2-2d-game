@@ -7,7 +7,17 @@ class Display {
 
   drawRectangle(x, y, w, h, color) {
     this.buffer.fillStyle = color;
-    this.buffer.fillRect(Math.floor(x), Math.floor(y), w, h);
+    this.buffer.fillRect(Math.round(x), Math.round(y), w, h);
+  }
+
+  drawMap(map) {
+    for (let i=0;i<map.length;i++) {
+      for (let j=0;j<map[i].length;j++) {
+        if (map[i][j]==1) {
+          this.drawRectangle(16*j, 16*i, 16, 16, "#00ff00");
+        }
+      }
+    }
   }
 
   fill(color) {
@@ -25,6 +35,7 @@ class Display {
       this.context.canvas.height = h;
       this.context.canvas.width = h/ratio;
     }
+    this.context.imageSmoothingEnabled = false;
   }
 
 };

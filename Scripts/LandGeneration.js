@@ -1,3 +1,4 @@
+// Генерация массива уровней поверхности
 const landGen = (minHeight, maxHeight, widthWorld, heightWorld) => {
     let heights = [Math.floor((maxHeight + minHeight) / 2)];
     let i = 1;

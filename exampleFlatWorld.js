@@ -38,9 +38,13 @@ image.onload = () => {
                 }
             }
         }
-		let e = 0;
+		let e = -70;
+		let oldtime = 0;
 		const update = (newtime) => {
-			r.render(e += 0.1, 0, screenBlockSize, t);
+			newtime *= 0.006;
+			const deltaTime = newtime - oldtime;
+			oldtime = newtime;
+			r.render(e += deltaTime, 0, screenBlockSize, t);
 			requestAnimationFrame(update);
 		}
 		requestAnimationFrame(update);

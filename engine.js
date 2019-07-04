@@ -6,8 +6,8 @@
 Как это использовать?
 
 const r = new Render(image, background); // инициализация движка
-	image - это тип Image
-	background - это изображение с фоном типа Image
+	image - это объект Image
+	background - это изображение с фоном объекта Image
 
 Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
 
@@ -181,7 +181,7 @@ class Render {
 		const z = 1 - far;
 		let m = left % (2 * width);
 		if (m < 0) {
-			m += width;
+			m = m + 2 * width;
 		}
 		if (asp > this.backgroundAsp) {
 			// растянуть по ширине
@@ -194,6 +194,7 @@ class Render {
 				left, t, z,
 				right, b, z,
 				right, t, z]), this.gl.STATIC_DRAW);
+			console.log(m);
 		} else {
 			// растянуть по высоте
 			const l = x - height * this.backgroundAsp / 2;

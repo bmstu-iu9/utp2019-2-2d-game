@@ -5,8 +5,6 @@ class Controller {
     this.left  = new ButtonInput();
     this.right = new ButtonInput();
     this.up    = new ButtonInput();
-
-    this.handleKeyDownUp = (event) => { this.keyDownUp(event); };
   }
 
   keyDownUp(event) {
@@ -21,8 +19,6 @@ class Controller {
       case 40: this.down.getInput(down);
 
     }
-
-    alert("Сюда лут! " + event.keyCode + " голды.");
 
   }
 

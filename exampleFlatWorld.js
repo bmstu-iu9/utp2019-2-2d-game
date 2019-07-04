@@ -38,6 +38,12 @@ image.onload = () => {
                 }
             }
         }
-        r.render(0, 0, screenBlockSize, t);	
+        
+		let e = 0;
+		const update = (newtime) => {
+			r.render(e += 0.1, 0, screenBlockSize, t);
+			requestAnimationFrame(update);
+		}
+		requestAnimationFrame(update);
     };
 };

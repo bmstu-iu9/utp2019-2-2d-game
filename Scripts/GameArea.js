@@ -1,14 +1,8 @@
-
-// Константы уровня
-
-const FORWARD_LAYOUT = 2;
-const MAIN_LAYOUT = 3;
-const BACK_LAYOUT = 4;
-
+'use strict';
 
 // Класс блока
 class Block{
-	constructor(id, type, durability, brightness, transparency, isCollissed, isPlatform, isClickable, hasGravity){
+	constructor(id, type, durability, brightness, isCollissed, isPlatform, isClickable, hasGravity){
 		this.id = id; // id - его id в таблице block_table, а также представление в map
 		this.type = type; /* type - тип блока, определяется на основе того, чем "добывается" блок с точки зрения логики:
 								dirt   - земля, добывается лопатой
@@ -29,13 +23,6 @@ class Block{
 	}
 }
 
-// Функция выполняется при клике на блок правой кнопкой мыши
-Block.onClick = () => {
-	if(this.isClickable){
-		console.log("Interaction with ${id}");
-	}
-};
-
 // Игровое пространство
 class GameArea{
 	constructor(map, block_table, width, height){
@@ -53,13 +40,19 @@ class GameArea{
 		};
 
 		this.makeWaterBlock = () => {
-			//стоячая вода - блок с гравитацией
+			// Cтоячая вода - блок с гравитацией
 			return 8; //id стоячей воды
 		};
 
-		this.makeFlowingWaterBlock = () => {
-			// текучая вода - блок без гравитации
-			return 9; //id текучей воды
+		this.makeFlowingWaterBlock = (cnt) => {
+			// Текучая вода - блок без гравитации
+            // В зависимости от степени наполненности имеет id от 9 до 15, 9 - наибольшая наполненность
+            if (cnt > 15 || cnt < 9) {
+                console.log("Invalid ID was received while generating flowing water block : {$cnt}." +
+                    " Valid id : from 9 to 15. Undefined returned");
+                return undefined;
+            }
+			return cnt; //id текучей воды : от 9 до 15 включительно
 		};
 
 		// =====Группа функций, возвращающая координаты относительно заданной=====
@@ -97,43 +90,91 @@ class GameArea{
 		// =====
 
 		this.updateBlock = ([x, y, layout]) => {
-			let block = this.block_table[this.map[[x, y, layout]]];
+			let block = this.block_table.get(this.map[[x, y, layout]]);
+			if (block === undefined) return;
 			if (block.hasGravity) {
-				if (this.block_table[this.map[this.down([x, y, layout])]].type === undefined) {
+				if (this.block_table.get(this.map[this.down([x, y, layout])]).type === undefined) {
 					let block_id = this.map[[x, y, layout]];
 					this.destroyBlock([x, y, layout]);
 					this.placeBlock(this.down([x, y, layout]), block_id);
 				}
 			}
 			switch (block.type) {
-				case "wood":
-				case "leaf":
-					// Если блок дерева/листвы не видит под собой опоры в нижнем, нижнем левом и нижнем правом блоке, то он
-					// рушится
-					if (this.map[this.down([x, y, layout])] === undefined && this.map[this.downRight([x, y, layout])] === undefined &&
-						this.map[this.downLeft([x, y, layout])] === undefined) {
-						this.destroyBlock([x, y, layout]);
+                case "wood":
+					// Если блок дерева не видит под собой опоры в нижнем блоке, либо стоит на листве, плюс
+					// крайние нижние блоки - это не блоки дерева, то оно рушится
+					{
+						let downLeftB = this.block_table.get(this.map[this.downLeft([x, y, layout])]);
+						let downB = this.block_table.get(this.map[this.down([x, y, layout])]);
+						let downRightB = this.block_table.get(this.map[this.downRight([x, y, layout])]);
+						if (downB === undefined || downB.type === "leaf" ) {
+							if ((downLeftB === undefined || downLeftB.type !== "wood") &&
+								(downRightB === undefined || downRightB.type !== "wood")) {
+								this.destroyBlock([x, y, layout]);
+							}
+						}
+						break;
 					}
-					break;
+                case "leaf":
+					// Если блок листвы не видит под собой опоры в нижнем, нижнем левом и нижнем правом блоке в виде
+					// дерева или листвы, то он рушится
+					{
+						let downLeftB = this.block_table.get(this.map[this.downLeft([x, y, layout])]);
+						let downB = this.block_table.get(this.map[this.down([x, y, layout])]);
+						let downRightB = this.block_table.get(this.map[this.downRight([x, y, layout])]);
+						if ((downLeftB === undefined || downLeftB.type !== "leaf" || downLeftB.type !== "wood") &&
+							(downB === undefined || downB.type !== "leaf" || downB.type !== "wood") &&
+							(downRightB === undefined || downRightB.type !== "leaf" || downRightB.type !== "wood" )) {
+							this.destroyBlock([x, y, layout]);
+						}
+						break;
+					}
 				case "water":
 					// Если 2 блока воды при течении вправо/влево пересекаются своими потоками, то на месте пересечения
 					// потоков создается цельный блок воды
 					if (this.map[this.right([x, y, layout])] === undefined) {
-						this.placeBlock(this.right([x, y, layout]), this.makeFlowingWaterBlock());
-					} else if (this.map[this.right([x, y, layout])].type === "flowingWater") {
-						this.placeBlock(this.right([x, y, layout]), this.makeWaterBlock());
+						this.placeBlock(this.right([x, y, layout]), this.makeFlowingWaterBlock(9));
 					}
 					if (this.map[this.left([x, y, layout])] === undefined) {
-						this.placeBlock(this.left([x, y, layout]), this.makeFlowingWaterBlock());
-					} else if (this.map[this.left([x, y, layout])].type === "flowingWater") {
-						this.placeBlock(this.left([x, y, layout]), this.makeWaterBlock())
+						this.placeBlock(this.left([x, y, layout]), this.makeFlowingWaterBlock(9));
 					}
 					break;
 
 				case "flowingWater":
 					if (this.map[this.down([x, y, layout])] === undefined) {
-						this.placeBlock(this.down([x, y, layout]), this.makeFlowingWaterBlock())
+						this.placeBlock(this.down([x, y, layout]), this.makeFlowingWaterBlock(this.map[[x, y, layout]]));
 					}
+
+					// 15 - id блока текучей воды с наименьшей заполненностью
+					if (this.map[[x, y, layout]] !== 15) {
+					    let currID  = this.map[[x, y, layout]];
+					    let leftID  = this.map[this.left([x, y, layout])];
+					    let rightID = this.map[this.right([x, y, layout])];
+                        if (rightID === undefined) {
+                            this.placeBlock(this.right([x, y, layout]),
+                                this.makeFlowingWaterBlock(currID + 1));
+                        } else if (rightID > (currID + 1) && rightID <= 15) {
+                            if ( 31 - rightID - currID >= GameArea.WATER_BLOCK_CAP) {
+                                this.placeBlock(this.right([x, y, layout]),
+                                    this.makeWaterBlock());
+                            } else {
+                                this.placeBlock(this.right([x, y, layout]),
+                                    this.makeFlowingWaterBlock(currID + 1));
+                            }
+                        }
+                        if (leftID === undefined) {
+                            this.placeBlock(this.left([x, y, layout]),
+                                this.makeFlowingWaterBlock(currID + 1));
+                        } else if (leftID > (currID + 1) && leftID <= 15) {
+                            if ( 31 - leftID - currID >= GameArea.WATER_BLOCK_CAP) {
+                                this.placeBlock(this.left([x, y, layout]),
+                                    this.makeWaterBlock());
+                            } else {
+                                this.placeBlock(this.left([x, y, layout]),
+                                    this.makeFlowingWaterBlock(currID + 1));
+                            }
+                        }
+                    }
 					break;
 				default:
 					// Какое-либо стандартное поведение
@@ -166,5 +207,36 @@ class GameArea{
 				this.updateBlock([x, y, layout]);
 			}
 		};
+
+
+		// Функция взаимодействия с блоком
+		this.interactWithBlock = ([x, y, layout]) => {
+            console.log("Interaction with block on coordinates : [${x} ${y} ${layout}]");
+        };
+
+		// Функция сброса лута
+		this.dropLoot = ([x, y], block) => {
+
+        };
+
+
+		// Функция разрушения блока со сбросом лута
+		this.goodDestroy = ([x, y, layout]) => {
+		    let block = this.block_table.get(this.map[[x,y, layout]]);
+		    this.destroyBlock([x, y, layout]);
+		    this.dropLoot([x,y], block);
+        }
 	}
 }
+
+// Константы уровня
+
+GameArea.FORWARD_LAYOUT = 2;
+GameArea.MAIN_LAYOUT = 3;
+GameArea.BACK_LAYOUT = 4;
+
+// Константы поведения игрового пространства
+GameArea.WATER_BLOCK_CAP = 12;  // Какова должна быть наполненность сходящихся потоков воды, чтобы на их месте создался
+                                // блок стоячей воды min = 1, max = 14. При этом наполненность блока стоячей воды = 8,
+                                // в то время как наполненность блока текучей воды изменяется от 7 до 1
+                                // id изменяются соотвественно от 9 до 15 включительно

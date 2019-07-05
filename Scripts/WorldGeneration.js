@@ -1,23 +1,3 @@
-// Вспомогательная часть
-class GameArea{
-    constructor(map, height, width){
-        this.map = map;
-        this.width = width;
-        this.height = height;
-    }
-}
-GameArea.MAIN_LAYOUT = 2;
-GameArea.BACK_LAYOUT = 3;
-
-// Класс координат в игровом пространстве
-class Coordinate{
-    constructor(x, y, layout){
-        this.x = x;
-        this.y = y;
-        this.layout = layout;
-    }
-}
-
 // Генерация земли
 const generate = (width, height, seed) => {
     let seedTemp = seed;
@@ -412,7 +392,7 @@ const generate = (width, height, seed) => {
         }
     }
 
-    return new GameArea(worldMap, width, height);
+    return new GameArea(worldMap, new Array(), width, height);
 }
 
 // Визуализация полученной матрицы в консоли

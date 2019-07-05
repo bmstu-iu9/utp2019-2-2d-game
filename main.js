@@ -3,8 +3,7 @@ window.addEventListener("load", (event) => {
 
   const render = () => {
     display.fill(game.world.backgroundColor);
-    display.drawMap(game.world.map);
-    display.drawRectangle(game.player.x, game.player.y, game.player.w, game.player.h, game.player.color);
+    display.drawWorld(game.world.map, game.player.x-128, game.player.y-128, 256, 256, game);
     display.render();
   };
 
@@ -17,7 +16,7 @@ window.addEventListener("load", (event) => {
 
   const KDU = (event) => {controller.keyDownUp(event);};
   const resize = (event) => {
-    display.resize(document.documentElement.clientWidth - 32, document.documentElement.clientHeight - 32, game.world.h / game.world.w);
+    display.resize(document.documentElement.clientWidth - 32, document.documentElement.clientHeight - 32, 64 / 64);
     display.render();
   };
 
@@ -26,8 +25,8 @@ window.addEventListener("load", (event) => {
   const game       = new Game(); // Логика и состояние игры
   const engine     = new Engine(1000/30, render, update); // Взаимодействие остальных трех
 
-  display.buffer.canvas.height = game.world.h;
-  display.buffer.canvas.width = game.world.w;
+  display.buffer.canvas.height = 256;
+  display.buffer.canvas.width = 256;
 
   window.addEventListener("resize",  resize);
   window.addEventListener("keydown", KDU);

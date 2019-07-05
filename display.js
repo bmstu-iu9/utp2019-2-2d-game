@@ -10,14 +10,19 @@ class Display {
     this.buffer.fillRect(Math.round(x), Math.round(y), w, h);
   }
 
-  drawMap(map) {
-    for (let i=0;i<map.length;i++) {
-      for (let j=0;j<map[i].length;j++) {
+  drawWorld(map, x, y, w, h, game) {
+    let min_x = Math.max(0,Math.floor(x/16));
+    let min_y = Math.max(0,Math.floor(y/16));
+    let max_x = Math.min(map[0].length,Math.ceil((x+w)/16));
+    let max_y = Math.min(map.length,Math.ceil((y+h)/16));
+    for (let i=min_y;i<max_y;i++) {
+      for (let j=min_x;j<max_x;j++) {
         if (map[i][j]==1) {
-          this.drawRectangle(16*j, 16*i, 16, 16, "#00ff00");
+          this.drawRectangle(16*j-x, 16*i-y, 16, 16, "#00ff00");
         }
       }
     }
+    this.drawRectangle(game.player.x-x, game.player.y-y, game.player.w, game.player.h, game.player.color);
   }
 
   fill(color) {

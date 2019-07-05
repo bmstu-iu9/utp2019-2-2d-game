@@ -193,7 +193,6 @@ class Render {
 		
 		// отрисовка фона
 		
-		
 		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);

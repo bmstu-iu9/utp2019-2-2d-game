@@ -80,6 +80,12 @@ class Render {
 		// используем шейдерную программу
 		this.gl.useProgram(program);
 		
+		// прозрачность
+		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+		this.gl.enable(this.gl.CULL_FACE);
+		this.gl.enable(this.gl.DEPTH_TEST);
+		this.gl.enable(this.gl.BLEND);
+		
 		// получение атрибутов из вершинного шейдера
 		this.positionAttributeLocation = this.gl.getAttribLocation(program, 'a_position');
 		this.texCoordAttributeLocation = this.gl.getAttribLocation(program, 'a_texCoord');

@@ -6,9 +6,7 @@
 	<canvas id="canvas"></canvas>
 	<!-- GLSL -- Тут ничего не трограть, либо писать Надиму! -->
 	<script id="vertex-shader" type="none">
-		//precision highp float;
-		
-		attribute vec3 a_position;
+		attribute vec2 a_position;
 		attribute vec2 a_texCoord;
 		
 		uniform mat4 u_modelviewMatrix;
@@ -19,7 +17,7 @@
 
 		void main() {
 			u_texCoord = a_texCoord;
-			vec4 pos = u_modelviewMatrix * vec4(a_position / u_resolution/*, 0.0*/, 1.0);
+			vec4 pos = u_modelviewMatrix * vec4(a_position / u_resolution, 0.0, 1.0);
 			gl_Position = u_projectionMatrix * pos;
 		}
 	</script>

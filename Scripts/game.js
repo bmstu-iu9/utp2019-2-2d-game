@@ -1,123 +1,106 @@
 'use strict';
 
-const screenBlockSize = 25;  // Кол-во блоков 1х1, которые влазят на экран по высоте
+const cameraScale = 1;  // Масштаб, 1 - стандарт
 let Vx = 0, Vy = 0, x, y;  // Рекомендация: не использовать скорость больше, чем 1 чанк в кадр (в таких случаях лучше телепортироваться)
 let cameraX = 0, cameraY = 0;  // Положение камеры
-const blockSize = 32
-const countBlocks = 8
+const chankWidth = 4, chankHeight = 4
+const minLayout = 1, maxLayout = 1
 
 const image = new Image();
-image.src = '../Images/blocks.png';
+image.src = 'Images/blocks.png';
 image.onload = () => {
 	const background = new Image();
-	background.src = '../Images/background.png';
+	background.src = 'Images/background.png';
 	background.onload = () => {
-        const r = new Render(image, background);    
-        const chankWidth = 16, chankHeight = 16
-        let chankFirstMatchInT = { }, t = [ ];
-        const blocks = generate(1024, 1024, 1341241)  // Инициализация мира
+        const r = new Render(image, image);
+        r.createObjects(
+            [{'id': 1, 'a': [0, 0], 'b': [0.5, 0.5]},
+            {'id': 2, 'a': [0, 0.5], 'b': [0.5, 1]},
+            {'id': 3, 'a': [0.5, 0], 'b': [1, 0.5]},
+            {'id': 7, 'a': [0.5, 0.5], 'b': [1, 1]},
+            {'id': 17, 'a': [0, 0], 'b': [1, 1]},
+            {'id': 18, 'a': [0, 0], 'b': [1, 1]},
+            ]);
 
-        const loadChank = (xLocate, yLocate, lt) => {
-            const stopX = (xLocate + 1) * chankWidth
-            const stopY = (yLocate + 1) * chankHeight
-            chankFirstMatchInT[[xLocate, yLocate]] = lt.length
+        const blocks = generate(1024, 1024, 1341241);  // Инициализация мира
 
-            for (let i = xLocate * chankWidth; i < stopX; i++) {
-                for (let j = yLocate * chankHeight; j < stopY; j++) {
-                    if (i >= 0 && j >= 0 && i < blocks.width && j < blocks.height) {
-                        switch (blocks.map[Math.floor(i)][Math.floor(j)][GameArea.MAIN_LAYOUT]) {  // Разделение отрисовки текстур по id блока
-                            case 1:
-                                lt.push(r.createObject([i, j], [i + 1, j + 1], [0, 0], [1/countBlocks, 1/countBlocks], 5))
-                                break;
+        let arrOfChunks = { }
 
-                            case 2:
-                                lt.push(r.createObject([i, j], [i + 1, j + 1], [0, 1/countBlocks], [1/countBlocks, 2/countBlocks], 5))
-                                break;
-
-                            case 3:
-                                lt.push(r.createObject([i, j], [i + 1, j + 1], [0, 1/countBlocks], [1/countBlocks, 2/countBlocks], 5))
-                                break;
-
-                            case 17:
-                                lt.push(r.createObject([i, j], [i + 1, j + 1], [0, 2/countBlocks], [1/countBlocks, 3/countBlocks], 5))
-                                break;
-
-                            case 18:
-                                lt.push(r.createObject([i, j], [i + 1, j + 1], [1/256, 1/256], [31/256, 31/256], 5))
-                                break;
-
-                            case 7:
-                                lt.push(r.createObject([i, j], [i + 1, j + 1], [1/256, 1/256], [31/256, 31/256], 5))
-                                break;
-
-                            case undefined:
-                                lt.push({ })
-                                break;
-
-                            default:
-                                throw Error('undefined block id')
-                        }
-                    } else {
-                        lt.push({ })  // Каждый чанк занимает одинаковое место в t
-                    }
-                }
-            }
-        }
-        const deleteChankByLocate = (xLocate, yLocate, lt) => {
-            deleteChankById([xLocate, yLocate], lt)
-        }
-        const deleteChankById = (id, lt) => {
-            if (chankFirstMatchInT[id] == 'undefined') {
-                return
-            }
-
-            const chankElems = chankWidth * chankHeight
-            lt.splice(chankFirstMatchInT[id], chankElems)
-
-            for (let i in chankFirstMatchInT) {
-                if (chankFirstMatchInT[i] > chankFirstMatchInT[id]) {
-                    chankFirstMatchInT[i] -= chankElems
-                }
-            }
-            delete chankFirstMatchInT[id]
-        }
-		const update = (newtime) => {
+        let oldTime = 0
+		const update = (newTime) => {
             const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
-
-            for (let i in chankFirstMatchInT) {
-                if ( !(i === [curChankX, curChankY] ||
-                    i === [curChankX + 1, curChankY] ||
-                    i === [curChankX - 1, curChankY] ||
-                    i === [curChankX, curChankY + 1] ||
-                    i === [curChankX, curChankY - 1] ||
-                    i === [curChankX + 1, curChankY + 1] ||
-                    i === [curChankX + 1, curChankY - 1] ||
-                    i === [curChankX - 1, curChankY + 1] ||
-                    i === [curChankX - 1, curChankY + 1])) {  // Если не чанк в +\- 1 от некущего
-                    deleteChankById(i, t)
+            newTime *= 0.0001;
+            const deltaTime = newTime - oldTime
+            oldTime = newTime
+            let neigChunk = [
+                [false, false, false],
+                [false, false, false],
+                [false, false, false]]
+                
+            for (let chunk in arrOfChunks) {
+                if ( !((chunk.x === curChankX && chunk.y === curChankY) ||
+                    (chunk.x === curChankX + 1 && chunk.y === curChankY) ||
+                    (chunk.x === curChankX - 1 && chunk.y === curChankY) ||
+                    (chunk.x === curChankX && chunk.y === curChankY + 1) ||
+                    (chunk.x === curChankX && chunk.y === curChankY - 1) ||
+                    (chunk.x === curChankX + 1 && chunk.y === curChankY + 1) ||
+                    (chunk.x === curChankX + 1 && chunk.y === curChankY - 1) ||
+                    (chunk.x === curChankX - 1 && chunk.y === curChankY + 1) ||
+                    (chunk.x === curChankX - 1 && chunk.y === curChankY - 1))) {  // Если не чанк в +\- 1 от некущего
+                    deleteChankById(chunk.x, chunk.y, arrOfChunks)
+                } else {  // Если чанк ближайший, то помечаем как отрисованный
+                    neigChunk[chunk.x + 1 - curChankX][chunk.y + 1 - curChankY] = true
                 }
             }
 
-            for (let i = curChankX - 1; i <= curChankX + 1; i++) {
-                for (let j = curChankY - 1; j <= curChankY + 1; j++) {
-                    if (chankFirstMatchInT[[i, j]] === undefined) {  // Если чанки вокруг (на 1) выгружены - загружаем их
-                        loadChank(i, j, t)
+            for (let i = 0; i < neigChunk.length; i++) {
+                for (let j = 0; j < neigChunk[i].length; j++) {
+                    if(!neigChunk[i][j]) {
+                        console.log(curChankX +" "+(curChankY))
+                        loadChank(i + curChankX - 1, j + curChankY - 1, blocks, arrOfChunks)
                     }
                 }
             }
-            r.render(cameraX += Vx, cameraY += Vy, screenBlockSize, t);
+            
+            r.render(cameraX += Vx * deltaTime, cameraY += Vy * deltaTime, cameraScale, arrOfChunks);
             if ((cameraX - Vx >= x && cameraX <= x) || (cameraX - Vx <= x && cameraX >= x) ||  // Достигли по х
             (cameraY - Vy >= y && cameraY <= y) || (cameraY - Vy <= y && cameraY >= y)) {  // Достигли по у
                 return
             }
 			requestAnimationFrame(update);
         }
-        
-
 
 		requestAnimationFrame(update);
     };
 };
+
+const deleteChankById = (xLocate, yLocate, arrOfChunks) => {
+    for (let chunk in arrOfChunks) {
+        if (chunk.x === xLocate && chunk.y === yLocate) {
+            delete arrOfChunks[chunk]  // Удаляем все слои чанка
+        }
+    }
+}
+
+const loadChank = (xLocate, yLocate, blocks, arrOfChunks) => {
+    const stopX = (xLocate + 1) * chankWidth
+    const stopY = (yLocate + 1) * chankHeight
+
+    for (let layout = minLayout; layout <= maxLayout; layout++) {
+        let layoutChunk = { chunk: [ ], x: xLocate, y: yLocate, slice: layout }
+        for (let i = xLocate * chankWidth; i < stopX; i++) {
+            layoutChunk.chunk[i] = [ ]
+            for (let j = yLocate * chankHeight; j < stopY; j++) {
+                if (i >= 0 && j >= 0 && i < blocks.width && j < blocks.height) {
+                    layoutChunk.chunk[i][j] = blocks.map[Math.floor(i)][Math.floor(j)][layout]
+                } else {
+                    layoutChunk.chunk[i][j] = undefined
+                }
+            }
+        }
+        arrOfChunks[xLocate + "x" + yLocate + "x" + layout] = layoutChunk
+    }
+}
 
 const moveTo = (toX, toY, curVx, curVy) => {
     x = toX
@@ -130,5 +113,5 @@ const teleportTo = (toX, toY) => {
     cameraY = toY
 }
 
-teleportTo(150, 600)
-moveTo (40, 100, -1, 0)
+// teleportTo(150, 600)
+moveTo (40, 100, 0.2, 0)

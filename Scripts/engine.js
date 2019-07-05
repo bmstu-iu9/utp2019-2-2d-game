@@ -35,9 +35,9 @@ r.createObject([x1, y1], [x2, y2], [xi1, yi1], [xi2, yi2], slice)
 		(2..999) - игра
 
 Отрисовка:
-r.render(x, y, height, arrayOfObjects)
+r.render(x, y, scale, arrayOfObjects)
 	x, y - координаты камеры
-	height - высота экрана
+	scale - масштаб
 	arrayOfObjects - массив объектов
 
 Полный рабочий пример:

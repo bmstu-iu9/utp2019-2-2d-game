@@ -1,20 +1,22 @@
 'use strict';
 
 const screenBlockSize = 25;  // Кол-во блоков 1х1, которые влазят на экран по высоте
+let Vx = 0, Vy = 0, x, y;  // Рекомендация: не использовать скорость больше, чем 1 чанк в кадр (в таких случаях лучше телепортироваться)
+let cameraX = 0, cameraY = 0;  // Положение камеры
 
 const flatGen = (x, y, height) => {
     let arr = new Array
     for (let i = 0; i < x; i++) {
         arr[i]=new Array
         for (let j = 0; j < y; j++) {
-            arr[i][j] = (j <= height)
+            arr[i][j] = (j < height ? 'obs' : (j === height ? 'grs' : 'none'))
         }
     }
     return arr
 }
 
 const image = new Image();
-image.src = 'image.png';
+image.src = 'textures.jpg';
 image.onload = () => {
 	const background = new Image();
 	background.src = 'background.png';
@@ -23,8 +25,6 @@ image.onload = () => {
         const chankWidth = 32, chankHeight = 32
         let chankFirstMatchInT = { }, t = [ ];
         const blocks = flatGen(100, 100, 25)  // Инициализация мира
-        let cameraX = 0, cameraY = 0;  // Положение камеры
-
 
         const loadChank = (xLocate, yLocate, lt) => {
             const stopX = (xLocate + 1) * chankWidth
@@ -35,11 +35,15 @@ image.onload = () => {
                 for (let j = yLocate * chankHeight; j < stopY; j++) {
                     if (i >= 0 && j >= 0 && i < blocks.length && j < blocks[Math.floor(i)].length) {
                         switch (blocks[Math.floor(i)][Math.floor(j)]) {  // Разделение отрисовки текстур по id блока
-                            case true:
-                                lt.push(r.createObject([i, j], [i + 1, j + 1], [0, 0], [1, 1], 5))
+                            case 'obs':
+                                lt.push(r.createObject([i, j], [i + 1, j + 1], [0.5, 0], [1, 0.5], 5))
                                 break;
 
-                            case false:
+                            case 'grs':
+                                lt.push(r.createObject([i, j], [i + 1, j + 1], [0, 0], [0.5, 0.5], 5))
+                                break;
+
+                            case 'none':
                                 lt.push({ })
                                 break;
 
@@ -52,11 +56,9 @@ image.onload = () => {
                 }
             }
         }
-
         const deleteChankByLocate = (xLocate, yLocate, lt) => {
             deleteChankById(xLocate + 'x' + yLocate, lt)
         }
-
         const deleteChankById = (id, lt) => {
             if (chankFirstMatchInT[id] == 'undefined') {
                 return
@@ -72,9 +74,9 @@ image.onload = () => {
             }
             delete chankFirstMatchInT[id]
         }
-
 		const update = (newtime) => {
             const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
+
             for (let i in chankFirstMatchInT) {
                 if ( !(i === curChankX + 'x' + curChankY ||
                 i === curChankX + 1 + 'x' + curChankY ||
@@ -88,6 +90,7 @@ image.onload = () => {
                     deleteChankById(i, t)
                 }
             }
+
             for (let i = curChankX - 1; i <= curChankX + 1; i++) {
                 for (let j = curChankY - 1; j <= curChankY + 1; j++) {
                     console.log(chankFirstMatchInT[i + 'x' + j])
@@ -96,9 +99,31 @@ image.onload = () => {
                     }
                 }
             }
-            r.render(cameraX += 0.1, cameraY += 0.1, screenBlockSize, t);
+
+            r.render(cameraX += Vx, cameraY += Vy, screenBlockSize, t);
+            if ((cameraX - Vx >= x && cameraX <= x) || (cameraX - Vx <= x && cameraX >= x) ||  // Достигли по х
+            (cameraY - Vy >= y && cameraY <= y) || (cameraY - Vy <= y && cameraY >= y)) {  // Достигли по у
+                return
+            }
 			requestAnimationFrame(update);
-		}
+        }
+        
+
+
 		requestAnimationFrame(update);
     };
 };
+
+const moveTo = (toX, toY, curVx, curVy) => {
+    x = toX
+    y = toY
+    Vx = curVx
+    Vy = curVy
+}
+const teleportTo = (toX, toY) => {
+    cameraX = toX
+    cameraY = toY
+}
+
+teleportTo(90, 5)
+moveTo (40, 10000, -0.2, 0.1)

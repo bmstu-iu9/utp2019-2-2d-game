@@ -22,6 +22,8 @@ image.onload = () => {
 которые будут с помощью текстурных координат частично использования.
 Рекомендуется использовать размер степени двойки.
 
+СЛЕДУЮЩАЯ ИНФОРМАЦИЯ УСТАРЕЛА!!!
+
 Создание объекта:
 r.createObject([x1, y1], [x2, y2], [xi1, yi1], [xi2, yi2], slice)
 	x1, y1 - координаты левого верхнего угла
@@ -128,7 +130,7 @@ class Render {
 	}
 
 	createObjects(arrayOfObjects) {
-		const size = 32;
+		this.size = 32;
 		let endId = 0;
 		this.ids = [];
 		
@@ -137,11 +139,11 @@ class Render {
 		arrayOfObjects.forEach((obj) => {
 			arrayOfPosition = arrayOfPosition.concat(
 				[0, 0,
-				size, 0,
-				0, size,
-				0, size,
-				size, 0,
-				size, size]);
+				this.size, 0,
+				0, this.size,
+				0, this.size,
+				this.size, 0,
+				this.size, this.size]);
 			arrayOfTexCoord = arrayOfTexCoord.concat(
 				[obj.a[0], obj.b[1],
 				obj.b[0], obj.b[1],
@@ -168,17 +170,17 @@ class Render {
 		this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
-	render(x, y, height, arrayOfChunk) {
-		if (height <= 0) {
-			throw new Error("Invalid clip: height <= 0");
+	render(x, y, scale, arrayOfChunk) {
+		if (scale <= 0) {
+			throw new Error("Invalid scale: scale <= 0");
 		}
 		this.resizeCanvas(this.gl.canvas);
 		const asp = this.gl.canvas.width / this.gl.canvas.height;
-		const width = height * asp;
+		const width = scale * asp;
 		const left = x - width / 2;
 		const right = x + width / 2;
-		const bottom = y - height / 2;
-		const top = y + height / 2;
+		const bottom = y - scale / 2;
+		const top = y + scale / 2;
 		const near = 0.0001;
 		const far = 1000;
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
@@ -190,49 +192,35 @@ class Render {
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1); // заполняем фон цветом
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		
+		// отрисовка фона
+		
+		
+		// отрисовка блоков
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
+		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+		const ch = this.size / this.gl.canvas.height;
 		arrayOfChunk.forEach((c) => {
 			c.chunk.forEach((arr, y) => {
 				arr.forEach((id, x) => {
-					if (this.ids[id] === undefined) {
-						throw new Error("Такого Id нет: " + id);
+					if (id != undefined) {
+						if (this.ids[id] === undefined) {
+							throw new Error("Такого Id нет: " + id);
+						}
+						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
+							[1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							x * ch, y * ch, c.slice, 1]);
+						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
 					}
-					this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-					this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-						[1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						x / this.gl.canvas.height * 32, y / this.gl.canvas.height * 32, c.slice, 1]);
-					this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
 				});
 			});
 		});
 	}
 	
-	Nrender(x, y, height, arrayOfObjects) {
-		/*
-		if (height <= 0) {
-			throw new Error("Invalid clip: height <= 0");
-		}
-		this.resizeCanvas(this.gl.canvas); // подгоняем канвас под экран
-		const asp = this.gl.canvas.width / this.gl.canvas.height;
-		const width = height * asp;
-		const left = x - width / 2;
-		const right = x + width / 2;
-		const bottom = y - height / 2;
-		const top = y + height / 2;
-		const near = 0.0001;
-		const far = 1000;
-		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
-				2.0 / (right - left), 0.0, 0.0, 0.0,
-				0.0, 2.0 / (top - bottom), 0.0, 0.0,
-				0.0, 0.0, -2.0 / (far - near), 0.0,
-				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0
-			]); // "вырезаем" кусок экрана для отображения
-		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
-		this.gl.clearColor(0.53, 0.81, 0.98, 1); // заполняем фон цветом
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT); // чистим буфер цвета и буфер глубины
-		
-			*/
+	OLDrender(x, y, scale, arrayOfObjects) {
+		// НЕ РАБОТАЕТ!!!
 		// отрисовка фона
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
@@ -257,8 +245,8 @@ class Render {
 				right, t, z]), this.gl.STATIC_DRAW);
 		} else {
 			// растянуть по высоте
-			const l = x - height * this.backgroundAsp / 2;
-			const r = x + height * this.backgroundAsp / 2;
+			const l = x - scale * this.backgroundAsp / 2;
+			const r = x + scale * this.backgroundAsp / 2;
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
 				[l, bottom, z,
 				r, bottom, z,
@@ -290,45 +278,6 @@ class Render {
 			0, 0, 1, 0,
 			0, 0, 0, 1]);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
-		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-		
-		// отрисовка остального
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
-		arrayOfObjects.forEach((a) => {
-			if (a.pos != undefined) {
-				this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, a.pos);
-				this.gl.vertexAttribPointer(this.positionAttributeLocation, 3, this.gl.FLOAT, false, 0, 0);
-				
-				this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, a.img);
-				this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-				
-				switch (a.mvm) {
-					case 0:
-						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-							[1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							0, 0, 0, 1]);
-						break;
-					case 1:
-						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-							[1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							x, y, 0, 1]);
-						break;
-					default:
-						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-							[1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							0, 0, 0, 1]);
-				}
-				this.gl.drawArrays(this.gl.TRIANGLES, 0, 6); // рисуем треугольники
-			}
-		});
 	}
 	
 	createShader(type, source) {

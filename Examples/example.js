@@ -20,7 +20,7 @@ image.onload = () => {
 			'slice': -1,
 			'x': 0,
 			'y': 0
-		}];
+			}];
 		let e = -0.8;
 		let oldtime = 0;
 		const update = (newtime) => {

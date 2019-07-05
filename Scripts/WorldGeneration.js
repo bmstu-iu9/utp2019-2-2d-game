@@ -394,7 +394,7 @@ const generate = (width, height, seed) => {
         }
     }
 
-    return new GameArea(worldMap, "ids.json", width, height);
+    return new GameArea(worldMap, width, height, "ids.json");
 }
 
 // Визуализация полученной матрицы в консоли

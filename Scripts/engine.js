@@ -87,6 +87,7 @@ class Render {
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_projectionMatrix');
 		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_modelviewMatrix');
+		this.resolutionUniformLocation = this.gl.getUniformLocation(program, 'u_resolution');
 		
 		// создание текстуры
 		const imgs = [image, background];
@@ -119,38 +120,89 @@ class Render {
 			0, 0, 1, 0,
 			0, 0, 0, 1]);
 	}
-	
-	createObject(a, b, ai, bi, slice) {
-		if (slice <= 0.001) {
-			throw new Error("Invalid object: slice <= 0.001");
-		}
-		// прямоугольник
+
+	createObjects(arrayOfObjects) {
+		const size = 32;
+		let endId = 0;
+		this.ids = [];
+		
+		let arrayOfPosition = [];
+		let arrayOfTexCoord = [];
+		arrayOfObjects.forEach((obj) => {
+			arrayOfPosition = arrayOfPosition.concat(
+				[0, 0,
+				size, 0,
+				0, size,
+				0, size,
+				size, 0,
+				size, size]);
+			arrayOfTexCoord = arrayOfTexCoord.concat(
+				[obj.a[0], obj.b[1],
+				obj.b[0], obj.b[1],
+				obj.a[0], obj.a[1],
+				obj.a[0], obj.a[1],
+				obj.b[0], obj.b[1],
+				obj.b[0], obj.a[1]]);
+			this.ids[obj.id] = endId++;
+		});
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
-			[a[0], a[1], -slice,
-			b[0], a[1], -slice,
-			a[0], b[1], -slice,
-			a[0], b[1], -slice,
-			b[0], a[1], -slice,
-			b[0], b[1], -slice]), this.gl.STATIC_DRAW);
-			
-		// текстурые координаты для прямоугольника
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
+		
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
-			[ai[0], bi[1],
-			bi[0], bi[1],
-			ai[0], ai[1],
-			ai[0], ai[1],
-			bi[0], bi[1],
-			bi[0], ai[1]]), this.gl.DYNAMIC_DRAW);
-		if (slice <= 2)
-			return {'pos': positionBuffer, 'img': texCoordBuffer, 'mvm': 1};
-		return {'pos': positionBuffer, 'img': texCoordBuffer, 'mvm': 0};
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
+		
+		this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+		this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			
+		this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+		this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
-	render(x, y, height, arrayOfObjects) {
+	render(x, y, height, arrayOfChunk) {
+		if (height <= 0) {
+			throw new Error("Invalid clip: height <= 0");
+		}
+		this.resizeCanvas(this.gl.canvas);
+		const asp = this.gl.canvas.width / this.gl.canvas.height;
+		const width = height * asp;
+		const left = x - width / 2;
+		const right = x + width / 2;
+		const bottom = y - height / 2;
+		const top = y + height / 2;
+		const near = 0.0001;
+		const far = 1000;
+		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
+				2.0 / (right - left), 0.0, 0.0, 0.0,
+				0.0, 2.0 / (top - bottom), 0.0, 0.0,
+				0.0, 0.0, -2.0 / (far - near), 0.0,
+				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0
+			]); // "вырезаем" кусок экрана для отображения
+		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+		this.gl.clearColor(0.53, 0.81, 0.98, 1); // заполняем фон цветом
+		arrayOfChunk.forEach((c) => {
+			c.chunk.forEach((arr, y) => {
+				arr.forEach((id, x) => {
+					if (this.ids[id] === undefined) {
+						throw new Error("Такого Id нет: " + id);
+					}
+					this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+					this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
+						[1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, 1, 0,
+						x / this.gl.canvas.height * 32, y / this.gl.canvas.height * 32, c.slice, 1]);
+					this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
+				});
+			});
+		});
+	}
+	
+	Nrender(x, y, height, arrayOfObjects) {
+		/*
 		if (height <= 0) {
 			throw new Error("Invalid clip: height <= 0");
 		}
@@ -171,9 +223,11 @@ class Render {
 			]); // "вырезаем" кусок экрана для отображения
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1); // заполняем фон цветом
+			*/
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT); // чистим буфер цвета и буфер глубины
 		
 		// отрисовка фона
+		this.gl.uniform1f(this.resolutionUniformLocation, 1);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		const posBuffBackground = this.gl.createBuffer();
 		const texCoordBuffBackground = this.gl.createBuffer();
@@ -229,41 +283,44 @@ class Render {
 			0, 0, 1, 0,
 			0, 0, 0, 1]);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		
 		// отрисовка остального
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		arrayOfObjects.forEach((a) => {
-			this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, a.pos);
-			this.gl.vertexAttribPointer(this.positionAttributeLocation, 3, this.gl.FLOAT, false, 0, 0);
-			
-			this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, a.img);
-			this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-			
-			switch (a.mvm) {
-				case 0:
-					this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-						[1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						0, 0, 0, 1]);
-					break;
-				case 1:
-					this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-						[1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						x, y, 0, 1]);
-					break;
-				default:
-					this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-						[1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						0, 0, 0, 1]);
+			if (a.pos != undefined) {
+				this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, a.pos);
+				this.gl.vertexAttribPointer(this.positionAttributeLocation, 3, this.gl.FLOAT, false, 0, 0);
+				
+				this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, a.img);
+				this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+				
+				switch (a.mvm) {
+					case 0:
+						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
+							[1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1]);
+						break;
+					case 1:
+						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
+							[1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							x, y, 0, 1]);
+						break;
+					default:
+						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
+							[1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1]);
+				}
+				this.gl.drawArrays(this.gl.TRIANGLES, 0, 6); // рисуем треугольники
 			}
-			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6); // рисуем треугольники
 		});
 	}
 	

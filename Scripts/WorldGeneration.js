@@ -1,23 +1,3 @@
-// Вспомогательная часть
-class GameArea{
-    constructor(map, height, width){
-        this.map = map;
-        this.width = width;
-        this.height = height;
-    }
-}
-GameArea.MAIN_LAYOUT = 2;
-GameArea.BACK_LAYOUT = 3;
-
-// Класс координат в игровом пространстве
-class Coordinate{
-    constructor(x, y, layout){
-        this.x = x;
-        this.y = y;
-        this.layout = layout;
-    }
-}
-
 // Генерация земли
 const generate = (width, height, seed) => {
     let seedTemp = seed;
@@ -366,43 +346,55 @@ const generate = (width, height, seed) => {
 
     let withCavesMatrix = caveGen(landMatrix1, height * 2);
 
-    let worldMap = new Map();
+    let worldMap = new Array();
     for(let x = 0; x < width; x++){
+        worldMap[x] = new Array();
         let grassDepth = Math.floor(random() * 4) + 2
+        let dirtDepth = grassDepth - 1;
         for(let y = height - 1; y >= 0; y--){
+            worldMap[x][y] = new Array();
             if(landMatrix[x][y]){
                 if(grassDepth > 0){
-                    worldMap[[x, y, GameArea.BACK_LAYOUT]] = 2 // ID травы
-                    if(withCavesMatrix[x][y]){
-                        worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 2 // ID травы
+                    if(grassDepth > dirtDepth){
+                        worldMap[x][y][GameArea.BACK_LAYOUT] = 2 // ID травы
+                        if(withCavesMatrix[x][y]){
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 2 // ID травы
+                        }
+                    }else{
+                        worldMap[x][y][GameArea.BACK_LAYOUT] = 3 // ID грязи
+                        if(withCavesMatrix[x][y]){
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 3 // ID грязи
+                        }
                     }
                     grassDepth--;
                 }else{
-                    worldMap[[x, y, GameArea.BACK_LAYOUT]] = 1 // ID травы
+                    worldMap[x][y][GameArea.BACK_LAYOUT] = 1 // ID камня
                     if(withCavesMatrix[x][y]){
-                        worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 1 // ID камня
+                        worldMap[x][y][GameArea.MAIN_LAYOUT] = 1 // ID камня
                     }
                 }
             }
         }
         let bedrockHeight = Math.floor(random() * 3) + 1
         for(let y = 0; y < bedrockHeight; y++){
-            worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 7 // ID бедрока
+            worldMap[x][y][GameArea.MAIN_LAYOUT] = 7 // ID бедрока
         }
     }
+
+    // Установка деревьев
     let treeArr = treeGen(landMatrix, withCavesMatrix, 14, 23, Math.floor(width * 2 / 3));
     for(let i = 0; i < treeArr.length; i++){
         for (let j = 0; j < treeArr[i].length; j++){
             if (!treeArr[i][j] == 0){
                 if (treeArr[i][j] === 1) {
-                    worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 3;
+                    worldMap[i][j][GameArea.MAIN_LAYOUT] = 17;
                 }
-                else worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 4;
+                else worldMap[i][j][GameArea.MAIN_LAYOUT] = 18;
             }
         }
     }
-
-    return new GameArea(worldMap, width, height);
+    
+    return new GameArea(worldMap, width, height, "./block_table.json");
 }
 
 // Визуализация полученной матрицы в консоли
@@ -410,12 +402,13 @@ const visualisator = (gameArea) => {
     let str = "";
     for(let i = 0; i < gameArea.width; i++){
         for (let j = 0; j < gameArea.height; j++){
-            let block = gameArea.map[[i, j, GameArea.MAIN_LAYOUT]];
+            let block = gameArea.map[i][j][GameArea.MAIN_LAYOUT];
             if(block != undefined){
-                if(block == 3){
+                if(block == 17){
                     str += "#";
                 }else{
-                    if(block == 4){
+                    if(block == 18){
+
                         str += "@";
                     }else str += block;
                 }

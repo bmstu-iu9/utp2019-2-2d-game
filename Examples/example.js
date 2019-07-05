@@ -21,10 +21,10 @@ image.onload = () => {
 			'x': 0,
 			'y': 0
 			}];
-		let e = -0.8;
+		let e = -10;
 		let oldtime = 0;
 		const update = (newtime) => {
-			newtime *= 0.0001;
+			newtime *= 0.005;
 			const deltaTime = newtime - oldtime;
 			oldtime = newtime;
 			r.render(e += deltaTime, 0, 1, arrayOfChunk);

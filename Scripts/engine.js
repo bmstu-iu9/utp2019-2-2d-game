@@ -173,12 +173,13 @@ class Render {
 			throw new Error("Invalid scale: scale <= 0");
 		}
 		this.resizeCanvas(this.gl.canvas);
+		const ch = this.size / this.gl.canvas.height;
 		const asp = this.gl.canvas.width / this.gl.canvas.height;
 		const width = scale * asp;
-		const left = x - width / 2;
-		const right = x + width / 2;
-		const bottom = y - scale / 2;
-		const top = y + scale / 2;
+		const left = x * ch - width / 2;
+		const right = x * ch + width / 2;
+		const bottom = y * ch - scale / 2;
+		const top = y * ch + scale / 2;
 		const near = 0.0001;
 		const far = 1000;
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
@@ -193,10 +194,10 @@ class Render {
 		
 		// отрисовка фона
 		
+		
 		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-		const ch = this.size / this.gl.canvas.height;
 		for (let c in arrayOfChunk) {
             for (let y in arrayOfChunk[c].chunk) {
 				for (let x in arrayOfChunk[c].chunk[y]) {

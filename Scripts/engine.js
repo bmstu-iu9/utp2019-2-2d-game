@@ -183,6 +183,7 @@ class Render {
 			]); // "вырезаем" кусок экрана для отображения
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1); // заполняем фон цветом
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		arrayOfChunk.forEach((c) => {
 			c.chunk.forEach((arr, y) => {
 				arr.forEach((id, x) => {
@@ -223,9 +224,9 @@ class Render {
 			]); // "вырезаем" кусок экрана для отображения
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1); // заполняем фон цветом
-			*/
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT); // чистим буфер цвета и буфер глубины
 		
+			*/
 		// отрисовка фона
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);

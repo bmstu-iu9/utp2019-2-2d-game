@@ -393,7 +393,7 @@ const generate = (width, height, seed) => {
             }
         }
     }
-
+          
     return new GameArea(worldMap, "ids.json", width, height);
 }
 
@@ -408,6 +408,7 @@ const visualisator = (gameArea) => {
                     str += "#";
                 }else{
                     if(block == 18){
+
                         str += "@";
                     }else str += block;
                 }
@@ -422,4 +423,4 @@ const visualisator = (gameArea) => {
 }
 
 // Пример генерации
-/* visualisator(generate(5000, 1024, 1341245)); */
+/* visualisator(generate(1024, 1024, 1341241)); */

@@ -369,16 +369,24 @@ const generate = (width, height, seed) => {
     let worldMap = new Map();
     for(let x = 0; x < width; x++){
         let grassDepth = Math.floor(random() * 4) + 2
+        let dirtDepth = grassDepth - 1;
         for(let y = height - 1; y >= 0; y--){
             if(landMatrix[x][y]){
                 if(grassDepth > 0){
-                    worldMap[[x, y, GameArea.BACK_LAYOUT]] = 2 // ID травы
-                    if(withCavesMatrix[x][y]){
-                        worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 2 // ID травы
+                    if(grassDepth > dirtDepth){
+                        worldMap[[x, y, GameArea.BACK_LAYOUT]] = 2 // ID травы
+                        if(withCavesMatrix[x][y]){
+                            worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 2 // ID травы
+                        }
+                    }else{
+                        worldMap[[x, y, GameArea.BACK_LAYOUT]] = 3 // ID грязи
+                        if(withCavesMatrix[x][y]){
+                            worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 3 // ID грязи
+                        }
                     }
                     grassDepth--;
                 }else{
-                    worldMap[[x, y, GameArea.BACK_LAYOUT]] = 1 // ID травы
+                    worldMap[[x, y, GameArea.BACK_LAYOUT]] = 1 // ID камня
                     if(withCavesMatrix[x][y]){
                         worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 1 // ID камня
                     }
@@ -390,14 +398,16 @@ const generate = (width, height, seed) => {
             worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 7 // ID бедрока
         }
     }
+
+    // Установка деревьев
     let treeArr = treeGen(landMatrix, withCavesMatrix, 14, 23, Math.floor(width * 2 / 3));
     for(let i = 0; i < treeArr.length; i++){
         for (let j = 0; j < treeArr[i].length; j++){
             if (!treeArr[i][j] == 0){
                 if (treeArr[i][j] === 1) {
-                    worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 3;
+                    worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 17;
                 }
-                else worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 4;
+                else worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 18;
             }
         }
     }
@@ -412,10 +422,10 @@ const visualisator = (gameArea) => {
         for (let j = 0; j < gameArea.height; j++){
             let block = gameArea.map[[i, j, GameArea.MAIN_LAYOUT]];
             if(block != undefined){
-                if(block == 3){
+                if(block == 17){
                     str += "#";
                 }else{
-                    if(block == 4){
+                    if(block == 18){
                         str += "@";
                     }else str += block;
                 }

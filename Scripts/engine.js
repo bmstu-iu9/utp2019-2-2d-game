@@ -153,20 +153,18 @@ class Render {
 				obj.b[0], obj.a[1]]);
 			this.ids[obj.id] = endId++;
 		});
+		// создание буфера и атрибута координат позиций
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
+		this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+		this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
+		// создание буфера и атрибута текстурных координат
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
-		
-		this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-		this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-			
 		this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
@@ -200,23 +198,24 @@ class Render {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		const ch = this.size / this.gl.canvas.height;
-		arrayOfChunk.forEach((c) => {
-			c.chunk.forEach((arr, y) => {
-				arr.forEach((id, x) => {
-					if (id != undefined) {
-						if (this.ids[id] === undefined) {
-							throw new Error("Такого Id нет: " + id);
-						}
-						this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-							[1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							x * ch, y * ch, c.slice, 1]);
-						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
-					}
-				});
-			});
-		});
+		for (let c in arrayOfChunk) {
+            for (let y in arrayOfChunk[c].chunk) {
+				for (let x in arrayOfChunk[c].chunk[y]) {
+					const id = arrayOfChunk[c].chunk[y][x];
+                    if (id !== undefined) {
+                        if (this.ids[id] === undefined) {
+                            throw new Error("Такого Id нет: " + id);
+                        }
+                        this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
+                            [1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 1, 0,
+                            x * ch, y * ch, -arrayOfChunk[c].slice, 1]);
+                        this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
+                    }
+                }
+            }
+        }
 	}
 	
 	OLDrender(x, y, scale, arrayOfObjects) {

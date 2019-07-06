@@ -119,6 +119,7 @@ class Render {
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
 		this.translateUniformLocation = this.gl.getUniformLocation(this.program, 'u_translate');
 		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
+		this.lightUniformLocation = this.gl.getUniformLocation(this.program, 'u_light');
 		
 		// создание текстуры
 		const imgs = [image, background];
@@ -200,7 +201,7 @@ class Render {
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
-	render(x, y, scale, arrayOfChunk) {
+	render(x, y, scale, light, arrayOfChunk) {
 		if (scale <= 0) {
 			throw new Error("Invalid scale: scale <= 0");
 		}
@@ -230,6 +231,7 @@ class Render {
 		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+		this.gl.uniform1f(this.lightUniformLocation, light);
 		for (let c in arrayOfChunk) {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;

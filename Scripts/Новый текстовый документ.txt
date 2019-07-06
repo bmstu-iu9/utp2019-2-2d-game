@@ -1,53 +1,44 @@
-'use strict';
+use strict';
 
-// РќРµ Р»РµР·СЊ, РѕРЅРѕ С‚РµР±СЏ СЃРѕР¶СЂС‘С‚!
+// Не лезь, оно тебя сожрёт!
 
 /*
-РљР°Рє СЌС‚Рѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ?
-
-const r = new Render(image, background); // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РґРІРёР¶РєР°
-	image - СЌС‚Рѕ РѕР±СЉРµРєС‚ Image
-	background - СЌС‚Рѕ РёР·РѕР±СЂР°Р¶РµРЅРёРµ СЃ С„РѕРЅРѕРј РѕР±СЉРµРєС‚Р° Image
-
-Р”Р»СЏ РєРѕСЂСЂРµРєС‚РЅРѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ С„РѕРЅР°, Р»РµРІР°СЏ Рё РїСЂР°РІР°СЏ РїРѕР»РѕРІРёРЅС‹ С„РѕРЅР° РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ Р°Р±СЃРѕР»СЋС‚РЅРѕ РѕРґРёРЅР°РєРѕРІС‹РјРё!!!
-
-РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ С‚РёРїР° Image:
+Как это использовать?
+const r = new Render(image, background); // инициализация движка
+	image - это объект Image
+	background - это изображение с фоном объекта Image
+Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
+Пример использования типа Image:
 const image = new Image();
 image.src = 'image.png';
 image.onload = () => {
 	...
 }
-
-РР·РѕР±СЂР°Р¶РµРЅРёСЏ РґРѕР»Р¶РЅС‹ РЅР°С…РѕРґРёС‚СЃСЏ РІ РІРёРґРµ С‚РµРєСЃС‚СѓСЂРЅРѕРіРѕ Р°С‚Р°Р»Р°СЃР°,
-РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ СЃ РїРѕРјРѕС‰СЊСЋ С‚РµРєСЃС‚СѓСЂРЅС‹С… РєРѕРѕСЂРґРёРЅР°С‚ С‡Р°СЃС‚РёС‡РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ.
-Р РµРєРѕРјРµРЅРґСѓРµС‚СЃСЏ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЂР°Р·РјРµСЂ СЃС‚РµРїРµРЅРё РґРІРѕР№РєРё.
-
-РќР°СЃС‚СЂРѕР№РєР° (РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РІС‹Р·РІР°РЅР° РїРµСЂРµРґ СЃРѕР·РґР°РЅРёРµРј РѕР±СЉРµРєС‚РѕРІ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ):
+Изображения должны находится в одном файле (кроме фона),
+которые будут с помощью текстурных координат частично использования.
+Рекомендуется использовать размер степени двойки.
+Настройка (должна быть вызвана перед созданием объектов обязательно):
 r.settings(size, widthChunk, heightChunk)
-	size - СЂР°Р·РјРµСЂ Р±Р»РѕРєРѕРІ
-	widthChunk - С€РёСЂРёРЅР° С‡Р°РЅРєРѕРІ
-	heightChunk - РІС‹СЃРѕС‚Р° С‡Р°РЅРєРѕРІ
-
-РЎРѕР·РґР°РЅРёРµ РѕР±СЉРµРєС‚РѕРІ:
+	size - размер блоков
+	widthChunk - ширина чанков
+	heightChunk - высота чанков
+Создание объектов:
 r.createObjects(arrayOfObjects)
-	arrayOfChunk - РјР°СЃСЃРёРІ/РѕР±СЉРµРєС‚ С‚Р°РєРёС… Р°СЃСЃРѕС†РёР°С‚РёРІРЅС‹С… РјР°СЃСЃРёРІРѕРІ:
+	arrayOfChunk - массив/объект таких ассоциативных массивов:
 		{'id': id, 'a': [x1, y1], 'b': [x2, y2]}
-			id - id Р±Р»РѕРєР°
-			x1, y1 - РєРѕРѕСЂРґРёРЅР°С‚С‹ Р»РµРІРѕРіРѕ РІРµСЂС…РЅРµРіРѕ СѓРіР»Р° РЅР° С‚РµРєСЃС‚СѓСЂРµ [0..1]
-			x2, y2 - РєРѕРѕСЂРґРёРЅР°С‚С‹ РЅРёР¶РЅРµРіРѕ РїСЂР°РІРѕРіРѕ СѓРіР»Р° РЅР° С‚РµРєСЃС‚СѓСЂРµ [0..1]
-
-РћС‚СЂРёСЃРѕРІРєР°:
+			id - id блока
+			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
+			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
+Отрисовка:
 r.render(x, y, scale, arrayOfObjects)
-	x, y - РєРѕРѕСЂРґРёРЅР°С‚С‹ РєР°РјРµСЂС‹
-	scale - РјР°СЃС€С‚Р°Р± СЌРєСЂР°РЅР°
-	arrayOfObjects - РјР°СЃСЃРёРІ/РѕР±СЉРµРєС‚ С‡Р°РЅРєРѕРІ, РєРѕС‚РѕСЂС‹Рµ РїСЂРµРґСЃС‚Р°РІР»СЏСЋС‚СЃСЏ РІ РІРёРґРµ Р°СЃСЃРѕС†РёР°С‚РёРІРЅС‹С… РјР°СЃСЃРёРІРѕРІ:
+	x, y - координаты камеры
+	scale - масштаб экрана
+	arrayOfObjects - массив/объект чанков, которые представляются в виде ассоциативных массивов:
 		{'chunk': chunk', 'slice': slice, 'x': xc, 'y': yc}
-			chunk - РјР°С‚СЂРёС†Р° СЃ id Р±Р»РѕРєРѕРІ
-			slice - СЃР»РѕР№ РЅР° РєРѕС‚РѕСЂРѕРј РґРѕР»Р¶РµРЅ РЅР°С…РѕРґРёС‚СЊСЃСЏ С‡Р°РЅРє [4..1000]
-			xc, yc - РєРѕРѕСЂРґРёРЅР°С‚С‹ С‡Р°РЅРєР°
-
-РџРѕР»РЅС‹Р№ СЂР°Р±РѕС‡РёР№ РїСЂРёРјРµСЂ:
-
+			chunk - матрица с id блоков
+			slice - слой на котором должен находиться чанк [4..1000]
+			xc, yc - координаты чанка
+Полный рабочий пример:
 const image = new Image();
 image.src = 'Images/image.png';
 image.onload = () => {
@@ -83,15 +74,14 @@ image.onload = () => {
 		requestAnimationFrame(update);
     };
 };
-
-Р§РµРіРѕ-С‚Рѕ РЅРµРїРѕРЅСЏС‚РЅРѕ?
-РћР±СЂР°С‰Р°С‚СЊСЃСЏ Рє РќР°РґРёРјСѓ.
+Чего-то непонятно?
+Обращаться к Надиму.
 */
 
 class Render {
 	constructor(image, background) {
-		const canvas = document.getElementById('canvas'); // РїРѕР»СѓС‡Р°РµРј РєР°РЅРІР°СЃ
-		this.gl = canvas.getContext('webgl'); // РїРѕР»СѓС‡Р°РµРј РґРѕСЃС‚СѓРї Рє webgl
+		const canvas = document.getElementById('canvas'); // получаем канвас
+		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
 		if (!this.gl) {
 			const ErrorMsg = 'Browser is very old';
 			stop();
@@ -99,35 +89,35 @@ class Render {
 			throw new Error(ErrorMsg);
 		}
 		
-		// СЃР±РѕСЂРєР° Рё РєРѕРјРїРёР»СЏС†РёСЏ С€РµР№РґРµСЂРЅРѕР№ РїСЂРѕРіСЂР°РјРјС‹
+		// сборка и компиляция шейдерной программы
 		const vertexShader = this.createShader(this.gl.VERTEX_SHADER,
 			document.getElementById('vertex-shader').text);
 		const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER,
 			document.getElementById('fragment-shader').text);
 		this.program = this.createProgram(vertexShader, fragmentShader);
 		
-		// РёСЃРїРѕР»СЊР·СѓРµРј С€РµР№РґРµСЂРЅСѓСЋ РїСЂРѕРіСЂР°РјРјСѓ
+		// используем шейдерную программу
 		this.gl.useProgram(this.program);
 		
-		// РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ
+		// прозрачность
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		this.gl.enable(this.gl.CULL_FACE);
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
 		
-		// РїРѕР»СѓС‡РµРЅРёРµ uniform-РїРµСЂРµРјРµРЅРЅС‹С… РёР· С€РµР№РґРµСЂРѕРІ
+		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
-		this.translateUniformLocation = this.gl.getUniformLocation(this.program, 'u_translate');
+		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_modelviewMatrix');
 		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
 		
-		// СЃРѕР·РґР°РЅРёРµ С‚РµРєСЃС‚СѓСЂС‹
+		// создание текстуры
 		const imgs = [image, background];
 		this.textures = [];
 		for (let i = 0; i < 2; i++) {
 			const texture = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			
-			// Р·Р°РґР°РЅРёРµ РїР°СЂР°РјРµС‚СЂРѕРІ С‚РµРєСЃС‚СѓСЂС‹
+			// задание параметров текстуры
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
@@ -139,8 +129,13 @@ class Render {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.backgroundAsp = background.width / background.height / 2;
 		
-		// РµРґРёРЅРёС‡РЅС‹Рµ РјР°С‚СЂРёС†С‹
+		// единичные матрицы
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false,
+			[1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1]);
+		this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
 			[1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
@@ -181,18 +176,18 @@ class Render {
 			this.ids[obj.id] = endId++;
 		});
 		
-		// РїРѕР»СѓС‡РµРЅРёРµ Р°С‚СЂРёР±СѓС‚РѕРІ РёР· РІРµСЂС€РёРЅРЅРѕРіРѕ С€РµР№РґРµСЂР°
+		// получение атрибутов из вершинного шейдера
 		const positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
 		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
 		
-		// СЃРѕР·РґР°РЅРёРµ Р±СѓС„РµСЂР° Рё Р°С‚СЂРёР±СѓС‚Р° РєРѕРѕСЂРґРёРЅР°С‚ РїРѕР·РёС†РёР№
+		// создание буфера и атрибута координат позиций
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
 		this.gl.enableVertexAttribArray(positionAttributeLocation);
 		this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
-		// СЃРѕР·РґР°РЅРёРµ Р±СѓС„РµСЂР° Рё Р°С‚СЂРёР±СѓС‚Р° С‚РµРєСЃС‚СѓСЂРЅС‹С… РєРѕРѕСЂРґРёРЅР°С‚
+		// создание буфера и атрибута текстурных координат
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
@@ -219,15 +214,15 @@ class Render {
 				0.0, 2.0 / (top - bottom), 0.0, 0.0,
 				0.0, 0.0, -2.0 / (far - near), 0.0,
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0
-			]); // "РІС‹СЂРµР·Р°РµРј" РєСѓСЃРѕРє СЌРєСЂР°РЅР° РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ
+			]); // "вырезаем" кусок экрана для отображения
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
-		this.gl.clearColor(0.53, 0.81, 0.98, 1); // Р·Р°РїРѕР»РЅСЏРµРј С„РѕРЅ С†РІРµС‚РѕРј
+		this.gl.clearColor(0.53, 0.81, 0.98, 1); // заполняем фон цветом
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		
-		// РѕС‚СЂРёСЃРѕРІРєР° С„РѕРЅР°
+		// отрисовка фона
 		
 		
-		// РѕС‚СЂРёСЃРѕРІРєР° Р±Р»РѕРєРѕРІ
+		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		for (let c in arrayOfChunk) {
@@ -238,10 +233,13 @@ class Render {
 					const id = arrayOfChunk[c].chunk[y][x];
                     if (id !== undefined) {
                         if (this.ids[id] === undefined) {
-                            throw new Error("РўР°РєРѕРіРѕ Id РЅРµС‚: " + id);
+                            throw new Error("Такого Id нет: " + id);
                         }
-                        this.gl.uniform3f(this.translateUniformLocation,
-							y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
+                        this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
+                            [1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 1, 0,
+                            y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice, 1]);
                         this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
                     }
                 }
@@ -250,8 +248,8 @@ class Render {
 	}
 	
 	OLDrender(x, y, scale, arrayOfObjects) {
-		// РќР• Р РђР‘РћРўРђР•Рў!!!
-		// РѕС‚СЂРёСЃРѕРІРєР° С„РѕРЅР°
+		// НЕ РАБОТАЕТ!!!
+		// отрисовка фона
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		const posBuffBackground = this.gl.createBuffer();
@@ -263,7 +261,7 @@ class Render {
 			m = m + 2 * width;
 		}
 		if (asp > this.backgroundAsp) {
-			// СЂР°СЃС‚СЏРЅСѓС‚СЊ РїРѕ С€РёСЂРёРЅРµ
+			// растянуть по ширине
 			const b = y - width / this.backgroundAsp / 2;
 			const t = y + width / this.backgroundAsp / 2;
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
@@ -274,7 +272,7 @@ class Render {
 				right, b, z,
 				right, t, z]), this.gl.STATIC_DRAW);
 		} else {
-			// СЂР°СЃС‚СЏРЅСѓС‚СЊ РїРѕ РІС‹СЃРѕС‚Рµ
+			// растянуть по высоте
 			const l = x - scale * this.backgroundAsp / 2;
 			const r = x + scale * this.backgroundAsp / 2;
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
@@ -306,12 +304,12 @@ class Render {
 			[1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
-			0, 0, 0, 1]);// ne rab
+			0, 0, 0, 1]);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 	}
 	
 	createShader(type, source) {
-		// СЃРѕР·РґР°РЅРёРµ С€РµР№РґРµСЂР°
+		// создание шейдера
 		const shader = this.gl.createShader(type);
 		this.gl.shaderSource(shader, source);
 		this.gl.compileShader(shader);
@@ -332,7 +330,7 @@ class Render {
 	}
 	
 	createProgram(vertexShader, fragmentShader){
-		// СЃРѕР·РґР°РЅРёРµ РїСЂРѕРіСЂР°РјРјС‹ РёР· С€РµР№РґРµСЂРѕРІ
+		// создание программы из шейдеров
 		const program = this.gl.createProgram();
 		this.gl.attachShader(program, vertexShader);
 		this.gl.attachShader(program, fragmentShader);
@@ -345,7 +343,7 @@ class Render {
 	}
 	
 	resizeCanvas(canvas, multiplier) {
-		// РїРѕРґРіРѕРЅСЏРµРј РєР°РЅРІР°СЃ РїРѕРґ СЌРєСЂР°РЅ
+		// подгоняем канвас под экран
 		multiplier = multiplier || 1;
 		var width = canvas.clientWidth * multiplier | 0;
 		var height = canvas.clientHeight * multiplier | 0;

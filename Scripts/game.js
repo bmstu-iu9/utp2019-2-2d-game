@@ -3,8 +3,8 @@
 const cameraScale = 1;  // Масштаб, 1 - стандарт
 let Vx = 0, Vy = 0, x, y;  // Рекомендация: не использовать скорость больше, чем 1 чанк в кадр (в таких случаях лучше телепортироваться)
 let cameraX = 0, cameraY = 0;  // Положение камеры
-const scale = 32  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
-const chankWidth = 8, chankHeight = 8
+const scale = 16  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
+const chankWidth = 4, chankHeight = 4
 const minLayout = 2, maxLayout = 2
 const blockResolution = 32  // Разрешение текстуры блока
 let deltaTime = 0
@@ -32,7 +32,6 @@ image.onload = () => {
         }
 
         const blocks = generate(1024, 1024, 1341241);  // Инициализация мира
-        console.log(blocks.map)
 
         let arrOfChunks = { }
         
@@ -42,31 +41,32 @@ image.onload = () => {
             newTime *= 0.01;
             deltaTime = newTime - oldTime
             oldTime = newTime
-            let neigChunk = [
-                [false, false, false],
-                [false, false, false],
-                [false, false, false]]
-                
-            for (let chunk in arrOfChunks) {
-                if ( !((chunk.x === curChankX && chunk.y === curChankY) ||
-                    (chunk.x === curChankX + 1 && chunk.y === curChankY) ||
-                    (chunk.x === curChankX - 1 && chunk.y === curChankY) ||
-                    (chunk.x === curChankX && chunk.y === curChankY + 1) ||
-                    (chunk.x === curChankX && chunk.y === curChankY - 1) ||
-                    (chunk.x === curChankX + 1 && chunk.y === curChankY + 1) ||
-                    (chunk.x === curChankX + 1 && chunk.y === curChankY - 1) ||
-                    (chunk.x === curChankX - 1 && chunk.y === curChankY + 1) ||
-                    (chunk.x === curChankX - 1 && chunk.y === curChankY - 1))) {  // Если не чанк в +\- 1 от некущего
-                    deleteChankById(chunk.x, chunk.y, arrOfChunks)
-                } else {  // Если чанк ближайший, то помечаем как отрисованный
-                    neigChunk[chunk.x + 1 - curChankX][chunk.y + 1 - curChankY] = true
-                }
-            }
 
-            for (let i = 0; i < neigChunk.length; i++) {
-                for (let j = 0; j < neigChunk[i].length; j++) {
-                    if(!neigChunk[i][j]) {
-                        loadChank(i + curChankX - 1, j + curChankY - 1, blocks, arrOfChunks)
+            {
+                const halfScreenChunkCapasityX = Math.ceil(r.getFieldSize()[0] / (2 * chankWidth)),
+                    halfScreenChunkCapasityY = Math.ceil(r.getFieldSize()[1] / (2 * chankHeight))
+                let neigChunk = { }
+                for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
+                    neigChunk[i] = { }
+                    for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
+                        neigChunk[i][j] = false
+                    }
+                }
+
+                for (let chunk in arrOfChunks) {
+                    if (neigChunk[arrOfChunks[chunk].x] === undefined ||
+                    neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] === undefined) {  // Если не ближайший чанк
+                        deleteChankById(arrOfChunks[chunk].x, arrOfChunks[chunk].y, arrOfChunks)
+                    } else {  // Если чанк ближайший, то помечаем как отрисованный
+                        neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true
+                    }
+                }
+
+                for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
+                    for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
+                        if(!neigChunk[i][j]) {
+                            loadChank(i, j, blocks, arrOfChunks)
+                        }
                     }
                 }
             }
@@ -86,7 +86,7 @@ image.onload = () => {
 
 const deleteChankById = (xLocate, yLocate, arrOfChunks) => {
     for (let chunk in arrOfChunks) {
-        if (chunk.x === xLocate && chunk.y === yLocate) {
+        if (arrOfChunks[chunk].x === xLocate && arrOfChunks[chunk].y === yLocate) {
             delete arrOfChunks[chunk]  // Удаляем все слои чанка
         }
     }
@@ -104,9 +104,9 @@ const loadChank = (xLocate, yLocate, blocks, arrOfChunks) => {
             layoutChunk.chunk[i - startX] = [ ]
             for (let j = startY; j < stopY; j++) {
                 if (i >= 0 && j >= 0 && i < blocks.width && j < blocks.height) {
-                    layoutChunk.chunk[i % chankWidth][j % chankHeight] = blocks.map[Math.floor(i)][Math.floor(j)][layout]
+                    layoutChunk.chunk[i - startX][j - startY] = blocks.map[Math.floor(i)][Math.floor(j)][layout]
                 } else {
-                    layoutChunk.chunk[i % chankWidth][j % chankWidth] = undefined
+                    layoutChunk.chunk[i - startX][j - startY] = undefined
                 }
             }
         }
@@ -125,5 +125,5 @@ const teleportTo = (toX, toY) => {
     cameraY = toY
 }
 
-teleportTo(500, 200)
+teleportTo(500, 700)
 moveTo (-1,-1, 0.2, 0)

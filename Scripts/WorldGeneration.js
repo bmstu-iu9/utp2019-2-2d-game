@@ -380,7 +380,6 @@ const generate = (width, height, seed) => {
         const placeOres = (type, frequency, maxRadius, minRadius, minHeight, maxHeight) => {
             minHeight *= height;
             maxHeight *= height;
-            console.log("Count: " + Math.floor(width * Math.floor(height * (maxHeight - minHeight)) * frequency));
             for(let i = 0; i < Math.floor(height * (maxHeight - minHeight)) * frequency; i++){
                 createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)), Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
             }

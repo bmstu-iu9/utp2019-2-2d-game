@@ -1,12 +1,12 @@
-// Вспомогательная часть
+// Вспомогательная часть (убрать)
 class GameArea{
-    constructor(map, pathToIdJSON, width, height){
+    constructor(map, width, height, pathToIdJSON){
         this.map = map;
         this.width = width;
         this.height = height;
     }
 }
-GameArea.MAIN_LAYOUT = 2;
+GameArea.MAIN_LAYOUT = 0;
 GameArea.BACK_LAYOUT = 1;
 
 // Класс координат в игровом пространстве
@@ -17,6 +17,7 @@ class Coordinate{
         this.layout = layout;
     }
 }
+
 
 // Генерация земли
 const generate = (width, height, seed) => {
@@ -354,8 +355,8 @@ const generate = (width, height, seed) => {
         return treeArr;
     }
 
-     // Генерация руд
-     const oreGen = () => {
+    // Генерация руд
+    const oreGen = () => {
         let oreArr = new Array();
         for(let i = 0; i < width; i++){
             oreArr[i] = new Array();
@@ -381,22 +382,22 @@ const generate = (width, height, seed) => {
             minHeight *= height;
             maxHeight *= height;
             console.log("Count: " + Math.floor(width * Math.floor(height * (maxHeight - minHeight)) * frequency));
-            for(let i = 0; i < Math.floor(height * (maxHeight - minHeight)) * frequency; i++){
-                createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)), Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
+            for(let i = 0; i < Math.floor(width * Math.floor(height * (maxHeight - minHeight)) * frequency); i++){
+                createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)), Math.floor(random() * width), minHeight + Math.floor(random() * (maxHeight - minHeight)));
             }
         }
 
         // Уголь
-        placeOres(16, 1/300, 3, 2, 0, 0.7);
+        placeOres(16, 1/100000, 3, 2, 0, 0.7);
 
         // Железо
-        placeOres(15, 1/400, 2, 1, 0, 0.5);
+        placeOres(15, 1/120000, 2, 1, 0, 0.5);
 
         // Золото
-        placeOres(14, 1/600, 2, 1, 0.1, 0.4);
+        placeOres(14, 1/140000, 2, 1, 0.1, 0.4);
 
         // Алмазы
-        placeOres(56, 1/1200, 1, 1, 0, 0.3);
+        placeOres(56, 1/150000, 1, 1, 0, 0.3);
 
         return oreArr;
     }
@@ -466,8 +467,8 @@ const generate = (width, height, seed) => {
             }
         }
     }
-
-    return new GameArea(worldMap, "ids.json", width, height);
+    
+    return new GameArea(worldMap, width, height, "./block_table.json");
 }
 
 // Визуализация полученной матрицы в консоли
@@ -481,6 +482,7 @@ const visualisator = (gameArea) => {
                     str += "#";
                 }else{
                     if(block == 18){
+
                         str += "@";
                     }else str += block;
                 }
@@ -495,4 +497,4 @@ const visualisator = (gameArea) => {
 }
 
 // Пример генерации
-// visualisator(generate(5000, 1024, 1341245));
+// visualisator(generate(3200, 1024, 1341241));

@@ -4,7 +4,7 @@ const cameraScale = 1;  // Масштаб, 1 - стандарт
 let Vx = 0, Vy = 0, x, y;  // Рекомендация: не использовать скорость больше, чем 1 чанк в кадр (в таких случаях лучше телепортироваться)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const scale = 32  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
-const chankWidth = 64, chankHeight = 32
+const chankWidth = 8, chankHeight = 8
 const minLayout = 2, maxLayout = 2
 const blockResolution = 32  // Разрешение текстуры блока
 let deltaTime = 0
@@ -32,6 +32,7 @@ image.onload = () => {
         }
 
         const blocks = generate(1024, 1024, 1341241);  // Инициализация мира
+        console.log(blocks.map)
 
         let arrOfChunks = { }
         
@@ -124,5 +125,5 @@ const teleportTo = (toX, toY) => {
     cameraY = toY
 }
 
-teleportTo(150, 600)
-moveTo (40, 100, 0.2, 0)
+teleportTo(500, 200)
+moveTo (-1,-1, 0.2, 0)

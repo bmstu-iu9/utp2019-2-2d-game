@@ -44,6 +44,7 @@ r.render(x, y, scale, arrayOfObjects)
 		{'chunk': chunk', 'slice': slice, 'x': xc, 'y': yc}
 			chunk - матрица с id блоков
 			slice - слой на котором должен находиться чанк [4..1000]
+			light - освещённость слоя [0..1]
 			xc, yc - координаты чанка
 
 Полный рабочий пример:
@@ -201,7 +202,7 @@ class Render {
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
-	render(x, y, scale, light, arrayOfChunk) {
+	render(x, y, scale, arrayOfChunk) {
 		if (scale <= 0) {
 			throw new Error("Invalid scale: scale <= 0");
 		}
@@ -231,10 +232,10 @@ class Render {
 		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-		this.gl.uniform1f(this.lightUniformLocation, light);
 		for (let c in arrayOfChunk) {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
+			this.gl.uniform1f(this.lightUniformLocation, arrayOfChunk[c].light);
             for (let y in arrayOfChunk[c].chunk) {
 				for (let x in arrayOfChunk[c].chunk[y]) {
 					const id = arrayOfChunk[c].chunk[y][x];

@@ -334,6 +334,53 @@ const generate = (width, height, seed) => {
         return treeArr;
     }
 
+     // Генерация руд
+     const oreGen = () => {
+        let oreArr = new Array();
+        for(let i = 0; i < width; i++){
+            oreArr[i] = new Array();
+        }
+
+        // Создать одну залежь руды
+        const createOre = (type, radius, x, y) => {
+            // Очистка блоков в радиусе
+            for (let i = x - radius; i <= x + radius; i++) {
+                for (let j = y - radius; j <= y + radius; j++) {
+                    if (i >= 0 && i < width && j >= 0 && j < height &&
+                        radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
+                        if(random() > 0.3){
+                            oreArr[i][j] = type;
+                        }
+                    }
+                }
+            }
+        } 
+        
+        // Разместить руды определенного типа
+        const placeOres = (type, frequency, maxRadius, minRadius, minHeight, maxHeight) => {
+            minHeight *= height;
+            maxHeight *= height;
+            console.log("Count: " + Math.floor(width * Math.floor(height * (maxHeight - minHeight)) * frequency));
+            for(let i = 0; i < Math.floor(height * (maxHeight - minHeight)) * frequency; i++){
+                createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)), Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
+            }
+        }
+
+        // Уголь
+        placeOres(16, 1/300, 3, 2, 0, 0.7);
+
+        // Железо
+        placeOres(15, 1/400, 2, 1, 0, 0.5);
+
+        // Золото
+        placeOres(14, 1/600, 2, 1, 0.1, 0.4);
+
+        // Алмазы
+        placeOres(56, 1/1200, 1, 1, 0, 0.3);
+
+        return oreArr;
+    }
+
     let landMatrix = landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height);
 
     let landMatrix1 = new Array;
@@ -345,6 +392,8 @@ const generate = (width, height, seed) => {
     }
 
     let withCavesMatrix = caveGen(landMatrix1, height * 2);
+
+    let oreArr = oreGen();
 
     let worldMap = new Array();
     for(let x = 0; x < width; x++){
@@ -370,7 +419,11 @@ const generate = (width, height, seed) => {
                 }else{
                     worldMap[x][y][GameArea.BACK_LAYOUT] = 1 // ID камня
                     if(withCavesMatrix[x][y]){
-                        worldMap[x][y][GameArea.MAIN_LAYOUT] = 1 // ID камня
+                        if(oreArr[x][y] != undefined){
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = oreArr[x][y];
+                        }else{
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 1 // ID камня
+                        }
                     }
                 }
             }
@@ -393,7 +446,7 @@ const generate = (width, height, seed) => {
             }
         }
     }
-    
+
     return new GameArea(worldMap, width, height, "./block_table.json");
 }
 
@@ -408,7 +461,6 @@ const visualisator = (gameArea) => {
                     str += "#";
                 }else{
                     if(block == 18){
-
                         str += "@";
                     }else str += block;
                 }

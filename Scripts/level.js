@@ -14,20 +14,20 @@ elevationMap							Карта высот мира
 
 
 const key = performance.now();  // Ключ генерации
-let x = 0, y = 0;
+let _x = 0, _y = 0;
 const beginPlay = () => {  // Вызывается только при запуске
     blocks = generate(1024, 1024, key);
-	x = 0;
-	y = elevationMap[x];
+	_x = 0;
+	_y = elevationMap[_x];
 }
 
 
 const eventTick = () => {  // Вызывается каждый кадр
 	let speed = 3;
-	if(x >= blocks.width - 1){
-		x = 1;
-		y = elevationMap[x];
+	if(_x >= blocks.width - 1){
+		_x = 1;
+		_y = elevationMap[_x];
 	}
-	let targetX = Math.floor(x) + 2, targetY = elevationMap[targetX];
-    cameraSet(x += speed * (targetX - x) * deltaTime / 1000, y += speed * (targetY - y) * deltaTime / 1000)
+	let targetX = Math.floor(_x) + 2, targetY = elevationMap[targetX];
+    cameraSet(_x += speed * (targetX - _x) * deltaTime / 1000, _y += speed * (targetY - _y) * deltaTime / 1000)
 }

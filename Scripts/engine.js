@@ -4,24 +4,30 @@
 
 /*
 Как это использовать?
+
 const r = new Render(image, background); // инициализация движка
 	image - это объект Image
 	background - это изображение с фоном объекта Image
+
 Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
+
 Пример использования типа Image:
 const image = new Image();
 image.src = 'image.png';
 image.onload = () => {
 	...
 }
-Изображения должны находится в одном файле (кроме фона),
+
+Изображения должны находится в виде текстурного аталаса,
 которые будут с помощью текстурных координат частично использования.
 Рекомендуется использовать размер степени двойки.
+
 Настройка (должна быть вызвана перед созданием объектов обязательно):
 r.settings(size, widthChunk, heightChunk)
 	size - размер блоков
 	widthChunk - ширина чанков
 	heightChunk - высота чанков
+
 Создание объектов:
 r.createObjects(arrayOfObjects)
 	arrayOfChunk - массив/объект таких ассоциативных массивов:
@@ -29,6 +35,7 @@ r.createObjects(arrayOfObjects)
 			id - id блока
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
+
 Отрисовка:
 r.render(x, y, scale, arrayOfObjects)
 	x, y - координаты камеры
@@ -38,7 +45,9 @@ r.render(x, y, scale, arrayOfObjects)
 			chunk - матрица с id блоков
 			slice - слой на котором должен находиться чанк [4..1000]
 			xc, yc - координаты чанка
+
 Полный рабочий пример:
+
 const image = new Image();
 image.src = 'Images/image.png';
 image.onload = () => {
@@ -74,6 +83,7 @@ image.onload = () => {
 		requestAnimationFrame(update);
     };
 };
+
 Чего-то непонятно?
 Обращаться к Надиму.
 */
@@ -107,7 +117,7 @@ class Render {
 		
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
-		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_modelviewMatrix');
+		this.translateUniformLocation = this.gl.getUniformLocation(this.program, 'u_translate');
 		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
 		
 		// создание текстуры
@@ -131,11 +141,6 @@ class Render {
 		
 		// единичные матрицы
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false,
-			[1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1]);
-		this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
 			[1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
@@ -235,11 +240,8 @@ class Render {
                         if (this.ids[id] === undefined) {
                             throw new Error("Такого Id нет: " + id);
                         }
-                        this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-                            [1, 0, 0, 0,
-                            0, 1, 0, 0,
-                            0, 0, 1, 0,
-                            y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice, 1]);
+                        this.gl.uniform3f(this.translateUniformLocation,
+							y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
                         this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
                     }
                 }
@@ -304,7 +306,7 @@ class Render {
 			[1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
-			0, 0, 0, 1]);
+			0, 0, 0, 1]);// ne rab
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 	}
 	

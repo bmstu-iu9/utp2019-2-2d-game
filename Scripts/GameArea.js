@@ -28,7 +28,7 @@ class GameArea{
         // path - путь к таблице с блоками в формате json
 		if (path === undefined) path = './block_table.json';
 		this.map = map;
-		//block_table - ассоциативный массив, сопоставляющий конкретное id его описанию
+		//block_table - ассоциативный массив, сопоставляющий конкретное id его описанию 
 		//this.block_table = require(path);
 		// Ширина и высота игрового пространства
 		this.width = width;

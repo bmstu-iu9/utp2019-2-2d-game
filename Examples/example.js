@@ -8,6 +8,9 @@ image.onload = () => {
 	background.onload = () => {
 		const r = new Render(image, background);
 		
+		r.settings(32, 4, 3);
+		
+
 		r.createObjects(
 			[{'id':1, 'a':[32.5/128, 32.5/128], 'b':[63.5/128, 63.5/128]},
 			{'id':3, 'a':[0.5/128, 0.5/128], 'b':[31.5/128, 31.5/128]}]);
@@ -17,17 +20,21 @@ image.onload = () => {
 				[[1,1,1,1],
 				[1,1,3,3],
 				[1,1,1,1]],
-			'slice': -1,
+
+          
+			'slice': 1,
+			'light': 1,
 			'x': 0,
 			'y': 0
 			}];
-		let e = -0.8;
+		let e = -20;
 		let oldtime = 0;
 		const update = (newtime) => {
-			newtime *= 0.0001;
+			newtime *= 0.005;
 			const deltaTime = newtime - oldtime;
 			oldtime = newtime;
 			r.render(e += deltaTime, 0, 1, arrayOfChunk);
+			fpsUpdate();
 			requestAnimationFrame(update);
 		}
 		requestAnimationFrame(update);

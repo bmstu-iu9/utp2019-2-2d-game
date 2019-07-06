@@ -1,0 +1,97 @@
+{
+    "1" : {
+        "id" : "1",
+        "type" : "stone",
+        "durability" : 50,
+        "brightness" : 0,
+        "isCollissed" : true,
+        "isPlatform"  : false,
+        "isClickable" : false,
+        "hasGravity"  : false,
+        "name" : "stone"
+    },
+
+    "2" : {
+        "id" : "2",
+        "type" : "dirt",
+        "durability" : 20,
+        "brightness" : 0,
+        "isCollissed" : true,
+        "isPlatform" : false,
+        "isClickable" : false,
+        "hasGravity" : false,
+        "name" : "grass"
+    },
+
+    "3" : {
+        "id" : "3",
+        "type" : "dirt",
+        "durability" : 20,
+        "brightness" : 0,
+        "isCollissed" : true,
+        "isPlatform" : false,
+        "isClickable" : false,
+        "hasGravity" : false,
+        "name" : "dirt"
+    },
+
+    "7" : {
+        "id" : "7",
+        "type" : "bedrock",
+        "durability" : 100,
+        "brightness" : 0,
+        "isCollissed" : true,
+        "isPlatform" : false,
+        "isClickable" : false,
+        "hasGravity" : false,
+        "name" : "bedrock"
+    },
+
+    "8" : {
+        "id" : "8",
+        "type" : "water",
+        "durability" : 100,
+        "brightness" : 0,
+        "isCollissed" : false,
+        "isPlatform" : false,
+        "isClickable" : false,
+        "hasGravity" : true,
+        "name" : "water"
+    },
+
+    "9" : {
+        "id" : "8",
+        "type" : "flowingWater",
+        "durability" : 100,
+        "brightness" : 0,
+        "isCollissed" : false,
+        "isPlatform" : false,
+        "isClickable" : false,
+        "hasGravity" : false,
+        "name" : "flowing-water-1"
+    },
+
+    "17" : {
+        "id" : "17",
+        "type" : "wood",
+        "durability" : 35,
+        "brightness" : 0,
+        "isCollissed" : false,
+        "isPlatform" : false,
+        "isClickable" : false,
+        "hasGravity" : false,
+        "name" : "wood"
+    },
+
+    "18" : {
+        "id" : "18",
+        "type" : "leaf",
+        "durability" : 10,
+        "brightness" : 0,
+        "isCollissed" : false,
+        "isPlatform" : false,
+        "isClickable" : false,
+        "hasGravity" : false,
+        "name" : "leaf"
+    }
+}

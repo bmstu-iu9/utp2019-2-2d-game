@@ -1,6 +1,5 @@
 // Карта высот
 let elevationMap = Array();
-
 // Генерация земли
 const generate = (width, height, seed) => {
     let seedTemp = seed;
@@ -232,11 +231,11 @@ const generate = (width, height, seed) => {
                     }
                 }
                 y = heights[x];
+
                 isTreeX[x] = true;
                 countTreeX++;
             }
             while (!worldArr[x][y] && countTreeX < worldArr.length);
-
             if (!worldArr[x][y] && countTreeX <= worldArr.length) {
                 countTreeX = worldArr.length;
                 break;
@@ -391,7 +390,6 @@ const generate = (width, height, seed) => {
 
         return oreArr;
     }
-
     let landMatrix = landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height);
 
     let landMatrix1 = new Array;
@@ -457,7 +455,6 @@ const generate = (width, height, seed) => {
             }
         }
     }
-
     return new GameArea(worldMap, width, height, "block_table.json");
 }
 
@@ -486,4 +483,4 @@ const visualisator = (gameArea) => {
 }
 
 // Пример генерации
-// visualisator(generate(5000, 1024, 1341245));
+/* visualisator(generate(1024, 1024, 1341241)); */

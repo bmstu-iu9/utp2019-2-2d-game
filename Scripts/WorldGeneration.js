@@ -1,3 +1,5 @@
+// Карта высот
+let elevationMap = Array();
 // Генерация земли
 const generate = (width, height, seed) => {
     let seedTemp = seed;
@@ -23,10 +25,18 @@ const generate = (width, height, seed) => {
             lastSign = sign;
             while (sectionLength > 0) {
                 let delta = 0;
-                if(lastDelta == 0 && random() > 0.07){
+                if(lastDelta == 0 && random() > 0.1){
                     delta = 0;
                 }else{
-                    delta = Math.ceil(random() * 3); // Максимальная разница в уровнях = 2
+                    if(random() > 0.5){
+                        delta = 1;
+                    }else{
+                        if(random() > 0.5){
+                            delta = 0;
+                        }else{
+                            delta = Math.ceil(random() * 2) + 1; // Максимальная разница в уровнях = 2
+                        }
+                    }
                 }
                 lastDelta = delta;
                 let nextHeight = heights[heights.length - 1] + delta * sign;
@@ -37,6 +47,7 @@ const generate = (width, height, seed) => {
                 sectionLength--;
             }
         }
+        elevationMap = heights;
         // Преобразование карты высот в матрицу
         let arr = new Array;
         for(let x = 0; x < widthWorld; x++){
@@ -219,16 +230,14 @@ const generate = (width, height, seed) => {
                         t--;
                     }
                 }
-                y = heights[x].length - 1;
-                while(y > 0 && !worldArr[x][y]){
-                    y--;
-                };
+                y = heights[x];
+
                 isTreeX[x] = true;
                 countTreeX++;
             }
             while (!worldArr[x][y] && countTreeX < worldArr.length);
-
-            if (!worldArr[x][y] && countTreeX < worldArr.length) {
+            if (!worldArr[x][y] && countTreeX <= worldArr.length) {
+                countTreeX = worldArr.length;
                 break;
             }
             else {
@@ -253,8 +262,10 @@ const generate = (width, height, seed) => {
                 if (x !== startX &&
                     (currentBranchLength === 0 || !(x >= 0 && x < worldArr.length && y < worldArr[x].length && !worldArr[x][y] && !isTreeX[x]) ||
                     (y - startY >= maxHeight))) {
-                    endOfBranchX.push(lastBranchX);
-                    endOfBranchY.push(lastBranchY);
+                    if (lastBranchX !== startX) {
+                        endOfBranchX.push(lastBranchX);
+                        endOfBranchY.push(lastBranchY);
+                    }
                     x = forkX;
                     y = ++forkY;
                 }
@@ -334,6 +345,51 @@ const generate = (width, height, seed) => {
         return treeArr;
     }
 
+     // Генерация руд
+     const oreGen = () => {
+        let oreArr = new Array();
+        for(let i = 0; i < width; i++){
+            oreArr[i] = new Array();
+        }
+
+        // Создать одну залежь руды
+        const createOre = (type, radius, x, y) => {
+            // Очистка блоков в радиусе
+            for (let i = x - radius; i <= x + radius; i++) {
+                for (let j = y - radius; j <= y + radius; j++) {
+                    if (i >= 0 && i < width && j >= 0 && j < height &&
+                        radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
+                        if(random() > 0.3){
+                            oreArr[i][j] = type;
+                        }
+                    }
+                }
+            }
+        } 
+        
+        // Разместить руды определенного типа
+        const placeOres = (type, frequency, maxRadius, minRadius, minHeight, maxHeight) => {
+            minHeight *= height;
+            maxHeight *= height;
+            for(let i = 0; i < Math.floor(height * (maxHeight - minHeight)) * frequency; i++){
+                createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)), Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
+            }
+        }
+
+        // Уголь
+        placeOres(16, 1/300, 3, 2, 0, 0.7);
+
+        // Железо
+        placeOres(15, 1/400, 2, 1, 0, 0.5);
+
+        // Золото
+        placeOres(14, 1/600, 2, 1, 0.1, 0.4);
+
+        // Алмазы
+        placeOres(56, 1/1200, 1, 1, 0, 0.3);
+
+        return oreArr;
+    }
     let landMatrix = landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height);
 
     let landMatrix1 = new Array;
@@ -346,10 +402,12 @@ const generate = (width, height, seed) => {
 
     let withCavesMatrix = caveGen(landMatrix1, height * 2);
 
+    let oreArr = oreGen();
+
     let worldMap = new Array();
     for(let x = 0; x < width; x++){
         worldMap[x] = new Array();
-        let grassDepth = Math.floor(random() * 4) + 2
+        let grassDepth = Math.floor(random() * 7) + 15
         let dirtDepth = grassDepth - 1;
         for(let y = height - 1; y >= 0; y--){
             worldMap[x][y] = new Array();
@@ -370,7 +428,11 @@ const generate = (width, height, seed) => {
                 }else{
                     worldMap[x][y][GameArea.BACK_LAYOUT] = 1 // ID камня
                     if(withCavesMatrix[x][y]){
-                        worldMap[x][y][GameArea.MAIN_LAYOUT] = 1 // ID камня
+                        if(oreArr[x][y] != undefined){
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = oreArr[x][y];
+                        }else{
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 1 // ID камня
+                        }
                     }
                 }
             }
@@ -382,7 +444,7 @@ const generate = (width, height, seed) => {
     }
 
     // Установка деревьев
-    let treeArr = treeGen(landMatrix, withCavesMatrix, 14, 23, Math.floor(width * 2 / 3));
+    let treeArr = treeGen(elevationMap, withCavesMatrix, 14, 23, Math.floor(width * 2 / 3));
     for(let i = 0; i < treeArr.length; i++){
         for (let j = 0; j < treeArr[i].length; j++){
             if (!treeArr[i][j] == 0){
@@ -393,8 +455,7 @@ const generate = (width, height, seed) => {
             }
         }
     }
-    
-    return new GameArea(worldMap, width, height, "./block_table.json");
+    return new GameArea(worldMap, width, height, "block_table.json");
 }
 
 // Визуализация полученной матрицы в консоли
@@ -408,7 +469,6 @@ const visualisator = (gameArea) => {
                     str += "#";
                 }else{
                     if(block == 18){
-
                         str += "@";
                     }else str += block;
                 }

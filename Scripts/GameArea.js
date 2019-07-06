@@ -28,8 +28,8 @@ class GameArea{
         // path - путь к таблице с блоками в формате json
 		if (path === undefined) path = './block_table.json';
 		this.map = map;
-		//block_table - ассоциативный массив, сопоставляющий конкретное id его описанию
-		this.block_table = require(path);
+		//block_table - ассоциативный массив, сопоставляющий конкретное id его описанию 
+		//this.block_table = require(path);
 		// Ширина и высота игрового пространства
 		this.width = width;
 		this.height = height;
@@ -200,13 +200,12 @@ class GameArea{
 
 // Константы уровня
 
-GameArea.FORWARD_LAYOUT = 2;
-GameArea.MAIN_LAYOUT = 0;
-GameArea.BACK_LAYOUT = 1;
+GameArea.FORWARD_LAYOUT = 1;
+GameArea.MAIN_LAYOUT = 2;
+GameArea.BACK_LAYOUT = 3;
 
 // Константы поведения игрового пространства
 GameArea.WATER_BLOCK_CAP = 12;  // Какова должна быть наполненность сходящихся потоков воды, чтобы на их месте создался
                                 // блок стоячей воды min = 1, max = 14. При этом наполненность блока стоячей воды = 8,
                                 // в то время как наполненность блока текучей воды изменяется от 7 до 1
                                 // id изменяются соотвественно от 9 до 15 включительно
-

@@ -104,10 +104,10 @@ class Render {
 			document.getElementById('vertex-shader').text);
 		const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER,
 			document.getElementById('fragment-shader').text);
-		const program = this.createProgram(vertexShader, fragmentShader);
+		this.program = this.createProgram(vertexShader, fragmentShader);
 		
 		// используем шейдерную программу
-		this.gl.useProgram(program);
+		this.gl.useProgram(this.program);
 		
 		// прозрачность
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -116,9 +116,9 @@ class Render {
 		this.gl.enable(this.gl.BLEND);
 		
 		// получение uniform-переменных из шейдеров
-		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_projectionMatrix');
-		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_modelviewMatrix');
-		this.resolutionUniformLocation = this.gl.getUniformLocation(program, 'u_resolution');
+		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
+		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_modelviewMatrix');
+		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
 		
 		// создание текстуры
 		const imgs = [image, background];
@@ -187,8 +187,8 @@ class Render {
 		});
 		
 		// получение атрибутов из вершинного шейдера
-		const positionAttributeLocation = this.gl.getAttribLocation(program, 'a_position');
-		const texCoordAttributeLocation = this.gl.getAttribLocation(program, 'a_texCoord');
+		const positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
+		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
 		
 		// создание буфера и атрибута координат позиций
 		const positionBuffer = this.gl.createBuffer();

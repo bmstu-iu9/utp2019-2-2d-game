@@ -7,7 +7,7 @@ class GameArea{
     }
 }
 GameArea.MAIN_LAYOUT = 2;
-GameArea.BACK_LAYOUT = 1;
+GameArea.BACK_LAYOUT = 3;
 
 // Класс координат в игровом пространстве
 class Coordinate{

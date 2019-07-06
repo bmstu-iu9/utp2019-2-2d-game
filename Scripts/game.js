@@ -1,14 +1,13 @@
 'use strict';
 
 const cameraScale = 1;  // Масштаб, 1 - стандарт
-let cameraX = 0, cameraY = 0;  // Положение камеры
 const scale = 16  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
+let cameraX = 0, cameraY = 0;  // Положение камеры
 const chankWidth = 8, chankHeight = 8  // Размеры чанка
-const minLayout = 2, maxLayout = 2  // Обрабатываемые слои
+const minLayout = 2, maxLayout = 3  // Обрабатываемые слои
 const blockResolution = 32  // Разрешение текстуры блока
 let deltaTime = 0  // Изменение времени между кадрами в мс
-const key = 1341241  // Ключ генерации
-let blocks = generate(1024, 1024, key);  // Инициализация мира
+let blocks;  // Игровой мир (объект GameArea)
 
 const image = new Image();
 image.src = 'Images/blocks.png';
@@ -42,7 +41,7 @@ image.onload = () => {
                 }
             }
         }
-        const loadChank = (xLocate, yLocate, blocks) => {
+        const loadChank = (xLocate, yLocate) => {
             const stopX = (xLocate + 1) * chankWidth
             const stopY = (yLocate + 1) * chankHeight
             const startX = xLocate * chankWidth
@@ -50,6 +49,11 @@ image.onload = () => {
         
             for (let layout = minLayout; layout <= maxLayout; layout++) {
                 let layoutChunk = { chunk: [ ], x: xLocate, y: yLocate, slice: layout }
+                if (layout === GameArea.MAIN_LAYOUT) {
+                    layoutChunk.light = 1
+                } else {
+                    layoutChunk.light = 0.5
+                }
                 for (let i = startX; i < stopX; i++) {
                     layoutChunk.chunk[i - startX] = [ ]
                     for (let j = startY; j < stopY; j++) {
@@ -64,14 +68,16 @@ image.onload = () => {
             }
         }
 
+        beginPlay()  // Кастомное событие
+
 		const update = (newTime) => {
-            const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
             deltaTime = newTime - oldTime
             oldTime = newTime
 
             eventTick()  // Кастомное событие
 
             {  // Обновление чанков
+                const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
                 const halfScreenChunkCapasityX = Math.ceil(r.getFieldSize()[0] / (2 * chankWidth)),
                     halfScreenChunkCapasityY = Math.ceil(r.getFieldSize()[1] / (2 * chankHeight))
                 let neigChunk = { }
@@ -94,7 +100,7 @@ image.onload = () => {
                 for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
                     for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
                         if(!neigChunk[i][j]) {
-                            loadChank(i, j, blocks)
+                            loadChank(i, j)
                         }
                     }
                 }
@@ -112,12 +118,4 @@ image.onload = () => {
 const cameraSet = (x, y) => {
     cameraX = x
     cameraY = y
-}
-
-let a=150,b=600,f=1;
-const eventTick = () => {
-    cameraSet(a+=deltaTime/1000,b)
-    if (a==1024) {
-        f=0
-    }
 }

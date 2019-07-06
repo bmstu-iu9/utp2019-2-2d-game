@@ -4,24 +4,30 @@
 
 /*
 Как это использовать?
+
 const r = new Render(image, background); // инициализация движка
 	image - это объект Image
 	background - это изображение с фоном объекта Image
+
 Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
+
 Пример использования типа Image:
 const image = new Image();
 image.src = 'image.png';
 image.onload = () => {
 	...
 }
+
 Изображения должны находится в виде текстурного аталаса,
 которые будут с помощью текстурных координат частично использования.
 Рекомендуется использовать размер степени двойки.
+
 Настройка (должна быть вызвана перед созданием объектов обязательно):
 r.settings(size, widthChunk, heightChunk)
 	size - размер блоков
 	widthChunk - ширина чанков
 	heightChunk - высота чанков
+
 Создание объектов:
 r.createObjects(arrayOfObjects)
 	arrayOfChunk - массив/объект таких ассоциативных массивов:
@@ -29,6 +35,7 @@ r.createObjects(arrayOfObjects)
 			id - id блока
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
+
 Отрисовка:
 r.render(x, y, scale, arrayOfObjects)
 	x, y - координаты камеры
@@ -37,9 +44,10 @@ r.render(x, y, scale, arrayOfObjects)
 		{'chunk': chunk', 'slice': slice, 'x': xc, 'y': yc}
 			chunk - матрица с id блоков
 			slice - слой на котором должен находиться чанк [4..1000]
-			light - освещённость слоя [0..1]
 			xc, yc - координаты чанка
+
 Полный рабочий пример:
+
 const image = new Image();
 image.src = 'Images/image.png';
 image.onload = () => {
@@ -75,6 +83,7 @@ image.onload = () => {
 		requestAnimationFrame(update);
     };
 };
+
 Чего-то непонятно?
 Обращаться к Надиму.
 */
@@ -110,7 +119,6 @@ class Render {
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
 		this.translateUniformLocation = this.gl.getUniformLocation(this.program, 'u_translate');
 		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
-		this.lightUniformLocation = this.gl.getUniformLocation(this.program, 'u_light');
 		
 		// создание текстуры
 		const imgs = [image, background];
@@ -225,7 +233,6 @@ class Render {
 		for (let c in arrayOfChunk) {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
-			this.gl.uniform1f(this.lightUniformLocation, arrayOfChunk[c].light);
             for (let y in arrayOfChunk[c].chunk) {
 				for (let x in arrayOfChunk[c].chunk[y]) {
 					const id = arrayOfChunk[c].chunk[y][x];

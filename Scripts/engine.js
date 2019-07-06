@@ -115,10 +115,6 @@ class Render {
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
 		
-		// получение атрибутов из вершинного шейдера
-		this.positionAttributeLocation = this.gl.getAttribLocation(program, 'a_position');
-		this.texCoordAttributeLocation = this.gl.getAttribLocation(program, 'a_texCoord');
-		
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_projectionMatrix');
 		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_modelviewMatrix');
@@ -161,6 +157,10 @@ class Render {
 		this.widthChunk = widthChunk;
 		this.heightChunk = heightChunk;
 	}
+	
+	getFieldSize() {
+		return [this.gl.canvas.width / this.size, this.gl.canvas.height / this.size];
+	}
 
 	createObjects(arrayOfObjects) {
 		let endId = 0;
@@ -185,19 +185,24 @@ class Render {
 				obj.b[0], obj.a[1]]);
 			this.ids[obj.id] = endId++;
 		});
+		
+		// получение атрибутов из вершинного шейдера
+		const positionAttributeLocation = this.gl.getAttribLocation(program, 'a_position');
+		const texCoordAttributeLocation = this.gl.getAttribLocation(program, 'a_texCoord');
+		
 		// создание буфера и атрибута координат позиций
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-		this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(positionAttributeLocation);
+		this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-		this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(texCoordAttributeLocation);
+		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
 	render(x, y, scale, arrayOfChunk) {
@@ -244,7 +249,7 @@ class Render {
                             [1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 1, 0,
-                            x * ch + xc, y * ch + yc, -arrayOfChunk[c].slice, 1]);
+                            y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice, 1]);
                         this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
                     }
                 }

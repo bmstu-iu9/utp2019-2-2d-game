@@ -14,10 +14,10 @@
 		uniform mat4 u_projectionMatrix;
 		uniform float u_resolution;
 		
-		varying vec2 u_texCoord;
+		varying vec2 v_texCoord;
 
 		void main() {
-			u_texCoord = a_texCoord;
+			v_texCoord = a_texCoord;
 			vec4 pos = u_modelviewMatrix * vec4(a_position / u_resolution, 0.0, 1.0);
 			gl_Position = u_projectionMatrix * pos;
 		}
@@ -27,10 +27,10 @@
 		
 		uniform sampler2D u_texture;
 		
-		varying vec2 u_texCoord;
+		varying vec2 v_texCoord;
 		
 		void main() {
-			gl_FragColor = texture2D(u_texture, u_texCoord); 
+			gl_FragColor = texture2D(u_texture, v_texCoord); 
 		}
 	</script>
 	<!-- JavaScript -- Сюда писать ваши скрипты -->

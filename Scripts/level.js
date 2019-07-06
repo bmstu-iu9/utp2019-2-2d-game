@@ -8,14 +8,26 @@ const blockResolution = 32              Разрешение текстуры б
 let deltaTime = 0                       Изменение времени между кадрами в мс
 let blocks;                             Игровой мир (объект GameArea)
 cameraSet(x, y)                         Устанавливает ккординаты камеры на (x, y)
+elevationMap							Карта высот мира
 */
 
-const key = 1654  // Ключ генерации
+
+
+const key = performance.now();  // Ключ генерации
+let x = 0, y = 0;
 const beginPlay = () => {  // Вызывается только при запуске
-    blocks = generate(1024, 1024, key)
+    blocks = generate(1024, 1024, key);
+	x = 0;
+	y = elevationMap[x];
 }
 
-let a = 150, b = 400
+
 const eventTick = () => {  // Вызывается каждый кадр
-    cameraSet(a += 20*deltaTime / 1000, b+=5*deltaTime / 1000)  // 20 по х и 5 по у блоков в сек
+	let speed = 3;
+	if(x >= blocks.width - 1){
+		x = 1;
+		y = elevationMap[x];
+	}
+	let targetX = Math.floor(x) + 2, targetY = elevationMap[targetX];
+    cameraSet(x += speed * (targetX - x) * deltaTime / 1000, y += speed * (targetY - y) * deltaTime / 1000)
 }

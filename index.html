@@ -4,26 +4,26 @@
 </head>
 <body>
 	<canvas id="canvas"></canvas>
+	<p id="fps" class="fps">  0 FPS</p>
 	<!-- GLSL -- Тут ничего не трограть, либо писать Надиму! -->
 	<script id="vertex-shader" type="none">
-		precision highp float;
-		
-		attribute vec3 a_position;
+		attribute vec2 a_position;
 		attribute vec2 a_texCoord;
 		
 		uniform mat4 u_modelviewMatrix;
 		uniform mat4 u_projectionMatrix;
+		uniform float u_resolution;
 		
 		varying vec2 u_texCoord;
 
 		void main() {
 			u_texCoord = a_texCoord;
-			vec4 pos = u_modelviewMatrix * vec4(a_position, 1.0);
+			vec4 pos = u_modelviewMatrix * vec4(a_position / u_resolution, 0.0, 1.0);
 			gl_Position = u_projectionMatrix * pos;
 		}
 	</script>
 	<script id="fragment-shader" type="none">
-		precision highp float;
+		precision mediump float;
 		
 		uniform sampler2D u_texture;
 		
@@ -35,6 +35,7 @@
 	</script>
 	<!-- JavaScript -- Сюда писать ваши скрипты -->
 	<script src="Scripts/engine.js"></script>
-	<script src="Scripts/WorldGeneration.js"></script>
 	<script src="Scripts/game.js"></script>
+	<script src="Scripts/fps.js"></script>
+	<script src="Scripts/WorldGeneration.js"></script>
 </body>

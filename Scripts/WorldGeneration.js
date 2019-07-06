@@ -6,7 +6,7 @@ class GameArea{
         this.height = height;
     }
 }
-GameArea.MAIN_LAYOUT = 0;
+GameArea.MAIN_LAYOUT = 2;
 GameArea.BACK_LAYOUT = 1;
 
 // Класс координат в игровом пространстве

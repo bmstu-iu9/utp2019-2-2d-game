@@ -22,23 +22,29 @@ image.onload = () => {
 которые будут с помощью текстурных координат частично использования.
 Рекомендуется использовать размер степени двойки.
 
-СЛЕДУЮЩАЯ ИНФОРМАЦИЯ УСТАРЕЛА!!!
+Настройка (должна быть вызвана перед создание объектов обязательно):
+r.settings(size, widthChunk, heightChunk)
+	size - размер блоков
+	widthChunk - ширина чанков
+	heightChunk - высота чанков
 
-Создание объекта:
-r.createObject([x1, y1], [x2, y2], [xi1, yi1], [xi2, yi2], slice)
-	x1, y1 - координаты левого верхнего угла
-	x2, y2 - координаты нижнего правого угла
-	xi1, yi1 - координаты левого верхнего угла на текстуре
-	xi2, yi2 - координаты нижнего правого угла на текстуре
-	slice - слой > 0. Чем больше значение, тем объект будет находить дальше от камеры.
-		(0.01..2) - интерфейс (не двигается)
-		(2..999) - игра
+Создание объектов:
+r.createObjects(arrayOfObjects)
+	arrayOfChunk - массив/объект таких ассоциативных массивов:
+		{'id': id, 'a': [x1, y1], 'b': [x2, y2]}
+			id - id блока
+			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
+			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
 
 Отрисовка:
 r.render(x, y, scale, arrayOfObjects)
 	x, y - координаты камеры
-	scale - масштаб
-	arrayOfObjects - массив объектов
+	scale - масштаб экрана
+	arrayOfObjects - массив/объект чанков, которые представляются в виде ассоциативных массивов:
+		{'chunk': chunk', 'slice': slice, 'x': x, 'y': y}
+			chunk - матрица с id блоков
+			slice - слой на котором должен находиться чанк [4..1000]
+			x, y - координаты чанка
 
 Полный рабочий пример:
 
@@ -128,9 +134,14 @@ class Render {
 			0, 0, 1, 0,
 			0, 0, 0, 1]);
 	}
+	
+	settings(size, widthChunk, heightChunk) {
+		this.size = size;
+		this.widthChunk = widthChunk;
+		this.heightChunk = heightChunk;
+	}
 
 	createObjects(arrayOfObjects) {
-		this.size = 32;
 		let endId = 0;
 		this.ids = [];
 		
@@ -181,7 +192,7 @@ class Render {
 		const bottom = y * ch - scale / 2;
 		const top = y * ch + scale / 2;
 		const near = 0.0001;
-		const far = 1000;
+		const far = 1002;
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
 				2.0 / (right - left), 0.0, 0.0, 0.0,
 				0.0, 2.0 / (top - bottom), 0.0, 0.0,
@@ -199,6 +210,8 @@ class Render {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		for (let c in arrayOfChunk) {
+			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
+			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
             for (let y in arrayOfChunk[c].chunk) {
 				for (let x in arrayOfChunk[c].chunk[y]) {
 					const id = arrayOfChunk[c].chunk[y][x];
@@ -210,7 +223,7 @@ class Render {
                             [1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 1, 0,
-                            x * ch, y * ch, -arrayOfChunk[c].slice, 1]);
+                            x * ch + xc, y * ch + yc, -arrayOfChunk[c].slice, 1]);
                         this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
                     }
                 }

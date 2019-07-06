@@ -4,6 +4,7 @@
 </head>
 <body>
 	<canvas id="canvas"></canvas>
+	<p id="fps" class="fps">  0 FPS</p>
 	<!-- GLSL -- Тут ничего не трограть, либо писать Надиму! -->
 	<script id="vertex-shader" type="none">
 		attribute vec2 a_position;
@@ -22,7 +23,7 @@
 		}
 	</script>
 	<script id="fragment-shader" type="none">
-		precision highp float;
+		precision mediump float;
 		
 		uniform sampler2D u_texture;
 		
@@ -34,5 +35,8 @@
 	</script>
 	<!-- JavaScript -- Сюда писать ваши скрипты -->
 	<script src="Scripts/engine.js"></script>
-	<script src="Examples/example.js"></script> <!-- Пример -->
+	<script src="Scripts/fps.js"></script>
+	<script src="WorldGeneration.js"></script> <!-- Пример -->
+	<script src="game.js"></script> <!-- Пример -->
+	<!--<script src="Examples/example.js"></script> <!-- Пример -->
 </body>

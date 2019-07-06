@@ -29,7 +29,8 @@ image.onload = () => {
 			newtime *= 0.005;
 			const deltaTime = newtime - oldtime;
 			oldtime = newtime;
-			r.render(e += deltaTime, 0, 1, arrayOfChunk);
+			r.render(e += deltaTime, 0, 1, arrayOfChunk
+			fpsUpdate();
 			requestAnimationFrame(update);
 		}
 		requestAnimationFrame(update);

@@ -2,7 +2,7 @@
 
 let _fps_time = performance.now() || Date.now(), _fps_countner = 0;
 
-const timeupdate = () => {
+const fpsUpdate = () => {
 	const nowtime = performance.now() || Date.now();
 	const delta = nowtime - _fps_time;
 	if (delta < 1000) {

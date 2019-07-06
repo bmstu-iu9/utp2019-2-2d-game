@@ -3,8 +3,11 @@
 const cameraScale = 1;  // Масштаб, 1 - стандарт
 let Vx = 0, Vy = 0, x, y;  // Рекомендация: не использовать скорость больше, чем 1 чанк в кадр (в таких случаях лучше телепортироваться)
 let cameraX = 0, cameraY = 0;  // Положение камеры
+const scale = 32  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 const chankWidth = 64, chankHeight = 32
 const minLayout = 2, maxLayout = 2
+const blockResolution = 32  // Разрешение текстуры блока
+let deltaTime = 0
 
 const image = new Image();
 image.src = 'Images/blocks.png';
@@ -13,25 +16,30 @@ image.onload = () => {
 	background.src = 'Images/background.png';
 	background.onload = () => {
         const r = new Render(image, image);
-        r.settings(16, chankWidth, chankHeight)
-        r.createObjects(
-            [{'id': 1, 'a': [0, 0], 'b': [1/8-1/16, 1/8-1/16]},
-            {'id': 2, 'a': [1/8+1/16, 0], 'b': [2/8-1/16, 1/8-1/16]},
-            {'id': 3, 'a': [2/8+1/16, 0], 'b': [3/8-1/16, 1/8-1/16]},
-            {'id': 7, 'a': [6/8+1/16, 0], 'b': [7/8-1/16, 0]},
-            {'id': 17, 'a': [0, 2/8+1/16], 'b': [1/8+1/16, 2/8+1/16]},
-            {'id': 18, 'a': [1/8+1/16, 2/8+1/16], 'b': [2/8-1/16, 2/8+1/16]},
-            ]);
+        r.settings(scale, chankWidth, chankHeight)
+
+        {
+            const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY = Math.floor(image.height / blockResolution)
+            let objects = [ ]
+            for (let i = 0; i < blocksCountX; i++) {
+                for (let j = 0; j < blocksCountY; j++) {
+                    objects.push({'id': j * blocksCountX + i + 1,
+                'a': [i * 1 / blocksCountX + 1 / image.width, j * 1 / blocksCountY + 1 / image.height],
+                'b': [(i + 1) * 1 / blocksCountX - 1 / image.width, (j + 1) * 1 / blocksCountY - 1 / image.height]})
+                }
+            }
+            r.createObjects(objects);
+        }
 
         const blocks = generate(1024, 1024, 1341241);  // Инициализация мира
 
         let arrOfChunks = { }
-
+        
         let oldTime = 0
 		const update = (newTime) => {
             const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
             newTime *= 0.01;
-            const deltaTime = newTime - oldTime
+            deltaTime = newTime - oldTime
             oldTime = newTime
             let neigChunk = [
                 [false, false, false],
@@ -117,4 +125,4 @@ const teleportTo = (toX, toY) => {
 }
 
 teleportTo(150, 600)
-moveTo (40, 100, 1, 0)
+moveTo (40, 100, 0.2, 0)

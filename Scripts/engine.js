@@ -4,30 +4,24 @@
 
 /*
 Как это использовать?
-
 const r = new Render(image, background); // инициализация движка
 	image - это объект Image
 	background - это изображение с фоном объекта Image
-
 Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
-
 Пример использования типа Image:
 const image = new Image();
 image.src = 'image.png';
 image.onload = () => {
 	...
 }
-
 Изображения должны находится в одном файле (кроме фона),
 которые будут с помощью текстурных координат частично использования.
 Рекомендуется использовать размер степени двойки.
-
 Настройка (должна быть вызвана перед созданием объектов обязательно):
 r.settings(size, widthChunk, heightChunk)
 	size - размер блоков
 	widthChunk - ширина чанков
 	heightChunk - высота чанков
-
 Создание объектов:
 r.createObjects(arrayOfObjects)
 	arrayOfChunk - массив/объект таких ассоциативных массивов:
@@ -35,7 +29,6 @@ r.createObjects(arrayOfObjects)
 			id - id блока
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
-
 Отрисовка:
 r.render(x, y, scale, arrayOfObjects)
 	x, y - координаты камеры
@@ -45,24 +38,42 @@ r.render(x, y, scale, arrayOfObjects)
 			chunk - матрица с id блоков
 			slice - слой на котором должен находиться чанк [4..1000]
 			xc, yc - координаты чанка
-
 Полный рабочий пример:
-
 const image = new Image();
-image.src = 'image.png';
+image.src = 'Images/image.png';
 image.onload = () => {
 	const background = new Image();
-	background.src = 'background.png';
+	background.src = 'Images/background.png';
 	background.onload = () => {
 		const r = new Render(image, background);
-		let t = [];
-		t.push(r.createObject([1, 1], [2, 2], [0, 0], [1, 1], 5));
-		t.push(r.createObject([2.5, 2.5], [4, 4], [0, 0], [0.5, 1], 5));
-		t.push(r.createObject([6.5, 2.5], [8, 4], [0.5, 0], [1, 1], 5));
-		r.render(1, 0, 6, t);
-	};
+		
+		r.settings(32, 4, 3);
+		
+		r.createObjects(
+			[{'id':1, 'a':[32.5/128, 32.5/128], 'b':[63.5/128, 63.5/128]},
+			{'id':3, 'a':[0.5/128, 0.5/128], 'b':[31.5/128, 31.5/128]}]);
+		
+        let arrayOfChunk = [{
+			'chunk':
+				[[1,1,1,1],
+				[1,1,3,3],
+				[1,1,1,1]],
+			'slice': 1,
+			'x': 0,
+			'y': 0
+			}];
+		let e = -20;
+		let oldtime = 0;
+		const update = (newtime) => {
+			newtime *= 0.005;
+			const deltaTime = newtime - oldtime;
+			oldtime = newtime;
+			r.render(e += deltaTime, 0, 1, arrayOfChunk);
+			requestAnimationFrame(update);
+		}
+		requestAnimationFrame(update);
+    };
 };
-
 Чего-то непонятно?
 Обращаться к Надиму.
 */
@@ -83,10 +94,10 @@ class Render {
 			document.getElementById('vertex-shader').text);
 		const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER,
 			document.getElementById('fragment-shader').text);
-		const program = this.createProgram(vertexShader, fragmentShader);
+		this.program = this.createProgram(vertexShader, fragmentShader);
 		
 		// используем шейдерную программу
-		this.gl.useProgram(program);
+		this.gl.useProgram(this.program);
 		
 		// прозрачность
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -94,14 +105,10 @@ class Render {
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
 		
-		// получение атрибутов из вершинного шейдера
-		this.positionAttributeLocation = this.gl.getAttribLocation(program, 'a_position');
-		this.texCoordAttributeLocation = this.gl.getAttribLocation(program, 'a_texCoord');
-		
 		// получение uniform-переменных из шейдеров
-		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_projectionMatrix');
-		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(program, 'u_modelviewMatrix');
-		this.resolutionUniformLocation = this.gl.getUniformLocation(program, 'u_resolution');
+		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
+		this.modelviewMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_modelviewMatrix');
+		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
 		
 		// создание текстуры
 		const imgs = [image, background];
@@ -111,8 +118,8 @@ class Render {
 			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			
 			// задание параметров текстуры
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imgs[i]);
@@ -140,6 +147,10 @@ class Render {
 		this.widthChunk = widthChunk;
 		this.heightChunk = heightChunk;
 	}
+	
+	getFieldSize() {
+		return [this.gl.canvas.width / this.size, this.gl.canvas.height / this.size];
+	}
 
 	createObjects(arrayOfObjects) {
 		let endId = 0;
@@ -164,19 +175,24 @@ class Render {
 				obj.b[0], obj.a[1]]);
 			this.ids[obj.id] = endId++;
 		});
+		
+		// получение атрибутов из вершинного шейдера
+		const positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
+		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
+		
 		// создание буфера и атрибута координат позиций
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-		this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(positionAttributeLocation);
+		this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-		this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(texCoordAttributeLocation);
+		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
 	render(x, y, scale, arrayOfChunk) {
@@ -218,7 +234,7 @@ class Render {
                     if (id !== undefined) {
                         if (this.ids[id] === undefined) {
                             throw new Error("Такого Id нет: " + id);
-						}
+                        }
                         this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
                             [1, 0, 0, 0,
                             0, 1, 0, 0,

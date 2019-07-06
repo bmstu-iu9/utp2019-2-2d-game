@@ -49,18 +49,39 @@ r.render(x, y, scale, arrayOfObjects)
 Полный рабочий пример:
 
 const image = new Image();
-image.src = 'image.png';
+image.src = 'Images/image.png';
 image.onload = () => {
 	const background = new Image();
-	background.src = 'background.png';
+	background.src = 'Images/background.png';
 	background.onload = () => {
 		const r = new Render(image, background);
-		let t = [];
-		t.push(r.createObject([1, 1], [2, 2], [0, 0], [1, 1], 5));
-		t.push(r.createObject([2.5, 2.5], [4, 4], [0, 0], [0.5, 1], 5));
-		t.push(r.createObject([6.5, 2.5], [8, 4], [0.5, 0], [1, 1], 5));
-		r.render(1, 0, 6, t);
-	};
+		
+		r.settings(32, 4, 3);
+		
+		r.createObjects(
+			[{'id':1, 'a':[32.5/128, 32.5/128], 'b':[63.5/128, 63.5/128]},
+			{'id':3, 'a':[0.5/128, 0.5/128], 'b':[31.5/128, 31.5/128]}]);
+		
+        let arrayOfChunk = [{
+			'chunk':
+				[[1,1,1,1],
+				[1,1,3,3],
+				[1,1,1,1]],
+			'slice': 1,
+			'x': 0,
+			'y': 0
+			}];
+		let e = -20;
+		let oldtime = 0;
+		const update = (newtime) => {
+			newtime *= 0.005;
+			const deltaTime = newtime - oldtime;
+			oldtime = newtime;
+			r.render(e += deltaTime, 0, 1, arrayOfChunk);
+			requestAnimationFrame(update);
+		}
+		requestAnimationFrame(update);
+    };
 };
 
 Чего-то непонятно?

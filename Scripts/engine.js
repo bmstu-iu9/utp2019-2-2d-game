@@ -91,7 +91,7 @@ image.onload = () => {
 
 class Render {
 	constructor(image, background) {
-		this.backgroundAsp = 1280 / 800; // размер фона
+		this.backgroundAsp = 512 / 512; // размер фона
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
 		if (!this.gl) {
@@ -260,17 +260,24 @@ class Render {
 		for (let c in arrayOfChunk) {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
-			this.gl.uniform1f(this.lightUniformLocation, arrayOfChunk[c].light);
-            for (let y in arrayOfChunk[c].chunk) {
-				for (let x in arrayOfChunk[c].chunk[y]) {
-					const id = arrayOfChunk[c].chunk[y][x];
-                    if (id !== undefined) {
-                        this.gl.uniform3f(this.translateUniformLocation,
-							y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
-                        this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
-                    }
-                }
-            }
+			if (arrayOfChunk[c].light != -100) {
+				
+				for (let y in arrayOfChunk[c].chunk) {
+					for (let x in arrayOfChunk[c].chunk[y]) {
+						const id = arrayOfChunk[c].chunk[y][x];
+						if (id !== undefined) {
+							if (this.ids[id] === undefined) {
+								throw new Error("Такого Id нет: " + id);
+							}
+							this.gl.uniform1f(this.lightUniformLocation,
+								arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "Light"].chunk[y][x]);
+							this.gl.uniform3f(this.translateUniformLocation,
+								y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
+							this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
+						}
+					}
+				}
+			}
         }
 	}
 	

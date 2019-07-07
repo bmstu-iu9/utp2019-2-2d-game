@@ -14,7 +14,7 @@
 								               Террарию)
 								foregr       - блоки переднего плана, добываются тоже (?) молотом */
 		// durability  : Прочность блока : от 1 до 100
-		// brightness  : Светимость блока : от 0 до 100
+		// brightness  : Светимость блока : от 0 до 9
 		// isCollissed : Можно ли проходить сквозь этот блок, true/false
 		// isPlatform  : Является ли блок платформой - можно ли спрыгнуть с него клавишей  вниз - как в платформере
 		// isClickable : Можно ли нажать на блок
@@ -23,16 +23,100 @@
 //===========================================================================================================================================
 // Игровое пространство
 class GameArea{
-	constructor(map, width, height, path){
+	constructor(map, elevationMap, shadowMap, width, height, path){
 		// map  - двумерная карта, состоящая из id блоков
         // path - путь к таблице с блоками в формате json
 		if (path === undefined) path = './block_table.json';
 		this.map = map;
-		//block_table - ассоциативный массив, сопоставляющий конкретное id его описанию 
-		//this.block_table = require(path);
+		this.elevationMap = elevationMap;
+		this.shadowMap = shadowMap;
+		this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
+
+		this.block_table = new Array(); // ПОКА НЕ РАБОТАЕТ
 		// Ширина и высота игрового пространства
 		this.width = width;
 		this.height = height;
+
+		// Возвращает освещение конкретного блока
+		this.getLight = (x, y) => {
+			let grad = (y > 0.5 * height) ? 1 : ((y < 0.3 * height) ? 0.2 : ((y - 0.3 * height) / (0.2 * height) * 0.8 + 0.2));
+			let k = Math.min(1/3 + this.timeOfDay / 2 * 3, grad);
+			let light = Math.max(Math.floor(shadowMap[x][y] / 1000) * 1000, shadowMap[x][y] % 1000) / 9;
+			return k * light;
+		}
+
+		this.updateLight = (x, y) => {
+
+			// Добавление источника света
+			const addShadowRound = (startX, startY, x, y, n, isNatural) => {
+		        const step = (nextX, nextY, n) => {
+		            if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
+		                    && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height 
+		                    && (shadowMap[nextX][nextY] == undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
+		                    return shadowRound(startX, startY, nextX, nextY, n, isNatural);
+		            }
+		            return new Array();
+		        }
+		        if(n > 0 && (shadowMap[x][y] == undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n))){
+		            if(isNatural){
+		                if(shadowMap[x][y] == undefined){
+		                    shadowMap[x][y] = n;
+		                }else{
+		                    shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000 + n;
+		                }
+		            }else{
+		                if(shadowMap[x][y] == undefined){
+		                    shadowMap[x][y] = n * 1000;
+		                }else{
+		                    shadowMap[x][y] = n * 1000 + shadowMap[x][y] % 1000;
+		                }
+		            }
+		            step(x + 1, y, n - 1);
+		            step(x - 1, y, n - 1);
+		            step(x, y + 1, n - 1);
+		            step(x, y - 1, n - 1);
+		        }
+		    }
+
+		    // Удаление источника света
+		    let lights = new Array();
+		    const deleteShadowRound = (startX, startY, x, y, n, isNatural) => {
+		        const step = (nextX, nextY, n) => {
+		            if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
+		                    && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height){
+		            		if((isNatural && shadowMap[nextX][nextY] % 1000 > n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) > n)){
+		            			lights.push([nextX, nextY]);
+		            			return;
+		            		}
+		                    shadowRound(startX, startY, nextX, nextY, n, isNatural);
+		            }
+		        }
+		        if(n > 0 && ((isNatural && shadowMap[x][y] % 1000 == n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) == n))){
+		            if(isNatural){
+		                shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000;
+		            }else{
+		                shadowMap[x][y] = shadowMap[x][y] % 1000;
+		            }
+		            step(x + 1, y, n - 1);
+		            step(x - 1, y, n - 1);
+		            step(x, y + 1, n - 1);
+		            step(x, y - 1, n - 1);
+		        }
+		    }
+
+		    if(shadowMap[x][y] % 1000 == 9 && map[x][y][GameArea.MAIN_LAYOUT] != undefined){
+		    	deleteShadowRound(x, y, x, y, 9, true);
+		    }else if(Math.floor(shadowMap[x][y] / 1000) == 9 && this.block_table[map[x][y][GameArea.MAIN_LAYOUT]].brightness != 9){
+		    	deleteShadowRound(x, y, x, y, 9, false);
+		    }else{
+		    	if(map[x][y][GameArea.MAIN_LAYOUT] == undefined){
+		    		addShadowRound(x, y, x, y, 9, true);
+		    	}else{
+		    		addShadowRound(x, y, x, y, this.block_table[map[x][y][GameArea.MAIN_LAYOUT]].brightness, false);
+		    	}
+		    }
+		}
+
 		// Проверка окружения блока, при наличии у него особого поведения. Особое поведение определеяется по типу
 		this.makeAirBlock = () => {
 			// Делает блок воздуха = undefined

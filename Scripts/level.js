@@ -15,18 +15,18 @@ cameraSet(x, y)                         Устанавливает ккорди�
 const key = performance.now();  // Ключ генерации
 let _x = 0, _y = 0;
 const beginPlay = () => {  // Вызывается только при запуске
-    blocks = generate(1024, 1024, key);
+    gameArea = generate(1024, 1024, key);
 	_x = 0;
-	_y = blocks.elevationMap[_x];
+	_y = gameArea.elevationMap[_x];
 }
 
 
 const eventTick = () => {  // Вызывается каждый кадр
 	let speed = 3;
-	if(_x >= blocks.width - 1){
+	if(_x >= gameArea.width - 1){
 		_x = 1;
-		_y = blocks.elevationMap[_x];
+		_y = gameArea.elevationMap[_x];
 	}
-	let targetX = Math.floor(_x) + 2, targetY = blocks.elevationMap[targetX];
+	let targetX = Math.floor(_x) + 2, targetY = gameArea.elevationMap[targetX];
     cameraSet(_x += speed * (targetX - _x) * deltaTime / 1000, _y += speed * (targetY - _y) * deltaTime / 1000)
 }

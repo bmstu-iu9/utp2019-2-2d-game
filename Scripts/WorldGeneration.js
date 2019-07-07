@@ -1,7 +1,7 @@
-// Карта высот
-let elevationMap = Array();
 // Генерация земли
 const generate = (width, height, seed) => {
+    let elevationMap = new Array();
+    let shadowMap = new Array();
     let seedTemp = seed;
     const random = () => {
         let x = Math.sin(seedTemp++) * 10000;
@@ -93,7 +93,7 @@ const generate = (width, height, seed) => {
 
         // Массив координат, под которыми нет пещер
         // Используется, чтобы напосредственно под каждым блоком поверхности находилась как минимум одна пещера
-        let isCaveX = new Array;
+        let isCaveX = new Array();
         for(let i = 0; i < worldArr.length; i++){
             isCaveX[i] = false;
         }
@@ -345,8 +345,8 @@ const generate = (width, height, seed) => {
         return treeArr;
     }
 
-     // Генерация руд
-     const oreGen = () => {
+    // Генерация руд
+    const oreGen = () => {
         let oreArr = new Array();
         for(let i = 0; i < width; i++){
             oreArr[i] = new Array();
@@ -455,7 +455,61 @@ const generate = (width, height, seed) => {
             }
         }
     }
-    return new GameArea(worldMap, width, height, "block_table.json");
+
+    const shadowRound = (startX, startY, x, y, n, isNatural) => {
+        const step = (nextX, nextY, n) => {
+            if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
+                    && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height 
+                    && (shadowMap[nextX][nextY] == undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
+                    shadowRound(startX, startY, nextX, nextY, n, isNatural);
+            }
+        }
+
+        // if(x == startX && y == startY){
+        //     console.log("start " + x + " " + y + " " + n);
+        // }
+        if(n > 0 && (shadowMap[x][y] == undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n))){
+            if(isNatural){
+                if(shadowMap[x][y] == undefined){
+                    shadowMap[x][y] = n;
+                }else{
+                    shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000 + n;
+                }
+            }else{
+                if(shadowMap[x][y] == undefined){
+                    shadowMap[x][y] = n * 1000;
+                }else{
+                    shadowMap[x][y] = n * 1000 + shadowMap[x][y] % 1000;
+                }
+            }
+            step(x + 1, y, n - 1);
+            step(x - 1, y, n - 1);
+            step(x, y + 1, n - 1);
+            step(x, y - 1, n - 1);
+        }
+
+    }
+
+    // Создание теней
+    const createShadows = (maxLight) => {
+        for(let i = 0; i < width; i++){
+            shadowMap[i] = new Array();
+        }
+
+        // Natural lighting
+        for(let x = 0; x < width; x++){
+            for(let y = 0; y < height; y++){
+                if(worldMap[x][y][GameArea.MAIN_LAYOUT] == undefined || worldMap[x][y][GameArea.MAIN_LAYOUT] == 0){
+                    shadowRound(x, y, x, y, maxLight, true);
+                }
+            }
+        }
+    }
+
+    // Создть карту освещения
+    createShadows(9);
+
+    return new GameArea(worldMap, elevationMap, shadowMap, width, height, "block_table.json");
 }
 
 // Визуализация полученной матрицы в консоли
@@ -483,4 +537,5 @@ const visualisator = (gameArea) => {
 }
 
 // Пример генерации
+generate(1024, 500, 1341241)
 /* visualisator(generate(1024, 1024, 1341241)); */

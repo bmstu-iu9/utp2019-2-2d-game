@@ -23,11 +23,13 @@
 //===========================================================================================================================================
 // Игровое пространство
 class GameArea{
-	constructor(map, width, height, path){
+	constructor(map, elevationMap, shadowMap, width, height, path){
 		// map  - двумерная карта, состоящая из id блоков
         // path - путь к таблице с блоками в формате json
 		if (path === undefined) path = './block_table.json';
 		this.map = map;
+		this.elevationMap = elevationMap;
+		this.shadowMap = shadowMap;
 		//block_table - ассоциативный массив, сопоставляющий конкретное id его описанию 
 		//this.block_table = require(path);
 		// Ширина и высота игрового пространства

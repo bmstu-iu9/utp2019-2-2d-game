@@ -1,6 +1,5 @@
 // Карта высот
 let elevationMap = Array();
-
 // Генерация земли
 const generate = (width, height, seed) => {
     let seedTemp = seed;

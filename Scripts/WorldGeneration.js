@@ -464,10 +464,6 @@ const generate = (width, height, seed) => {
                     shadowRound(startX, startY, nextX, nextY, n, isNatural);
             }
         }
-
-        // if(x == startX && y == startY){
-        //     console.log("start " + x + " " + y + " " + n);
-        // }
         if(n > 0 && (shadowMap[x][y] == undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n))){
             if(isNatural){
                 if(shadowMap[x][y] == undefined){
@@ -537,5 +533,4 @@ const visualisator = (gameArea) => {
 }
 
 // Пример генерации
-generate(1024, 500, 1341241)
 /* visualisator(generate(1024, 1024, 1341241)); */

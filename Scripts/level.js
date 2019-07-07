@@ -6,7 +6,7 @@ const chankWidth = 8, chankHeight = 8   Размеры чанка
 const minLayout = 2, maxLayout = 3      Обрабатываемые слои
 const blockResolution = 32              Разрешение текстуры блока
 let deltaTime = 0                       Изменение времени между кадрами в мс
-let blocks;                             Игровой мир (объект GameArea)
+let gameArea;                           Игровой мир (объект GameArea)
 cameraSet(x, y)                         Устанавливает ккординаты камеры на (x, y)
 */
 

@@ -16,7 +16,7 @@ image.onload = () => {
 	background.src = 'Images/background.png';
 	background.onload = () => {
 
-        const r = new Render(image, image);
+        const r = new Render(image, background);
         r.settings(scale, chankWidth, chankHeight)
 
         {  // Отправка образцов объектов

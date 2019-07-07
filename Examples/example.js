@@ -1,7 +1,7 @@
 'use strict';
 
 const image = new Image();
-image.src = 'Images/image.png';
+image.src = 'Images/blocks.png';
 image.onload = () => {
 	const background = new Image();
 	background.src = 'Images/background.png';
@@ -10,10 +10,9 @@ image.onload = () => {
 		
 		r.settings(32, 4, 3);
 		
-
 		r.createObjects(
-			[{'id':1, 'a':[32.5/128, 32.5/128], 'b':[63.5/128, 63.5/128]},
-			{'id':3, 'a':[0.5/128, 0.5/128], 'b':[31.5/128, 31.5/128]}]);
+			[{'id':1, 'a':[32.5/256, 32.5/256], 'b':[63.5/256, 63.5/256]},
+			{'id':3, 'a':[0.5/256, 0.5/256], 'b':[31.5/256, 31.5/256]}]);
 		
         let arrayOfChunk = [{
 			'chunk':
@@ -21,7 +20,6 @@ image.onload = () => {
 				[1,1,3,3],
 				[1,1,1,1]],
 
-          
 			'slice': 1,
 			'light': 1,
 			'x': 0,

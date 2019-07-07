@@ -4,24 +4,30 @@
 
 /*
 Как это использовать?
+
 const r = new Render(image, background); // инициализация движка
 	image - это объект Image
 	background - это изображение с фоном объекта Image
+
 Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
+
 Пример использования типа Image:
 const image = new Image();
 image.src = 'image.png';
 image.onload = () => {
 	...
 }
+
 Изображения должны находится в виде текстурного аталаса,
 которые будут с помощью текстурных координат частично использования.
 Рекомендуется использовать размер степени двойки.
+
 Настройка (должна быть вызвана перед созданием объектов обязательно):
 r.settings(size, widthChunk, heightChunk)
 	size - размер блоков
 	widthChunk - ширина чанков
 	heightChunk - высота чанков
+
 Создание объектов:
 r.createObjects(arrayOfObjects)
 	arrayOfChunk - массив/объект таких ассоциативных массивов:
@@ -29,6 +35,7 @@ r.createObjects(arrayOfObjects)
 			id - id блока
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
+
 Отрисовка:
 r.render(x, y, scale, arrayOfObjects)
 	x, y - координаты камеры
@@ -39,7 +46,9 @@ r.render(x, y, scale, arrayOfObjects)
 			slice - слой на котором должен находиться чанк [4..1000]
 			light - освещённость слоя [0..1]
 			xc, yc - координаты чанка
+
 Полный рабочий пример:
+
 const image = new Image();
 image.src = 'Images/image.png';
 image.onload = () => {
@@ -75,12 +84,14 @@ image.onload = () => {
 		requestAnimationFrame(update);
     };
 };
+
 Чего-то непонятно?
 Обращаться к Надиму.
 */
 
 class Render {
 	constructor(image, background) {
+		this.backgroundAsp = 1280 / 800; // размер фона
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
 		if (!this.gl) {
@@ -129,8 +140,7 @@ class Render {
 			this.textures.push(texture);
 		}
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
-		this.backgroundAsp = background.width / background.height / 2;
-		
+
 		// единичные матрицы
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false,
 			[1, 0, 0, 0,
@@ -150,11 +160,25 @@ class Render {
 	}
 
 	createObjects(arrayOfObjects) {
-		let endId = 0;
+		let endId = 2;
 		this.ids = [];
 		
-		let arrayOfPosition = [];
-		let arrayOfTexCoord = [];
+		let arrayOfPosition =
+			[0, 0,
+			this.backgroundAsp, 0,
+			0, 1,
+			0, 1,
+			this.backgroundAsp, 0,
+			this.backgroundAsp, 1,
+			0, 0,
+			this.backgroundAsp, 0,
+			0, 1,
+			0, 1,
+			this.backgroundAsp, 0,
+			this.backgroundAsp, 1];
+		let arrayOfTexCoord =
+			[0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0,
+			0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0];
 		arrayOfObjects.forEach((obj) => {
 			arrayOfPosition = arrayOfPosition.concat(
 				[0, 0,
@@ -173,11 +197,8 @@ class Render {
 			this.ids[obj.id] = endId++;
 		});
 		
-		// получение атрибутов из вершинного шейдера
-		const positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
-		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
-		
 		// создание буфера и атрибута координат позиций
+		const positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
@@ -185,6 +206,7 @@ class Render {
 		this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
+		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
@@ -217,11 +239,24 @@ class Render {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		
 		// отрисовка фона
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
+		this.gl.uniform1f(this.resolutionUniformLocation, 1);
+		this.gl.uniform1f(this.lightUniformLocation, 1);
+		const z = 1 - far;
 		
+		for (let i = 0; i < asp / 2 + 1; i++) {
+			this.gl.uniform3f(this.translateUniformLocation,
+				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * i, y * ch - 0.5, z);
+			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+			this.gl.uniform3f(this.translateUniformLocation,
+				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * -i - 1, y * ch - 0.5, z);
+			this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
+		}
 		
 		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+		
 		for (let c in arrayOfChunk) {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
@@ -230,9 +265,6 @@ class Render {
 				for (let x in arrayOfChunk[c].chunk[y]) {
 					const id = arrayOfChunk[c].chunk[y][x];
                     if (id !== undefined) {
-                        if (this.ids[id] === undefined) {
-                            throw new Error("Такого Id нет: " + id);
-                        }
                         this.gl.uniform3f(this.translateUniformLocation,
 							y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
                         this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
@@ -240,67 +272,6 @@ class Render {
                 }
             }
         }
-	}
-	
-	OLDrender(x, y, scale, arrayOfObjects) {
-		// НЕ РАБОТАЕТ!!!
-		// отрисовка фона
-		this.gl.uniform1f(this.resolutionUniformLocation, 1);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
-		const posBuffBackground = this.gl.createBuffer();
-		const texCoordBuffBackground = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, posBuffBackground);
-		const z = 1 - far;
-		let m = left % (2 * width);
-		if (m < 0) {
-			m = m + 2 * width;
-		}
-		if (asp > this.backgroundAsp) {
-			// растянуть по ширине
-			const b = y - width / this.backgroundAsp / 2;
-			const t = y + width / this.backgroundAsp / 2;
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
-				[left, b, z,
-				right, b, z,
-				left, t, z,
-				left, t, z,
-				right, b, z,
-				right, t, z]), this.gl.STATIC_DRAW);
-		} else {
-			// растянуть по высоте
-			const l = x - scale * this.backgroundAsp / 2;
-			const r = x + scale * this.backgroundAsp / 2;
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
-				[l, bottom, z,
-				r, bottom, z,
-				l, top, z,
-				l, top, z,
-				r, bottom, z,
-				r, top, z]), this.gl.STATIC_DRAW);
-		}
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffBackground);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(
-			[m / width / 4, 1,
-			m / width / 4 + 0.5, 1,
-			m / width / 4, 0,
-			m / width / 4, 0,
-			m / width / 4 + 0.5, 1,
-			m / width / 4 + 0.5, 0]), this.gl.DYNAMIC_DRAW);
-		
-		this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, posBuffBackground);
-		this.gl.vertexAttribPointer(this.positionAttributeLocation, 3, this.gl.FLOAT, false, 0, 0);
-		
-		this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffBackground);
-		this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-			
-		this.gl.uniformMatrix4fv(this.modelviewMatrixUniformLocation, false,
-			[1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1]);// ne rab
-		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 	}
 	
 	createShader(type, source) {

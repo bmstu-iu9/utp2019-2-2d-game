@@ -4,30 +4,24 @@
 
 /*
 Как это использовать?
-
 const r = new Render(image, background); // инициализация движка
 	image - это объект Image
 	background - это изображение с фоном объекта Image
-
 Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
-
 Пример использования типа Image:
 const image = new Image();
 image.src = 'image.png';
 image.onload = () => {
 	...
 }
-
 Изображения должны находится в виде текстурного аталаса,
 которые будут с помощью текстурных координат частично использования.
 Рекомендуется использовать размер степени двойки.
-
 Настройка (должна быть вызвана перед созданием объектов обязательно):
 r.settings(size, widthChunk, heightChunk)
 	size - размер блоков
 	widthChunk - ширина чанков
 	heightChunk - высота чанков
-
 Создание объектов:
 r.createObjects(arrayOfObjects)
 	arrayOfChunk - массив/объект таких ассоциативных массивов:
@@ -35,7 +29,6 @@ r.createObjects(arrayOfObjects)
 			id - id блока
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
-
 Отрисовка:
 r.render(x, y, scale, arrayOfObjects)
 	x, y - координаты камеры
@@ -46,9 +39,7 @@ r.render(x, y, scale, arrayOfObjects)
 			slice - слой на котором должен находиться чанк [4..1000]
 			light - освещённость слоя [0..1]
 			xc, yc - координаты чанка
-
 Полный рабочий пример:
-
 const image = new Image();
 image.src = 'Images/image.png';
 image.onload = () => {
@@ -84,7 +75,6 @@ image.onload = () => {
 		requestAnimationFrame(update);
     };
 };
-
 Чего-то непонятно?
 Обращаться к Надиму.
 */

@@ -495,7 +495,8 @@ const generate = (width, height, seed) => {
         // Natural lighting
         for(let x = 0; x < width; x++){
             for(let y = 0; y < height; y++){
-                if(worldMap[x][y][GameArea.MAIN_LAYOUT] == undefined || worldMap[x][y][GameArea.MAIN_LAYOUT] == 0){
+				if (shadowMap[x][y] == undefined) shadowMap[x][y] = 0;
+                if (worldMap[x][y][GameArea.MAIN_LAYOUT] == undefined || worldMap[x][y][GameArea.MAIN_LAYOUT] == 0){
                     shadowRound(x, y, x, y, maxLight, true);
                 }
             }

@@ -30,11 +30,20 @@ class GameArea{
 		this.map = map;
 		this.elevationMap = elevationMap;
 		this.shadowMap = shadowMap;
+		this.timeOfDay = 0.9; //От 0 до 1, где 1 - полдень, 0 - полночь
 		//block_table - ассоциативный массив, сопоставляющий конкретное id его описанию 
 		//this.block_table = require(path);
 		// Ширина и высота игрового пространства
 		this.width = width;
 		this.height = height;
+
+		// Возвращает освещение конкретного блока
+		this.getLight = (x, y) => {
+			let grad = (y > 0.5 * height) ? 1 : ((y < 0.3 * height) ? 0.2 : ((y - 0.3 * height) / (0.2 * height) * 0.8 + 0.2));
+			let k = Math.min(0.5 + timeOfDay / 2, grad);
+			return k * shadowMap[x][y];
+		}
+
 		// Проверка окружения блока, при наличии у него особого поведения. Особое поведение определеяется по типу
 		this.makeAirBlock = () => {
 			// Делает блок воздуха = undefined

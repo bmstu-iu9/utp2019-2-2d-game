@@ -108,9 +108,9 @@ image.onload = () => {
 
                 for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
                     for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
-                        if(!neigChunk[i][j]) {
+                        //if(!neigChunk[i][j]) {
                             loadChank(i, j)
-                        }
+                        //}
                     }
                 }
             }

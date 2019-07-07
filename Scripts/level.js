@@ -20,7 +20,6 @@ const beginPlay = () => {  // Вызывается только при запу�
 	_y = gameArea.elevationMap[_x];
 }
 
-
 const eventTick = () => {  // Вызывается каждый кадр
 	gameArea.timeOfDay = _x / gameArea.width;
 	let speed = 10;

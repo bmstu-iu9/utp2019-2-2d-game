@@ -241,7 +241,7 @@ class Render {
 		// отрисовка фона
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
-		this.gl.uniform1f(this.lightUniformLocation, 1);
+		this.gl.uniform1f(this.lightUniformLocation, 1 / 3 + gameArea.timeOfDay * 2 / 3);
 		const z = 1 - far;
 		
 		for (let i = 0; i < asp / 2 + 2; i++) {

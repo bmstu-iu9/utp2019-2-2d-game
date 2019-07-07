@@ -178,7 +178,7 @@ class Render {
 			this.backgroundAsp, 1];
 		let arrayOfTexCoord =
 			[0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0,
-			1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0];
+			0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0];
 		arrayOfObjects.forEach((obj) => {
 			arrayOfPosition = arrayOfPosition.concat(
 				[0, 0,

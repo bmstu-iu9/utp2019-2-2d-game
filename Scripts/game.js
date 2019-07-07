@@ -1,4 +1,5 @@
 'use strict';
+
 const cameraScale = 1;  // Масштаб, 1 - стандарт
 const scale = 16  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры

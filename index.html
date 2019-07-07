@@ -4,7 +4,7 @@
 </head>
 <body>
 	<canvas id="canvas"></canvas>
-	<p id="fps" class="fps">  0 FPS</p>
+	<p id="fps" class="fps">  0 FPS</p>
 	<!-- GLSL -- Тут ничего не трограть, либо писать Надиму! -->
 	<script id="vertex-shader" type="none">
 		attribute vec2 a_position;
@@ -17,7 +17,7 @@
 		
 		varying vec2 v_texCoord;
 		varying float v_light;
-
+    
 		void main() {
 			v_texCoord = a_texCoord;
 			v_light = u_light;
@@ -41,6 +41,9 @@
 	<!-- JavaScript -- Сюда писать ваши скрипты -->
 	<script src="Scripts/engine.js"></script>
 	<script src="Scripts/fps.js"></script>
+	<script src="Scripts/GameArea.js"></script>
 	<script src="Scripts/WorldGeneration.js"></script>
-	<script src="Scripts/game.js"></script>
+	<script src="Scripts/level.js"></script>
+	<script src="Scripts/game.js"></script><!-- -->
+	<!--<script src="Examples/example.js"></script><!-- -->
 </body>

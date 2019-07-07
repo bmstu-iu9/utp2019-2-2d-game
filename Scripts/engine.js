@@ -244,12 +244,12 @@ class Render {
 		this.gl.uniform1f(this.lightUniformLocation, 1);
 		const z = 1 - far;
 		
-		for (let i = 0; i < asp / 2 + 1; i++) {
+		for (let i = 0; i < asp / 2 + 2; i++) {
 			this.gl.uniform3f(this.translateUniformLocation,
-				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * i, y * ch - 0.5, z);
+				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * i + 0.5, y * ch - 0.5, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 			this.gl.uniform3f(this.translateUniformLocation,
-				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * -i - 1, y * ch - 0.5, z);
+				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * -i - 0.5, y * ch - 0.5, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 		}
 		

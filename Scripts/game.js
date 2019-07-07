@@ -16,7 +16,7 @@ image.onload = () => {
 	background.src = 'Images/background.png';
 	background.onload = () => {
 
-        const r = new Render(image, image);
+        const r = new Render(image, background);
         r.settings(scale, chankWidth, chankHeight)
 
         {  // Отправка образцов объектов
@@ -55,8 +55,10 @@ image.onload = () => {
                         layoutChunk.light = 1
                     } else {
                         layoutChunk.light = 0.5
-                    }
-                }  // У слоя света нет полей light и slice
+                    } // У слоя света нет полей light и slice
+				} else {
+					layoutChunk.light = -100;
+				}
                 for (let i = startX; i < stopX; i++) {
                     layoutChunk.chunk[i - startX] = [ ]
                     for (let j = startY; j < stopY; j++) {

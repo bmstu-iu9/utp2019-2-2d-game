@@ -30,7 +30,7 @@ class GameArea{
 		this.map = map;
 		this.elevationMap = elevationMap;
 		this.shadowMap = shadowMap;
-		this.timeOfDay = 0.9; //От 0 до 1, где 1 - полдень, 0 - полночь
+		this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
 
 		this.block_table = new Array(); // ПОКА НЕ РАБОТАЕТ
 		// Ширина и высота игрового пространства

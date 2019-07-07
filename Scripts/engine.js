@@ -91,7 +91,7 @@ image.onload = () => {
 
 class Render {
 	constructor(image, background) {
-		this.backgroundAsp = 1024 / 768; // размер фона
+		this.backgroundAsp = 512 / 512; // размер фона
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
 		if (!this.gl) {

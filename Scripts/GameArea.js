@@ -30,7 +30,7 @@ class GameArea{
 		this.map = map;
 		this.elevationMap = elevationMap;
 		this.shadowMap = shadowMap;
-		this.timeOfDay = 0.9; //От 0 до 1, где 1 - полдень, 0 - полночь
+		this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
 
 		this.block_table = new Array(); // ПОКА НЕ РАБОТАЕТ
 		// Ширина и высота игрового пространства
@@ -39,12 +39,11 @@ class GameArea{
 
 		// Возвращает освещение конкретного блока
 		this.getLight = (x, y) => {
-            let heightLevel = elevationMap[x];
-            let grad = (y > heightLevel) ? 1 : ((y < 0.85 * heightLevel) ? 0.2 : ((y - 0.85 * heightLevel) / (heightLevel - 0.85 * heightLevel) * 0.8 + 0.2));
-            let k = Math.min(0.5 + this.timeOfDay / 2, grad);
-            let light = Math.max(Math.floor(shadowMap[x][y] / 1000) * 1000, shadowMap[x][y] % 1000) / 9;
-            return k * light;
-        }
+			let grad = (y > 0.5 * height) ? 1 : ((y < 0.3 * height) ? 0.2 : ((y - 0.3 * height) / (0.2 * height) * 0.8 + 0.2));
+			let k = Math.min(0.5 + this.timeOfDay / 2, grad);
+			let light = Math.max(Math.floor(shadowMap[x][y] / 1000) * 1000, shadowMap[x][y] % 1000) / 9;
+			return k * light;
+		}
 
 		this.updateLight = (x, y) => {
 

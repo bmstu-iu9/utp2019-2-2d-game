@@ -15,112 +15,115 @@ image.onload = () => {
 	const background = new Image();
 	background.src = 'Images/background.png';
 	background.onload = () => {
+		const playerImage = new Image();
+		playerImage.src = 'Images/player.png';
+		playerImage.onload = () => {
+			const r = new Render(image, background, playerImage);
+			r.settings(scale, chankWidth, chankHeight)
 
-        const r = new Render(image, background);
-        r.settings(scale, chankWidth, chankHeight)
-
-        {  // Отправка образцов объектов
-            const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY = Math.floor(image.height / blockResolution)
-            let objects = [ ]
-            for (let i = 0; i < blocksCountX; i++) {
-                for (let j = 0; j < blocksCountY; j++) {
-                    objects.push({'id': j * blocksCountX + i + 1,
-                'a': [i * 1 / blocksCountX + 1 / image.width, j * 1 / blocksCountY + 1 / image.height],
-                'b': [(i + 1) * 1 / blocksCountX - 1 / image.width, (j + 1) * 1 / blocksCountY - 1 / image.height]})
-                }
-            }
-            r.createObjects(objects);
-        }
-
-        let arrOfChunks = { }
-        let oldTime = 0
-        const deleteChankById = (xLocate, yLocate) => {
-            for (let chunk in arrOfChunks) {
-                if (arrOfChunks[chunk].x === xLocate && arrOfChunks[chunk].y === yLocate) {
-                    delete arrOfChunks[chunk]  // Удаляем все слои чанка
-                }
-            }
-        }
-        const loadChank = (xLocate, yLocate) => {
-            const stopX = (xLocate + 1) * chankWidth
-            const stopY = (yLocate + 1) * chankHeight
-            const startX = xLocate * chankWidth
-            const startY = yLocate * chankHeight
-        
-            for (let layout = minLayout; layout <= maxLayout + 1; layout++) {  // + 1 слой света
-                let layoutChunk = { chunk: [ ], x: xLocate, y: yLocate }
-                if (layout !== maxLayout + 1) {  // Если не слой света
-                    layoutChunk.slice = layout 
-                    if (layout === GameArea.MAIN_LAYOUT) {
-                        layoutChunk.light = 1
-                    } else {
-                        layoutChunk.light = 0.5
-                    } // У слоя света нет полей light и slice
-				} else {
-					layoutChunk.light = -100;
+			{  // Отправка образцов объектов
+				const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY = Math.floor(image.height / blockResolution)
+				let objects = [ ]
+				for (let i = 0; i < blocksCountX; i++) {
+					for (let j = 0; j < blocksCountY; j++) {
+						objects.push({'id': j * blocksCountX + i + 1,
+					'a': [i * 1 / blocksCountX + 1 / image.width, j * 1 / blocksCountY + 1 / image.height],
+					'b': [(i + 1) * 1 / blocksCountX - 1 / image.width, (j + 1) * 1 / blocksCountY - 1 / image.height]})
+					}
 				}
-                for (let i = startX; i < stopX; i++) {
-                    layoutChunk.chunk[i - startX] = [ ]
-                    for (let j = startY; j < stopY; j++) {
-                        if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
-                            if (layout === maxLayout + 1) {  // Элементы слоя света - уровень освещенности блока
-                                layoutChunk.chunk[i - startX][j - startY] = gameArea.getLight(Math.floor(i), Math.floor(j))
-                            } else {
-                                layoutChunk.chunk[i - startX][j - startY] = gameArea.map[Math.floor(i)][Math.floor(j)][layout]
-                            }
-                        } else {
-                            layoutChunk.chunk[i - startX][j - startY] = undefined
-                        }
-                    }
-                }
-                arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] = layoutChunk
-            }
-        }
+				r.createObjects(objects);
+			}
 
-        beginPlay()  // Кастомное событие
+			let arrOfChunks = { }
+			let oldTime = 0
+			const deleteChankById = (xLocate, yLocate) => {
+				for (let chunk in arrOfChunks) {
+					if (arrOfChunks[chunk].x === xLocate && arrOfChunks[chunk].y === yLocate) {
+						delete arrOfChunks[chunk]  // Удаляем все слои чанка
+					}
+				}
+			}
+			const loadChank = (xLocate, yLocate) => {
+				const stopX = (xLocate + 1) * chankWidth
+				const stopY = (yLocate + 1) * chankHeight
+				const startX = xLocate * chankWidth
+				const startY = yLocate * chankHeight
+			
+				for (let layout = minLayout; layout <= maxLayout + 1; layout++) {  // + 1 слой света
+					let layoutChunk = { chunk: [ ], x: xLocate, y: yLocate }
+					if (layout !== maxLayout + 1) {  // Если не слой света
+						layoutChunk.slice = layout 
+						if (layout === GameArea.MAIN_LAYOUT) {
+							layoutChunk.light = 1
+						} else {
+							layoutChunk.light = 0.5
+						} // У слоя света нет полей light и slice
+					} else {
+						layoutChunk.light = -100;
+					}
+					for (let i = startX; i < stopX; i++) {
+						layoutChunk.chunk[i - startX] = [ ]
+						for (let j = startY; j < stopY; j++) {
+							if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
+								if (layout === maxLayout + 1) {  // Элементы слоя света - уровень освещенности блока
+									layoutChunk.chunk[i - startX][j - startY] = gameArea.getLight(Math.floor(i), Math.floor(j))
+								} else {
+									layoutChunk.chunk[i - startX][j - startY] = gameArea.map[Math.floor(i)][Math.floor(j)][layout]
+								}
+							} else {
+								layoutChunk.chunk[i - startX][j - startY] = undefined
+							}
+						}
+					}
+					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] = layoutChunk
+				}
+			}
 
-		const update = (newTime) => {
-            deltaTime = newTime - oldTime
-            oldTime = newTime
+			beginPlay()  // Кастомное событие
 
-            eventTick()  // Кастомное событие
+			const update = (newTime) => {
+				deltaTime = newTime - oldTime
+				oldTime = newTime
 
-            {  // Обновление чанков
-                const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
-                const halfScreenChunkCapasityX = Math.ceil(r.getFieldSize()[0] / (2 * chankWidth)),
-                    halfScreenChunkCapasityY = Math.ceil(r.getFieldSize()[1] / (2 * chankHeight))
-                let neigChunk = { }
-                for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
-                    neigChunk[i] = { }
-                    for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
-                        neigChunk[i][j] = false
-                    }
-                }
+				eventTick()  // Кастомное событие
 
-                for (let chunk in arrOfChunks) {
-                    if (neigChunk[arrOfChunks[chunk].x] === undefined ||
-                    neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] === undefined) {  // Если не ближайший чанк
-                        deleteChankById(arrOfChunks[chunk].x, arrOfChunks[chunk].y)
-                    } else {  // Если чанк ближайший, то помечаем как отрисованный
-                        neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true
-                    }
-                }
+				{  // Обновление чанков
+					const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
+					const halfScreenChunkCapasityX = Math.ceil(r.getFieldSize()[0] / (2 * chankWidth)),
+						halfScreenChunkCapasityY = Math.ceil(r.getFieldSize()[1] / (2 * chankHeight))
+					let neigChunk = { }
+					for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
+						neigChunk[i] = { }
+						for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
+							neigChunk[i][j] = false
+						}
+					}
 
-                for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
-                    for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
-                        //if(!neigChunk[i][j]) {
-                            loadChank(i, j)
-                        //}
-                    }
-                }
-            }
+					for (let chunk in arrOfChunks) {
+						if (neigChunk[arrOfChunks[chunk].x] === undefined ||
+						neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] === undefined) {  // Если не ближайший чанк
+							deleteChankById(arrOfChunks[chunk].x, arrOfChunks[chunk].y)
+						} else {  // Если чанк ближайший, то помечаем как отрисованный
+							neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true
+						}
+					}
 
-            r.render(cameraX, cameraY, cameraScale, arrOfChunks);
-            fpsUpdate()
+					for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX; i++) {
+						for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY; j++) {
+							//if(!neigChunk[i][j]) {
+								loadChank(i, j)
+							//}
+						}
+					}
+				}
+
+				r.render(cameraX, cameraY, cameraX, cameraY, cameraScale, arrOfChunks);
+				fpsUpdate()
+				requestAnimationFrame(update);
+			}
+
 			requestAnimationFrame(update);
-        }
-
-		requestAnimationFrame(update);
+		};
     };
 };
 

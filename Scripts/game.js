@@ -116,8 +116,9 @@ image.onload = () => {
 						}
 					}
 				}
+				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
 
-				r.render(cameraX, cameraY, cameraX, cameraY, cameraScale, arrOfChunks);
+				r.render(cameraX, cameraY, cameraX, cameraY, cameraScale, lightOfDay, arrOfChunks);
 				fpsUpdate()
 				requestAnimationFrame(update);
 			}

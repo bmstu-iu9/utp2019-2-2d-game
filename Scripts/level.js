@@ -18,6 +18,7 @@ const beginPlay = () => {  // Вызывается только при запу�
     gameArea = generate(1024, 1024, key);
 	_x = 0;
 	_y = gameArea.elevationMap[_x];
+  player = new Player(gameArea, _x, _y);
 }
 
 const eventTick = () => {  // Вызывается каждый кадр
@@ -28,5 +29,5 @@ const eventTick = () => {  // Вызывается каждый кадр
 		_y = gameArea.elevationMap[_x];
 	}
 	let targetX = Math.floor(_x) + 2, targetY = gameArea.elevationMap[targetX];
-    cameraSet(_x += speed * (targetX - _x) * deltaTime / 1000, _y += speed * (targetY - _y) * deltaTime / 1000)
+    cameraSet(_x, _y)
 }

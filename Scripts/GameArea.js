@@ -33,7 +33,7 @@ class GameArea{
         this.shadowMap = shadowMap;
         this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
 
-        this.player = {x : -1, y : -1}; // Координаты игрока
+        this.player = {x : 0, y : 666}; // Координаты игрока
 
         // Ширина и высота игрового пространства
         this.width = width;
@@ -303,7 +303,7 @@ class GameArea{
 
         // Установка игрока по координатам
         this.setPlayer = (x,y) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height || block_table[this.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed) return;
+            if (x < 0 || y < 0 || x >= this.width || y >= this.height || block_table[this.map[x][y][GameArea.MAIN_LAYOUT]] && block_table[this.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed) return;
             if (this.player.x !== -1) this.map[this.player.x][this.player.y][GameArea.PLAYER_LAYOUT] = undefined;
             this.map[x][y][GameArea.PLAYER_LAYOUT] = 0;
             this.player.x = x;

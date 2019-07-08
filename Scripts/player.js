@@ -53,6 +53,14 @@ class Player {
             }
         };
 
+        this.info = (x, y) => {
+            // Получение информации о блоке, пока только в MAIN_LAYOUT
+            if (this.inActionRadius(x, y)) {
+                let block = block_table[gamearea.map[x][y][GameArea.MAIN_LAYOUT]];
+                alert(`Block on ${x} ${y} : ` + JSON.stringify(block));
+            }
+        };
+
         // Движение игрока относительно его координат
         this.movePlayer = (dx, dy) => {
             let newX = gamearea.player.x + dx;

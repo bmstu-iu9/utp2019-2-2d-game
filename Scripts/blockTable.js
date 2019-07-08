@@ -1,13 +1,10 @@
-{
+let block_table = {
     "1" : {
         "id" : "1",
         "type" : "stone",
         "durability" : 50,
         "brightness" : 0,
         "isCollissed" : true,
-        "isPlatform"  : false,
-        "isClickable" : false,
-        "hasGravity"  : false,
         "name" : "stone"
     },
 
@@ -17,9 +14,6 @@
         "durability" : 20,
         "brightness" : 0,
         "isCollissed" : true,
-        "isPlatform" : false,
-        "isClickable" : false,
-        "hasGravity" : false,
         "name" : "grass"
     },
 
@@ -29,9 +23,6 @@
         "durability" : 20,
         "brightness" : 0,
         "isCollissed" : true,
-        "isPlatform" : false,
-        "isClickable" : false,
-        "hasGravity" : false,
         "name" : "dirt"
     },
 
@@ -41,9 +32,6 @@
         "durability" : 100,
         "brightness" : 0,
         "isCollissed" : true,
-        "isPlatform" : false,
-        "isClickable" : false,
-        "hasGravity" : false,
         "name" : "bedrock"
     },
 
@@ -53,8 +41,6 @@
         "durability" : 100,
         "brightness" : 0,
         "isCollissed" : false,
-        "isPlatform" : false,
-        "isClickable" : false,
         "hasGravity" : true,
         "name" : "water"
     },
@@ -65,9 +51,6 @@
         "durability" : 100,
         "brightness" : 0,
         "isCollissed" : false,
-        "isPlatform" : false,
-        "isClickable" : false,
-        "hasGravity" : false,
         "name" : "flowing-water-1"
     },
 
@@ -77,9 +60,6 @@
         "durability" : 35,
         "brightness" : 0,
         "isCollissed" : false,
-        "isPlatform" : false,
-        "isClickable" : false,
-        "hasGravity" : false,
         "name" : "wood"
     },
 
@@ -89,9 +69,29 @@
         "durability" : 10,
         "brightness" : 0,
         "isCollissed" : false,
-        "isPlatform" : false,
-        "isClickable" : false,
-        "hasGravity" : false,
         "name" : "leaf"
+    },
+
+    "54" : {
+      "id" : "54",
+      "type" : "clickableBlocks",
+      "durability" : 35,
+      "brightness" : 0,
+      "isCollissed" : false,
+      "isClickable" : true,
+      "interactFunction" : () => {
+          alert("1");
+      } // Функция взаимодействия у кликабельных предметов
+
+    },
+
+    "256" : {
+        "id" : "256",
+        "type" : "shovel",
+        "durability" : 100,
+        "isTool" : true,                 // Является ли инструментом
+        "toolType" : "dirt",
+        "layout" : GameArea.MAIN_LAYOUT, // Область, в которой действует инструмент
+        "name" : "shovel"
     }
-}
+};

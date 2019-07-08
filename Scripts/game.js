@@ -73,7 +73,7 @@ image.onload = () => {
                         }
                     }
                 }
-                arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "Light" : layout)] = layoutChunk
+                arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] = layoutChunk
             }
         }
 

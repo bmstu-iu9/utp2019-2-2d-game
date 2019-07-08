@@ -160,7 +160,7 @@ class Render {
 	}
 
 	createObjects(arrayOfObjects) {
-		let endId = 2;
+		let endId = 3;
 		this.ids = [];
 		
 		let arrayOfPosition =
@@ -175,10 +175,17 @@ class Render {
 			0, 1,
 			0, 1,
 			this.backgroundAsp, 0,
-			this.backgroundAsp, 1];
+			this.backgroundAsp, 1,
+			0, 0,
+			this.size, 0,
+			0, this.size,
+			0, this.size,
+			this.size, 0,
+			this.size, this.size];
 		let arrayOfTexCoord =
 			[0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0,
-			0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0];
+			0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 		arrayOfObjects.forEach((obj) => {
 			arrayOfPosition = arrayOfPosition.concat(
 				[0, 0,
@@ -241,7 +248,7 @@ class Render {
 		// отрисовка фона
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
-		this.gl.uniform1f(this.lightUniformLocation, 1 / 3 + gameArea.timeOfDay * 2 / 3);
+		this.gl.uniform1f(this.lightUniformLocation, Math.round((1 / 3 + gameArea.timeOfDay * 2 / 3) * 60) / 60);
 		const z = 1 - far;
 		
 		for (let i = 0; i < asp / 2 + 2; i++) {
@@ -261,7 +268,6 @@ class Render {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
 			if (arrayOfChunk[c].light != -100) {
-				
 				for (let y in arrayOfChunk[c].chunk) {
 					for (let x in arrayOfChunk[c].chunk[y]) {
 						const id = arrayOfChunk[c].chunk[y][x];
@@ -269,11 +275,17 @@ class Render {
 							if (this.ids[id] === undefined) {
 								throw new Error("Такого Id нет: " + id);
 							}
-							this.gl.uniform1f(this.lightUniformLocation,
-								arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "Light"].chunk[y][x]);
-							this.gl.uniform3f(this.translateUniformLocation,
-								y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
-							this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
+							const light = arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "L"].chunk[y][x];
+							if (light < 0.01) {
+								this.gl.uniform3f(this.translateUniformLocation,
+									y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
+								this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
+							} else {
+								this.gl.uniform1f(this.lightUniformLocation, light);
+								this.gl.uniform3f(this.translateUniformLocation,
+									y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
+								this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
+							}
 						}
 					}
 				}

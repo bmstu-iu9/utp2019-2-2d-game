@@ -1,25 +1,7 @@
-// Вспомогательная часть
-class GameArea{
-    constructor(map, height, width){
-        this.map = map;
-        this.width = width;
-        this.height = height;
-    }
-}
-GameArea.MAIN_LAYOUT = 2;
-GameArea.BACK_LAYOUT = 3;
-
-// Класс координат в игровом пространстве
-class Coordinate{
-    constructor(x, y, layout){
-        this.x = x;
-        this.y = y;
-        this.layout = layout;
-    }
-}
-
 // Генерация земли
 const generate = (width, height, seed) => {
+    let elevationMap = new Array();
+    let shadowMap = new Array();
     let seedTemp = seed;
     const random = () => {
         let x = Math.sin(seedTemp++) * 10000;
@@ -43,10 +25,18 @@ const generate = (width, height, seed) => {
             lastSign = sign;
             while (sectionLength > 0) {
                 let delta = 0;
-                if(lastDelta == 0 && random() > 0.07){
+                if(lastDelta == 0 && random() > 0.1){
                     delta = 0;
                 }else{
-                    delta = Math.ceil(random() * 3); // Максимальная разница в уровнях = 2
+                    if(random() > 0.5){
+                        delta = 1;
+                    }else{
+                        if(random() > 0.5){
+                            delta = 0;
+                        }else{
+                            delta = Math.ceil(random() * 2) + 1; // Максимальная разница в уровнях = 2
+                        }
+                    }
                 }
                 lastDelta = delta;
                 let nextHeight = heights[heights.length - 1] + delta * sign;
@@ -57,6 +47,7 @@ const generate = (width, height, seed) => {
                 sectionLength--;
             }
         }
+        elevationMap = heights;
         // Преобразование карты высот в матрицу
         let arr = new Array;
         for(let x = 0; x < widthWorld; x++){
@@ -102,7 +93,7 @@ const generate = (width, height, seed) => {
 
         // Массив координат, под которыми нет пещер
         // Используется, чтобы напосредственно под каждым блоком поверхности находилась как минимум одна пещера
-        let isCaveX = new Array;
+        let isCaveX = new Array();
         for(let i = 0; i < worldArr.length; i++){
             isCaveX[i] = false;
         }
@@ -239,16 +230,14 @@ const generate = (width, height, seed) => {
                         t--;
                     }
                 }
-                y = heights[x].length - 1;
-                while(y > 0 && !worldArr[x][y]){
-                    y--;
-                };
+                y = heights[x];
+
                 isTreeX[x] = true;
                 countTreeX++;
             }
             while (!worldArr[x][y] && countTreeX < worldArr.length);
-
-            if (!worldArr[x][y] && countTreeX < worldArr.length) {
+            if (!worldArr[x][y] && countTreeX <= worldArr.length) {
+                countTreeX = worldArr.length;
                 break;
             }
             else {
@@ -273,8 +262,10 @@ const generate = (width, height, seed) => {
                 if (x !== startX &&
                     (currentBranchLength === 0 || !(x >= 0 && x < worldArr.length && y < worldArr[x].length && !worldArr[x][y] && !isTreeX[x]) ||
                     (y - startY >= maxHeight))) {
-                    endOfBranchX.push(lastBranchX);
-                    endOfBranchY.push(lastBranchY);
+                    if (lastBranchX !== startX) {
+                        endOfBranchX.push(lastBranchX);
+                        endOfBranchY.push(lastBranchY);
+                    }
                     x = forkX;
                     y = ++forkY;
                 }
@@ -354,6 +345,51 @@ const generate = (width, height, seed) => {
         return treeArr;
     }
 
+    // Генерация руд
+    const oreGen = () => {
+        let oreArr = new Array();
+        for(let i = 0; i < width; i++){
+            oreArr[i] = new Array();
+        }
+
+        // Создать одну залежь руды
+        const createOre = (type, radius, x, y) => {
+            // Очистка блоков в радиусе
+            for (let i = x - radius; i <= x + radius; i++) {
+                for (let j = y - radius; j <= y + radius; j++) {
+                    if (i >= 0 && i < width && j >= 0 && j < height &&
+                        radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
+                        if(random() > 0.3){
+                            oreArr[i][j] = type;
+                        }
+                    }
+                }
+            }
+        } 
+        
+        // Разместить руды определенного типа
+        const placeOres = (type, frequency, maxRadius, minRadius, minHeight, maxHeight) => {
+            minHeight *= height;
+            maxHeight *= height;
+            for(let i = 0; i < Math.floor(height * (maxHeight - minHeight)) * frequency; i++){
+                createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)), Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
+            }
+        }
+
+        // Уголь
+        placeOres(16, 1/300, 3, 2, 0, 0.7);
+
+        // Железо
+        placeOres(15, 1/400, 2, 1, 0, 0.5);
+
+        // Золото
+        placeOres(14, 1/600, 2, 1, 0.1, 0.4);
+
+        // Алмазы
+        placeOres(56, 1/1200, 1, 1, 0, 0.3);
+
+        return oreArr;
+    }
     let landMatrix = landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height);
 
     let landMatrix1 = new Array;
@@ -366,43 +402,111 @@ const generate = (width, height, seed) => {
 
     let withCavesMatrix = caveGen(landMatrix1, height * 2);
 
-    let worldMap = new Map();
+    let oreArr = oreGen();
+
+    let worldMap = new Array();
     for(let x = 0; x < width; x++){
-        let grassDepth = Math.floor(random() * 4) + 2
+        worldMap[x] = new Array();
+        let grassDepth = Math.floor(random() * 7) + 15
+        let dirtDepth = grassDepth - 1;
         for(let y = height - 1; y >= 0; y--){
+            worldMap[x][y] = new Array();
             if(landMatrix[x][y]){
                 if(grassDepth > 0){
-                    worldMap[[x, y, GameArea.BACK_LAYOUT]] = 2 // ID травы
-                    if(withCavesMatrix[x][y]){
-                        worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 2 // ID травы
+                    if(grassDepth > dirtDepth){
+                        worldMap[x][y][GameArea.BACK_LAYOUT] = 2 // ID травы
+                        if(withCavesMatrix[x][y]){
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 2 // ID травы
+                        }
+                    }else{
+                        worldMap[x][y][GameArea.BACK_LAYOUT] = 3 // ID грязи
+                        if(withCavesMatrix[x][y]){
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 3 // ID грязи
+                        }
                     }
                     grassDepth--;
                 }else{
-                    worldMap[[x, y, GameArea.BACK_LAYOUT]] = 1 // ID травы
+                    worldMap[x][y][GameArea.BACK_LAYOUT] = 1 // ID камня
                     if(withCavesMatrix[x][y]){
-                        worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 1 // ID камня
+                        if(oreArr[x][y] != undefined){
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = oreArr[x][y];
+                        }else{
+                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 1 // ID камня
+                        }
                     }
                 }
             }
         }
         let bedrockHeight = Math.floor(random() * 3) + 1
         for(let y = 0; y < bedrockHeight; y++){
-            worldMap[[x, y, GameArea.MAIN_LAYOUT]] = 7 // ID бедрока
+            worldMap[x][y][GameArea.MAIN_LAYOUT] = 7 // ID бедрока
         }
     }
-    let treeArr = treeGen(landMatrix, withCavesMatrix, 14, 23, Math.floor(width * 2 / 3));
+
+    // Установка деревьев
+    let treeArr = treeGen(elevationMap, withCavesMatrix, 14, 23, Math.floor(width * 2 / 3));
     for(let i = 0; i < treeArr.length; i++){
         for (let j = 0; j < treeArr[i].length; j++){
             if (!treeArr[i][j] == 0){
                 if (treeArr[i][j] === 1) {
-                    worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 3;
+                    worldMap[i][j][GameArea.MAIN_LAYOUT] = 17;
                 }
-                else worldMap[[i, j, GameArea.MAIN_LAYOUT]] = 4;
+                else worldMap[i][j][GameArea.MAIN_LAYOUT] = 18;
             }
         }
     }
 
-    return new GameArea(worldMap, width, height);
+    const shadowRound = (startX, startY, x, y, n, isNatural) => {
+        const step = (nextX, nextY, n) => {
+            if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
+                    && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height 
+                    && (shadowMap[nextX][nextY] == undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
+                    shadowRound(startX, startY, nextX, nextY, n, isNatural);
+            }
+        }
+        if(n > 0 && (shadowMap[x][y] == undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n))){
+            if(isNatural){
+                if(shadowMap[x][y] == undefined){
+                    shadowMap[x][y] = n;
+                }else{
+                    shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000 + n;
+                }
+            }else{
+                if(shadowMap[x][y] == undefined){
+                    shadowMap[x][y] = n * 1000;
+                }else{
+                    shadowMap[x][y] = n * 1000 + shadowMap[x][y] % 1000;
+                }
+            }
+            step(x + 1, y, n - 1);
+            step(x - 1, y, n - 1);
+            step(x, y + 1, n - 1);
+            step(x, y - 1, n - 1);
+        }
+
+    }
+
+    // Создание теней
+    const createShadows = (maxLight) => {
+        for(let i = 0; i < width; i++){
+            shadowMap[i] = new Array();
+        }
+
+        // Natural lighting
+        for(let x = 0; x < width; x++){
+            for(let y = 0; y < height; y++){
+				if (shadowMap[x][y] == undefined) shadowMap[x][y] = 0;
+                if (worldMap[x][y][GameArea.MAIN_LAYOUT] == undefined || worldMap[x][y][GameArea.MAIN_LAYOUT] == 0){
+                    shadowRound(x, y, x, y, maxLight, true);
+                }
+            }
+        }
+    }
+
+    // Создть карту освещения
+    createShadows(9);
+
+    return new GameArea(worldMap, elevationMap, shadowMap, width, height, "./block_table.json");
 }
 
 // Визуализация полученной матрицы в консоли
@@ -410,12 +514,12 @@ const visualisator = (gameArea) => {
     let str = "";
     for(let i = 0; i < gameArea.width; i++){
         for (let j = 0; j < gameArea.height; j++){
-            let block = gameArea.map[[i, j, GameArea.MAIN_LAYOUT]];
+            let block = gameArea.map[i][j][GameArea.MAIN_LAYOUT];
             if(block != undefined){
-                if(block == 3){
+                if(block == 17){
                     str += "#";
                 }else{
-                    if(block == 4){
+                    if(block == 18){
                         str += "@";
                     }else str += block;
                 }

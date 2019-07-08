@@ -4,36 +4,45 @@
 </head>
 <body>
 	<canvas id="canvas"></canvas>
+	<p id="fps" class="fps">  0 FPS</p>
 	<!-- GLSL -- Тут ничего не трограть, либо писать Надиму! -->
 	<script id="vertex-shader" type="none">
-		precision highp float;
-		
-		attribute vec3 a_position;
+		attribute vec2 a_position;
 		attribute vec2 a_texCoord;
 		
-		uniform mat4 u_modelviewMatrix;
+		uniform vec3 u_translate;
 		uniform mat4 u_projectionMatrix;
+		uniform float u_resolution;
+		uniform float u_light;
 		
-		varying vec2 u_texCoord;
-
+		varying vec2 v_texCoord;
+		varying float v_light;
+    
 		void main() {
-			u_texCoord = a_texCoord;
-			vec4 pos = u_modelviewMatrix * vec4(a_position, 1.0);
+			v_texCoord = a_texCoord;
+			v_light = u_light;
+			vec4 pos = vec4(u_translate + vec3(a_position / u_resolution, 0.0), 1.0);
 			gl_Position = u_projectionMatrix * pos;
 		}
 	</script>
 	<script id="fragment-shader" type="none">
-		precision highp float;
+		precision mediump float;
 		
 		uniform sampler2D u_texture;
 		
-		varying vec2 u_texCoord;
+		varying vec2 v_texCoord;
+		varying float v_light;
 		
 		void main() {
-			gl_FragColor = texture2D(u_texture, u_texCoord); 
+			vec4 tex = texture2D(u_texture, v_texCoord);
+			gl_FragColor = vec4(tex.rgb * v_light, tex.a); 
 		}
 	</script>
 	<!-- JavaScript -- Сюда писать ваши скрипты -->
 	<script src="Scripts/engine.js"></script>
-	<script src="Examples/exampleFlatWorld.js"></script> <!-- Пример -->
+	<script src="Scripts/fps.js"></script>
+	<script src="Scripts/GameArea.js"></script>
+	<script src="Scripts/WorldGeneration.js"></script>
+	<script src="Scripts/level.js"></script>
+	<script src="Scripts/game.js"></script>
 </body>

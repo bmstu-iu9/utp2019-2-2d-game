@@ -80,7 +80,7 @@ image.onload = () => {
 			}
 
 			beginPlay()  // Кастомное событие
-			
+
 			this.controller = new Controller();
 
 			const KDU = (event) => {controller.keyDownUp(event);};

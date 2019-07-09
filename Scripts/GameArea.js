@@ -131,6 +131,7 @@ class GameArea{
         };
 
         this.makeFlowingWaterBlock = (cnt) => {
+            // НЕ РАБОТАЕТ
             // Текучая вода - блок без гравитации
             // В зависимости от степени наполненности имеет id от 9 до 15, 9 - наибольшая наполненность
             if (cnt > 15 || cnt < 9) {
@@ -196,6 +197,7 @@ class GameArea{
                     break;
                 }
                 case "water":
+                    // НЕ РАБОТАЕТ
                     // Если 2 блока воды при течении вправо/влево пересекаются своими потоками, то на месте пересечения
                     // потоков создается цельный блок воды
                     if (this.map[x - 1][y][layout] === undefined) {
@@ -207,6 +209,7 @@ class GameArea{
                     break;
 
                 case "flowingWater":
+                    // НЕ РАБОТАЕТ
                     if (this.map[x][y - 1][layout] === undefined) {
                         this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(this.map[x][y][layout]));
                     }
@@ -303,26 +306,17 @@ class GameArea{
 
         // Установка игрока по координатам
         this.setPlayer = (x,y) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height || block_table[this.map[x][y][GameArea.MAIN_LAYOUT]] && block_table[this.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed) return;
-            if (this.player.x !== -1) this.map[this.player.x][this.player.y][GameArea.PLAYER_LAYOUT] = undefined;
-            this.map[x][y][GameArea.PLAYER_LAYOUT] = 0;
+            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
+            let mapX = Math.floor(x);
+            let mapY = Math.floor(y);
+            let mapPlayerX = Math.floor(this.player.x);
+            let mapPlayerY = Math.floor(this.player.y);
+            if (mapPlayerX !== -1) this.map[mapPlayerX][mapPlayerY][GameArea.PLAYER_LAYOUT] = undefined;
+            this.map[mapX][mapY][GameArea.PLAYER_LAYOUT] = 0;
             this.player.x = x;
             this.player.y = y;
         };
 
-
-        /* Возможно нужные функции для взаимодействия с управлением vx/vy - свойства скорости по направлениям, пока их нет
-        this.movePlayerBy speed = (side) => {
-            switch (side) {
-                case "left": this.player.vx-=0.5; break;
-                case "right": this.player.vx+=0.5; break;
-            }
-        };
-
-        this.updatePlayer = () => {
-            this.player.x+=this.player.vx;
-            this.player.y+=this.player.vy;
-        }*/
     }
 }
 

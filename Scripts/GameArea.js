@@ -131,6 +131,7 @@ class GameArea{
         };
 
         this.makeFlowingWaterBlock = (cnt) => {
+            // НЕ РАБОТАЕТ
             // Текучая вода - блок без гравитации
             // В зависимости от степени наполненности имеет id от 9 до 15, 9 - наибольшая наполненность
             if (cnt > 15 || cnt < 9) {
@@ -196,6 +197,7 @@ class GameArea{
                     break;
                 }
                 case "water":
+                    // НЕ РАБОТАЕТ
                     // Если 2 блока воды при течении вправо/влево пересекаются своими потоками, то на месте пересечения
                     // потоков создается цельный блок воды
                     if (this.map[x - 1][y][layout] === undefined) {
@@ -207,6 +209,7 @@ class GameArea{
                     break;
 
                 case "flowingWater":
+                    // НЕ РАБОТАЕТ
                     if (this.map[x][y - 1][layout] === undefined) {
                         this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(this.map[x][y][layout]));
                     }

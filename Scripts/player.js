@@ -2,7 +2,8 @@ class Player {
     constructor(gamearea, x, y) {
         gamearea.setPlayer(x, y); // Задаем положение игрока
         this.inv = []; // Инвентарь, в начале пуст. Блоки пока не стакаются
-
+        this.vx = 0;
+        this.vy = 0;
         this.hand = undefined; // Предмет в руках, определяет исход добычи того или иного блока
 
         this.inActionRadius = (x, y) => {
@@ -62,24 +63,156 @@ class Player {
         };
 
         // Движение игрока относительно его координат
-        this.movePlayer = (dx, dy) => {
-            let newX = gamearea.player.x + dx;
-            let newY = gamearea.player.y + dy;
-            if (newX >= 0 && newX <= gamearea.width && newY >= 0 && newY <= gamearea.height) {
-                if (!gamearea.map[newX][newY][GameArea.MAIN_LAYOUT] || !gamearea.map[newX][newY][GameArea.MAIN_LAYOUT].isCollissed) {
-                    gamearea.setPlayer(newX, newY);
-                } else console.log(`Attempt to move player at collissed block: ${x} ${y}`);
+        this.movePlayer = (deltaT) => {
+            let newX = gamearea.player.x + this.vx*deltaT;
+            let newY = gamearea.player.y + this.vy*deltaT;
+
+            if (newX - Player.HALF_WIDTH >= 0 && newX + Player.HALF_WIDTH <= gamearea.width && newY >= 0 && newY + Player.HEIGHT <= gamearea.height) {
+                let mapX = Math.floor(newX);
+                let mapY = Math.floor(newY);
+                if (this.vx > 0) {
+                    if (this.checkRightCol(newX, newY)) {
+                        if (this.vy > 0) {
+                            if (this.checkUpCol(newX, newY)) {
+                                gamearea.setPlayer(newX, newY);
+                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
+                                this.vx /= 2;
+                                this.vy /= 2;
+                            } else {
+                                this.vx = 0;
+                                this.vy = 0;
+                            }
+                        } else {
+                            if (this.checkDownCol(newX, newY)) {
+                                gamearea.setPlayer(newX, newY);
+                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
+                                this.vx /= 2;
+                                this.vy /= 2;
+                            } else {
+                                this.vx = 0;
+                                this.vy = 0;
+                            }
+                        }
+                    } else {
+                       this.vx = 0;
+                       this.vy = 0;
+                    }
+                } else if (this.vx < 0) {
+                    if (this.checkLeftCol(newX, newY)) {
+                        if (this.vy > 0) {
+                            if (this.checkUpCol(newX, newY)) {
+
+                                gamearea.setPlayer(newX, newY);
+                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
+                                this.vx /= 2;
+                                this.vy /= 2;
+                            } else {
+                                this.vx = 0;
+                                this.vy = 0;
+                            }
+                        } else {
+                            if (this.checkDownCol(newX, newY)) {
+                                gamearea.setPlayer(newX, newY);
+                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
+                                this.vx /= 2;
+                                this.vy /= 2;
+                            } else {
+                                this.vx = 0;
+                                this.vy = 0;
+                            }
+                        }
+                    } else {
+                        this.vx = 0;
+                        this.vy = 0;
+                    }
+                } else {
+                    if (this.vy > 0 && this.checkUpCol(newX, newY)) {
+                        gamearea.setPlayer(newX, newY);
+                        console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
+                        this.vx /= 2;
+                        this.vy /= 2;
+                    } else if (this.vy < 0 && this.checkDownCol(newX, newY)) {
+                        gamearea.setPlayer(newX, newY);
+                        console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
+                        this.vx /= 2;
+                        this.vy /= 2;
+                    } else if (this.vy !== 0) {
+                        this.vx = 0;
+                        this.vy = 0;
+                    }
+                }
             } else {
-                console.log(`Attempt to move player to invalid coordinates: ${x} ${y}`);
+                console.log(`Attempt to move player to invalid coordinates: ${newX} ${newY}`);
+                this.vx = 0;
+                this.vy = 0;
             }
+        };
+
+        // Меняет скорость игрока
+        this.adjustSpeed = (vx, vy) => {
+            this.vx += vx;
+            this.vy += vy;
         };
 
         this.takeInHand = (invNum) => {
             let id = this.inv[invNum];
             if (id !== undefined) this.hand = block_table[id];
+        };
+
+
+        // Функции, проверяющие доступность движения по направлениям
+        this.checkRightCol = (newX, newY) => {
+            for (let y = Math.ceil(newY + Player.HEIGHT); y > Math.floor(newY); y--) {
+                if (gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT] &&
+                    (block_table[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
+                    block_table[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    console.log(`Attempt to move to collised block: x : ${Math.floor(newX + Player.HALF_WIDTH)} y : ${y} block id : ${gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]}`);
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        this.checkLeftCol = (newX, newY) => {
+            for (let y = Math.ceil(newY + Player.HEIGHT); y > Math.floor(newY); y--) {
+                if (gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT] &&
+                    (block_table[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
+                    block_table[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    console.log(`Attempt to move to collised block: x : ${Math.floor(newX - Player.HALF_WIDTH)} y : ${y} block id : ${gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]}`);
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        this.checkUpCol = (newX, newY) => {
+            for (let x = newX - Player.HALF_WIDTH; Math.floor(x) <= Math.floor(newX + Player.HALF_WIDTH); x++) {
+                if (gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT] &&
+                    (block_table[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]] === undefined ||
+                    block_table[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    console.log(`Attempt to move to collised block: x : ${Math.floor(x)} y : ${Math.ceil(newY + Player.HEIGHT)} block id : ${gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]}`);
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        this.checkDownCol = (newX, newY) => {
+            for (let x = newX - Player.HALF_WIDTH; Math.floor(x) <= Math.floor(newX + Player.HALF_WIDTH); x++) {
+                if (gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT] &&
+                    (block_table[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]] === undefined ||
+                    block_table[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    console.log(`Attempt to move to collised block: x : ${Math.floor(x)} y : ${Math.floor(newY + 1)} block id : ${gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]}`);
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
 
 
 Player.ACTION_RADIUS = 12; // Радиус действия игрока
+Player.HEIGHT = 2.8; // "Рост" игрока в блоках
+Player.HALF_WIDTH = 0.75; // Половина ширины игрока в блоках
+Player.SPEED = 3; // Модификатор скорости игрока

@@ -19,7 +19,7 @@ const beginPlay = () => {  // Вызывается только при запу�
     gameArea = generate(1024, 1024, key);
 	_x = 0;
 	_y = gameArea.elevationMap[_x];
-  player = new Player(gameArea, _x, _y);
+  player = new Player(gameArea, _x + Player.HALF_WIDTH, _y + 1);
 }
 
 const eventTick = () => {  // Вызывается каждый кадр

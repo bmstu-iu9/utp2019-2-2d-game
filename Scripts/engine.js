@@ -5,9 +5,10 @@
 /*
 Как это использовать?
 
-const r = new Render(image, background); // инициализация движка
+const r = new Render(image, background, playerImage); // инициализация движка
 	image - это объект Image
 	background - это изображение с фоном объекта Image
+	playerImage - это изображение с игроком объекта Image
 
 Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
 
@@ -37,13 +38,14 @@ r.createObjects(arrayOfObjects)
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
 
 Отрисовка:
-r.render(x, y, scale, arrayOfObjects)
+r.render(x, y, xp, yp, scale, arrayOfObjects)
 	x, y - координаты камеры
+	xp, yp - координаты игрока
 	scale - масштаб экрана
 	arrayOfObjects - массив/объект чанков, которые представляются в виде ассоциативных массивов:
 		{'chunk': chunk', 'slice': slice, 'x': xc, 'y': yc}
 			chunk - матрица с id блоков
-			slice - слой на котором должен находиться чанк [4..1000]
+			slice - слой на котором должен находиться чанк (1..10]
 			light - освещённость слоя [0..1]
 			xc, yc - координаты чанка
 
@@ -55,33 +57,37 @@ image.onload = () => {
 	const background = new Image();
 	background.src = 'Images/background.png';
 	background.onload = () => {
-		const r = new Render(image, background);
-		
-		r.settings(32, 4, 3);
-		
-		r.createObjects(
-			[{'id':1, 'a':[32.5/128, 32.5/128], 'b':[63.5/128, 63.5/128]},
-			{'id':3, 'a':[0.5/128, 0.5/128], 'b':[31.5/128, 31.5/128]}]);
-		
-        let arrayOfChunk = [{
-			'chunk':
-				[[1,1,1,1],
-				[1,1,3,3],
-				[1,1,1,1]],
-			'slice': 1,
-			'x': 0,
-			'y': 0
-			}];
-		let e = -20;
-		let oldtime = 0;
-		const update = (newtime) => {
-			newtime *= 0.005;
-			const deltaTime = newtime - oldtime;
-			oldtime = newtime;
-			r.render(e += deltaTime, 0, 1, arrayOfChunk);
+		const playerImage = new Image();
+		playerImage.src = 'Images/player.png';
+		playerImage.onload = () => {
+			const r = new Render(image, background, playerImage);
+			
+			r.settings(32, 4, 3);
+			
+			r.createObjects(
+				[{'id':1, 'a':[32.5/128, 32.5/128], 'b':[63.5/128, 63.5/128]},
+				{'id':3, 'a':[0.5/128, 0.5/128], 'b':[31.5/128, 31.5/128]}]);
+			
+			let arrayOfChunk = [{
+				'chunk':
+					[[1,1,1,1],
+					[1,1,3,3],
+					[1,1,1,1]],
+				'slice': 1,
+				'x': 0,
+				'y': 0
+				}];
+			let e = -20;
+			let oldtime = 0;
+			const update = (newtime) => {
+				newtime *= 0.005;
+				const deltaTime = newtime - oldtime;
+				oldtime = newtime;
+				r.render(e += deltaTime, 0, e, 0, 1, arrayOfChunk);
+				requestAnimationFrame(update);
+			}
 			requestAnimationFrame(update);
-		}
-		requestAnimationFrame(update);
+		};
     };
 };
 
@@ -90,7 +96,7 @@ image.onload = () => {
 */
 
 class Render {
-	constructor(image, background) {
+	constructor(image, background, playerImage) {
 		this.backgroundAsp = 512 / 512; // размер фона
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
@@ -124,29 +130,22 @@ class Render {
 		this.lightUniformLocation = this.gl.getUniformLocation(this.program, 'u_light');
 		
 		// создание текстуры
-		const imgs = [image, background];
+		const imgs = [image, background, playerImage];
 		this.textures = [];
-		for (let i = 0; i < 2; i++) {
+		for (let i = 0; i < 3; i++) {
 			const texture = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			
 			// задание параметров текстуры
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_NEAREST);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imgs[i]);
+			this.gl.generateMipmap(this.gl.TEXTURE_2D);
 			
 			this.textures.push(texture);
 		}
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
-
-		// единичные матрицы
-		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false,
-			[1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1]);
 	}
 	
 	settings(size, widthChunk, heightChunk) {
@@ -160,40 +159,84 @@ class Render {
 	}
 
 	createObjects(arrayOfObjects) {
-		let endId = 3;
+		let endId = 4;
 		this.ids = [];
 		
+		/*
+		ID:
+		0 - фон 1
+		1 - фон 2
+		2 - чёрный блок
+		3 - игрок
+		4+ - остальные блоки
+		*/
+		
+		const l = 0, h = this.size;
+		
 		let arrayOfPosition =
-			[0, 0,
+			[0, 0, // ID: 0
 			this.backgroundAsp, 0,
 			0, 1,
 			0, 1,
 			this.backgroundAsp, 0,
 			this.backgroundAsp, 1,
-			0, 0,
+			
+			0, 0, // ID: 1
 			this.backgroundAsp, 0,
 			0, 1,
 			0, 1,
 			this.backgroundAsp, 0,
 			this.backgroundAsp, 1,
-			0, 0,
-			this.size, 0,
-			0, this.size,
-			0, this.size,
-			this.size, 0,
-			this.size, this.size];
+			
+			l, l, // ID: 2
+			h, l,
+			l, h,
+			l, h,
+			h, l,
+			h, h,
+			
+			h * -0.75, l + h, // ID: 3
+			h * 0.75, l + h,
+			h * -0.75, h * 4,
+			h * -0.75, h * 4,
+			h * 0.75, l + h,
+			h * 0.75, h * 4];
 		let arrayOfTexCoord =
-			[0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0,
-			0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+			[0, 1, // ID: 0
+			1, 1,
+			0, 0,
+			0, 0,
+			1, 1,
+			1, 0, 
+			
+			0, 1, // ID: 1
+			1, 1,
+			0, 0,
+			0, 0,
+			1, 1,
+			1, 0,
+			
+			1, 1, // ID: 2
+			1, 1,
+			1, 1,
+			1, 1,
+			1, 1,
+			1, 1,
+			
+			0, 96 / 256, // ID: 3
+			48 / 256, 96 / 256,
+			0, 0,
+			0, 0,
+			48 / 256, 96 / 256,
+			48 / 256, 0];
 		arrayOfObjects.forEach((obj) => {
 			arrayOfPosition = arrayOfPosition.concat(
-				[0, 0,
-				this.size, 0,
-				0, this.size,
-				0, this.size,
-				this.size, 0,
-				this.size, this.size]);
+				[l, l,
+				h, l,
+				l, h,
+				l, h,
+				h, l,
+				h, h]);
 			arrayOfTexCoord = arrayOfTexCoord.concat(
 				[obj.a[0], obj.b[1],
 				obj.b[0], obj.b[1],
@@ -221,7 +264,7 @@ class Render {
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
-	render(x, y, scale, arrayOfChunk) {
+	render(x, y, xp, yp, scale, arrayOfChunk) {
 		if (scale <= 0) {
 			throw new Error("Invalid scale: scale <= 0");
 		}
@@ -233,8 +276,8 @@ class Render {
 		const right = x * ch + width / 2;
 		const bottom = y * ch - scale / 2;
 		const top = y * ch + scale / 2;
-		const near = 0.0001;
-		const far = 1002;
+		const near = 0.01;
+		const far = 11;
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
 				2.0 / (right - left), 0.0, 0.0, 0.0,
 				0.0, 2.0 / (top - bottom), 0.0, 0.0,
@@ -248,8 +291,9 @@ class Render {
 		// отрисовка фона
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
-		this.gl.uniform1f(this.lightUniformLocation, Math.round((1 / 3 + gameArea.timeOfDay * 2 / 3) * 60) / 60);
-		const z = 1 - far;
+		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
+		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
+		const z = 0.1 - far;
 		
 		for (let i = 0; i < asp / 2 + 2; i++) {
 			this.gl.uniform3f(this.translateUniformLocation,
@@ -263,27 +307,25 @@ class Render {
 		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-		
 		for (let c in arrayOfChunk) {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
 			if (arrayOfChunk[c].light != -100) {
-				for (let y in arrayOfChunk[c].chunk) {
-					for (let x in arrayOfChunk[c].chunk[y]) {
-						const id = arrayOfChunk[c].chunk[y][x];
+				for (let x in arrayOfChunk[c].chunk) {
+					const xh = x * ch; 
+					for (let y in arrayOfChunk[c].chunk[x]) {
+						const yh = y * ch;
+						const id = arrayOfChunk[c].chunk[x][y];
 						if (id !== undefined) {
-							if (this.ids[id] === undefined) {
-								throw new Error("Такого Id нет: " + id);
-							}
-							const light = arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "L"].chunk[y][x];
+							const light = arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "L"].chunk[x][y];
 							if (light < 0.01) {
 								this.gl.uniform3f(this.translateUniformLocation,
-									y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
+									xh + xc, yh + yc, -arrayOfChunk[c].slice);
 								this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
 							} else {
 								this.gl.uniform1f(this.lightUniformLocation, light);
 								this.gl.uniform3f(this.translateUniformLocation,
-									y * ch + xc, x * ch + yc, -arrayOfChunk[c].slice);
+									xh + xc, yh + yc, -arrayOfChunk[c].slice);
 								this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
 							}
 						}
@@ -291,6 +333,15 @@ class Render {
 				}
 			}
         }
+		
+		// отрисовка игрока
+		this.gl.disable(this.gl.DEPTH_TEST);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
+		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
+		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+		this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
+		this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+		this.gl.enable(this.gl.DEPTH_TEST);
 	}
 	
 	createShader(type, source) {

@@ -20,7 +20,7 @@ image.onload = () => {
 		playerImage.onload = () => {
 			const r = new Render(image, background, playerImage);
 			r.settings(scale, chankWidth, chankHeight)
-			
+
 			{  // Отправка образцов объектов
 				const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY = Math.floor(image.height / blockResolution)
 				let objects = [ ]
@@ -33,7 +33,7 @@ image.onload = () => {
 				}
 				r.createObjects(objects);
 			}
-			
+
 			let arrOfChunks = { }
 			let oldTime = 0
 			const deleteChankById = (xLocate, yLocate) => {
@@ -48,7 +48,7 @@ image.onload = () => {
 				const stopY = (yLocate + 1) * chankHeight
 				const startX = xLocate * chankWidth
 				const startY = yLocate * chankHeight
-				
+
 				for (let layout = minLayout; layout <= maxLayout + 1; layout++) {  // + 1 слой света
 					let layoutChunk = { chunk: [ ], x: xLocate, y: yLocate }
 					if (layout !== maxLayout + 1) {  // Если не слой света
@@ -78,15 +78,15 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] = layoutChunk
 				}
 			}
-			
+
 			beginPlay()  // Кастомное событие
 			
 			this.controller = new Controller();
-			
+
 			const KDU = (event) => {controller.keyDownUp(event);};
 			window.addEventListener("keydown", KDU);
 			window.addEventListener("keyup", KDU);
-			
+
 			const update = (newTime) => {
 				deltaTime = newTime - oldTime
 				oldTime = newTime
@@ -136,7 +136,7 @@ image.onload = () => {
 				fpsUpdate()
 				requestAnimationFrame(update);
 			}
-			
+
 			requestAnimationFrame(update);
 		};
 	};

@@ -111,23 +111,3 @@ const landGen = (minHeight, maxHeight, widthWorld, heightWorld) => {
 
     return arr;
 };
-
-// Пример генерации
-let arr = landGen(64, 128, 300, 256);
-
-for (let i = 0; i < arr.length; i++) {
-    let str = '';
-    for (let j = 0; j < arr[i].length; j++) {
-        if (arr[i][j] === -1) {
-            str += ' ';
-        }
-        else if (arr[i][j] === 1) {
-            str += '#';
-        }
-        else if (arr[i][j] === 2) {
-            str += '*';
-        }
-        else str += 'O';
-    }
-    console.log(str);
-}

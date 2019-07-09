@@ -101,13 +101,18 @@ class Render {
 	constructor(image, background, playerImage) {
 		this.backgroundAsp = 512 / 512; // размер фона
 		const canvas = document.getElementById('canvas'); // получаем канвас
-		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
-		if (!this.gl) {
-			const ErrorMsg = 'Browser is very old';
-			stop();
-			alert(ErrorMsg);
-			throw new Error(ErrorMsg);
-		}
+		//this.webglVersion = 2;
+		//this.gl = canvas.getContext('webgl2'); // получаем доступ к webgl2
+		//if (!this.gl) {
+			//this.webglVersion = 1;
+			this.gl = canvas.getContext('webgl'); // иначе получаем доступ к webgl
+			if (!this.gl) {
+				const ErrorMsg = 'Browser is very old';
+				stop();
+				alert(ErrorMsg);
+				throw new Error(ErrorMsg);
+			}
+		//}
 		
 		// сборка и компиляция шейдерной программы
 		const vertexShader = this.createShader(this.gl.VERTEX_SHADER,
@@ -299,18 +304,18 @@ class Render {
 		
 	}
 	
-	render(x, y, xp, yp, scale, lightOfDay, arrayOfChunk) 
-		const width = this.widthChunk * this.size;
-		const height = this.heightChunk * this.size;
+	render(x, y, xp, yp, scale, lightOfDay, arrayOfChunk) {
+		const widthTexture = this.widthChunk * this.size;
+		const heightTexture = this.heightChunk * this.size;
 		const texture = this.gl.createTexture();
 		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA,
-			this.gl.UNSIGNED_BYTE, null);
+		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, widthTexture, heightTexture, 0,
+			this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 		
-		const fb = gl.createFramebuffer();
+		const fb = this.gl.createFramebuffer();
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fb);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
 			this.gl.TEXTURE_2D, this.gl.createTexture(), 0);
@@ -318,6 +323,7 @@ class Render {
 		if (scale <= 0) {
 			throw new Error("Invalid scale: scale <= 0");
 		}
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 		this.resizeCanvas(this.gl.canvas);
 		const ch = this.size / this.gl.canvas.height;
 		const asp = this.gl.canvas.width / this.gl.canvas.height;
@@ -342,7 +348,6 @@ class Render {
 		// отрисовка фона
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
-
 		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
 		const z = 0.1 - far;
 		

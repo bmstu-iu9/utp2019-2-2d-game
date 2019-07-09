@@ -84,15 +84,14 @@ image.onload = () => {
 			this.controller = new Controller();
 
 			const KDU = (event) => {controller.keyDownUp(event);};
-
 			window.addEventListener("keydown", KDU);
-  		window.addEventListener("keyup",   KDU);
+			window.addEventListener("keyup", KDU);
 
 			const update = (newTime) => {
 				deltaTime = newTime - oldTime
 				oldTime = newTime
 
-				eventTick()  // Кастомное событие
+				eventTick();  // Кастомное событие
 
 				{   // Движение игрока
 					if (controller.left.active) player.adjustSpeed(-1 * Player.SPEED,0);
@@ -132,15 +131,16 @@ image.onload = () => {
 						}
 					}
 				}
-
-				r.render(cameraX, cameraY, gameArea.player.x, gameArea.player.y, cameraScale, arrOfChunks);
+				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
+        
+				r.render(cameraX, cameraY, gameArea.player.x, gameArea.player.y, cameraScale, lightOfDay, arrOfChunks);
 				fpsUpdate()
 				requestAnimationFrame(update);
 			}
 
 			requestAnimationFrame(update);
 		};
-    };
+	};
 };
 
 const cameraSet = (x, y) => {

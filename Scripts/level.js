@@ -14,6 +14,7 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 const key = performance.now();  // Ключ генерации
 let _x = 0, _y = 0;
+let currentTime = 0;
 const beginPlay = () => {  // Вызывается только при запуске
     gameArea = generate(1024, 1024, key);
 	_x = 0;
@@ -22,12 +23,19 @@ const beginPlay = () => {  // Вызывается только при запу�
 }
 
 const eventTick = () => {  // Вызывается каждый кадр
-	gameArea.timeOfDay = _x / gameArea.width;
-	let speed = 10;
-	if(_x >= gameArea.width - 1){
-		_x = 1;
-		_y = gameArea.elevationMap[_x];
+	currentTime += deltaTime;
+	setTimeOfDay(currentTime, 60);
+}
+
+const setTimeOfDay = (currentTime, lenghtOfDay) => {
+	currentTime = currentTime / 1000 / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
+	if(currentTime < Math.PI){ //День
+		gameArea.timeOfDay = 1;
+	}else if(currentTime < 2 * Math.PI){ // День -> Ночь
+		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
+	}else if(currentTime < 3 * Math.PI){ // Ночь
+		gameArea.timeOfDay = 0;
+	}else{ // Ночь -> День
+		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
 	}
-	let targetX = Math.floor(_x) + 2, targetY = gameArea.elevationMap[targetX];
-    cameraSet(_x, _y)
 }

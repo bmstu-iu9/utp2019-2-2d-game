@@ -54,6 +54,15 @@ let block_table = {
         "name" : "flowing-water-1"
     },
 
+    "16" : {
+        "id" : "16",
+        "type" : "stone",
+        "durability" : 60,
+        "brightness" : 0,
+        "isCollissed" : true,
+        "name" : "coal-ore"
+    },
+
     "17" : {
         "id" : "17",
         "type" : "wood",

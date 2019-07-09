@@ -263,7 +263,7 @@ class Render {
 		this.gl.enableVertexAttribArray(texCoordAttributeLocation);
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
-	
+  
 	render(x, y, xp, yp, scale, lightOfDay, arrayOfChunk) {
 		if (scale <= 0) {
 			throw new Error("Invalid scale: scale <= 0");
@@ -291,6 +291,7 @@ class Render {
 		// отрисовка фона
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1);
+
 		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
 		const z = 0.1 - far;
 		

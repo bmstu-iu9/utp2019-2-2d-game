@@ -20,7 +20,7 @@ image.onload = () => {
 		playerImage.onload = () => {
 			const r = new Render(image, background, playerImage);
 			r.settings(scale, chankWidth, chankHeight)
-
+			
 			{  // Отправка образцов объектов
 				const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY = Math.floor(image.height / blockResolution)
 				let objects = [ ]
@@ -33,7 +33,7 @@ image.onload = () => {
 				}
 				r.createObjects(objects);
 			}
-
+			
 			let arrOfChunks = { }
 			let oldTime = 0
 			const deleteChankById = (xLocate, yLocate) => {
@@ -48,11 +48,11 @@ image.onload = () => {
 				const stopY = (yLocate + 1) * chankHeight
 				const startX = xLocate * chankWidth
 				const startY = yLocate * chankHeight
-			
+				
 				for (let layout = minLayout; layout <= maxLayout + 1; layout++) {  // + 1 слой света
 					let layoutChunk = { chunk: [ ], x: xLocate, y: yLocate }
 					if (layout !== maxLayout + 1) {  // Если не слой света
-						layoutChunk.slice = layout 
+						layoutChunk.slice = layout
 						if (layout === GameArea.MAIN_LAYOUT) {
 							layoutChunk.light = 1
 						} else {
@@ -78,14 +78,28 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] = layoutChunk
 				}
 			}
-
+			
 			beginPlay()  // Кастомное событие
-
+			
+			this.controller = new Controller();
+			
+			const KDU = (event) => {controller.keyDownUp(event);};
+			window.addEventListener("keydown", KDU);
+			window.addEventListener("keyup", KDU);
+			
 			const update = (newTime) => {
 				deltaTime = newTime - oldTime
 				oldTime = newTime
 
-				eventTick()  // Кастомное событие
+				eventTick();  // Кастомное событие
+
+				{
+					if (controller.left.active) player.movePlayer(-1,0);
+					if (controller.right.active) player.movePlayer(1,0);
+					if (controller.up.active) player.movePlayer(0,1);
+					if (controller.down.active) player.movePlayer(0,-1);
+					cameraSet(gameArea.player.x,gameArea.player.y);
+				}
 
 				{  // Обновление чанков
 					const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
@@ -117,15 +131,15 @@ image.onload = () => {
 					}
 				}
 				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
-
-				r.render(cameraX, cameraY, cameraX, cameraY, cameraScale, lightOfDay, arrOfChunks);
+        
+				r.render(cameraX, cameraY, gameArea.player.x, gameArea.player.y, cameraScale, lightOfDay, arrOfChunks);
 				fpsUpdate()
 				requestAnimationFrame(update);
 			}
-
+			
 			requestAnimationFrame(update);
 		};
-    };
+	};
 };
 
 const cameraSet = (x, y) => {

@@ -65,6 +65,7 @@ class Player {
         this.movePlayer = (dx, dy) => {
             let newX = gamearea.player.x + dx;
             let newY = gamearea.player.y + dy;
+            console.log(newX, newY);
             if (newX >= 0 && newX <= gamearea.width && newY >= 0 && newY <= gamearea.height) {
                 if (!gamearea.map[newX][newY][GameArea.MAIN_LAYOUT] || !gamearea.map[newX][newY][GameArea.MAIN_LAYOUT].isCollissed) {
                     gamearea.setPlayer(newX, newY);

@@ -155,7 +155,7 @@ const generate = (width, height, seed) => {
     }
 
     // Создание "направляющих" для пещер
-    const caveGen = (worldArr, maxLength) => {
+    const caveGen = (worldArr, maxCount, maxLength) => {
 
         let dontGenHereArr = new Array();
         for(let x = 0; x < width; x++){
@@ -163,8 +163,10 @@ const generate = (width, height, seed) => {
         }
 
         let dontGenCountX = 0;
+        let count = 0;
 
-        while(dontGenCountX < worldArr.length){
+        while(dontGenCountX < worldArr.length && maxCount > count){
+            let length = random() * 0.95 * maxLength + 0.05 * maxLength;
 
             // Ищем координаты точки старта на поверхности для будущей пещеры
             let t = Math.ceil(random() * (worldArr.length - dontGenCountX));
@@ -195,7 +197,7 @@ const generate = (width, height, seed) => {
 
             // Ищем следующую координату
             let randK = (random() > 0.5) ? 1 : -1;
-            while(caveArrX.length < maxLength && y > 0 && x >= 0 && x < worldArr.length && worldArr[x][y]){
+            while(caveArrX.length < length && y > 0 && x >= 0 && x < worldArr.length && worldArr[x][y]){
                 caveArrX.push(x);
                 caveArrY.push(y);
                 let nextX = x;
@@ -241,9 +243,12 @@ const generate = (width, height, seed) => {
                 x = nextX;
                 y = nextY;
             }
-            // Формируем пещеру по направляющей
-            for(let i = 0; i < caveArrX.length; i++){
-                dontGenCountX = holeGen(worldArr, caveArrX[i], caveArrY[i], 3, dontGenHereArr, dontGenCountX)  // Дыры радиуса от 1 до 3
+            if(caveArrX.length > 0.05 * maxLength){
+                // Формируем пещеру по направляющей
+                for(let i = 0; i < caveArrX.length; i++){
+                    dontGenCountX = holeGen(worldArr, caveArrX[i], caveArrY[i], 3, dontGenHereArr, dontGenCountX)  // Дыры радиуса от 1 до 3
+                }
+                count++;
             }
         }
         return worldArr;
@@ -481,7 +486,7 @@ const generate = (width, height, seed) => {
         }
     }
 
-    let withCavesMatrix = caveGen(landMatrix1, height * 2);
+    let withCavesMatrix = caveGen(landMatrix1, width / 100, height);
 
     let oreArr = oreGen();
 

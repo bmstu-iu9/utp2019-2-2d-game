@@ -94,11 +94,12 @@ image.onload = () => {
 
 				eventTick()  // Кастомное событие
 
-				{
-					if (controller.left.active) player.movePlayer(-1,0);
-					if (controller.right.active) player.movePlayer(1,0);
-					if (controller.up.active) player.movePlayer(0,1);
-					if (controller.down.active) player.movePlayer(0,-1);
+				{   // Движение игрока
+					if (controller.left.active) player.adjustSpeed(-1 * Player.SPEED,0);
+					if (controller.right.active) player.adjustSpeed(Player.SPEED,0);
+					if (controller.up.active) player.adjustSpeed(0, Player.SPEED);
+					if (controller.down.active) player.adjustSpeed(0,-1 * Player.SPEED);
+					player.movePlayer(deltaTime / 1000); // Перемещаем игрока относительно его скорости
 					cameraSet(gameArea.player.x,gameArea.player.y);
 				}
 

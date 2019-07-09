@@ -263,7 +263,7 @@ class Render {
 		this.gl.enableVertexAttribArray(texCoordAttributeLocation);
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
-  
+	
 	render(x, y, xp, yp, scale, lightOfDay, arrayOfChunk) {
 		if (scale <= 0) {
 			throw new Error("Invalid scale: scale <= 0");

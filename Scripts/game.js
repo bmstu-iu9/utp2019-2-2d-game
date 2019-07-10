@@ -92,16 +92,7 @@ image.onload = () => {
 				deltaTime = newTime - oldTime
 				oldTime = newTime
 
-				eventTick()  // Кастомное событие
-
-				{   // Движение игрока
-					if (controller.left.active) player.adjustSpeed(-1 * Player.SPEED,0);
-					if (controller.right.active) player.adjustSpeed(Player.SPEED,0);
-					if (controller.up.active) player.adjustSpeed(0, Player.SPEED);
-					if (controller.down.active) player.adjustSpeed(0,-1 * Player.SPEED);
-					player.movePlayer(deltaTime / 1000); // Перемещаем игрока относительно его скорости
-					cameraSet(gameArea.player.x,gameArea.player.y);
-				}
+				eventTick();
 
 				{  // Обновление чанков
 					const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);

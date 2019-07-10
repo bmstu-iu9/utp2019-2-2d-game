@@ -45,37 +45,40 @@ const playerMovement = () => {   // Движение игрока
 	if(player.onGround()){
 		player.vy = Math.max(player.vy, 0);
 		if(controller.up.active) player.vy = Player.JUMP_SPEED;
-		console.log("Jump");
-		
 	}else{
-		player.vy -= GameArea.GRAVITY * deltaTime;
+		player.vy -= GameArea.GRAVITY * deltaTime / 1000;
 	}
-	if(controller.left.active) player.vx = -1 * Player.SPEED;
+	if(controller.left.active) player.vx = -Player.SPEED;
 	if(controller.right.active) player.vx = Player.SPEED;
-	if(!controller.left.active && controller.right.active) player.vx /= 2;
+	if(!controller.left.active && !controller.right.active) player.vx = 0;
 
-	let newX = gameArea.player.x + player.vx * deltaTime;
-    let newY = gameArea.player.y + player.vy * deltaTime;
+	let newX = gameArea.player.x + player.vx * deltaTime / 1000;
+    let newY = gameArea.player.y + player.vy * deltaTime / 1000;
 
     // Выход за карту
 	if(newX - Player.HALF_WIDTH < 0 && newX + Player.HALF_WIDTH > gameArea.width){
 		player.vx = 0;
-		newX = 0;
+		newX = gameArea.player.x;
 	}
 	if(newY < 0 && newY + Player.HEIGHT > gameArea.height){
 		player.vy = 0;
-		newY = 0;
+		newY = gameArea.player.y;
 	} 
 
 	// Проверка, не упёрся ли игрок
-	if(player.checkUpCol(newX, newY) || player.checkDownCol(newX, newY)){
-		newY = gameArea.player.y;
-		player.vy = 0;
-	}
-	if(player.checkLeftCol(newX, newY) || player.checkRightCol(newX, newY)){
+	if(!player.checkLeftCol(newX, newY) || !player.checkRightCol(newX, newY)){
 		newX = gameArea.player.x;
 		player.vx = 0;
 	}
+	if(!player.checkUpCol(newX, newY)){
+		newY = gameArea.player.y;
+		player.vy = 0;
+	}
+	if(!player.checkDownCol(newX, newY)){
+		newY = Math.floor(gameArea.player.y);
+		player.vy = 0;
+	}
+	
 
 	gameArea.setPlayer(newX, newY);
 

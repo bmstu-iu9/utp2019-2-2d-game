@@ -301,18 +301,12 @@ class GameArea{
         this.goodDestroy = (x, y, layout) => {
             let block = block_table[this.map[x][y][layout]];
             this.destroyBlock(x, y, layout);
-            return this.dropLoot(x,y, block);
+            return this.dropLoot(x, y, block);
         };
 
         // Установка игрока по координатам
         this.setPlayer = (x, y) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
-            let mapX = Math.floor(x);
-            let mapY = Math.floor(y);
-            let mapPlayerX = Math.floor(this.player.x);
-            let mapPlayerY = Math.floor(this.player.y);
-            if (mapPlayerX !== -1) this.map[mapPlayerX][mapPlayerY][GameArea.PLAYER_LAYOUT] = undefined;
-            this.map[mapX][mapY][GameArea.PLAYER_LAYOUT] = 0;
             this.player.x = x;
             this.player.y = y;
             console.log(this.player.x + " " + this.player.y);
@@ -322,7 +316,6 @@ class GameArea{
 }
 
 // Константы уровня
-GameArea.PLAYER_LAYOUT = 1;
 GameArea.FORWARD_LAYOUT = 1;
 GameArea.MAIN_LAYOUT = 2;
 GameArea.BACK_LAYOUT = 3;
@@ -332,4 +325,4 @@ GameArea.WATER_BLOCK_CAP = 12;  // Какова должна быть напол
                                 // блок стоячей воды min = 1, max = 14. При этом наполненность блока стоячей воды = 8,
                                 // в то время как наполненность блока текучей воды изменяется от 7 до 1
                                 // id изменяются соотвественно от 9 до 15 включительно
-GameArea.GRAVITY = 0.2;
+GameArea.GRAVITY = 100;

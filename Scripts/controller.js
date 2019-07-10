@@ -13,10 +13,10 @@ class Controller {
 
     switch(event.keyCode) {
 
-      case 37: this.left.getInput(down);  break;
-      case 38: this.up.getInput(down);    break;
-      case 39: this.right.getInput(down); break;
-      case 40: this.down.getInput(down);
+      case 65: this.left.getInput(down);  break;
+      case 87: this.up.getInput(down);    break;
+      case 68: this.right.getInput(down); break;
+      case 83: this.down.getInput(down);
 
     }
 

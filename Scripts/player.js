@@ -39,10 +39,8 @@ class Player {
                     gamearea.placeBlock(x, y, GameArea.MAIN_LAYOUT, this.hand.id);
                     let ind = this.inv.indexOf(this.hand);
                     if (ind > - 1) this.inv.splice(ind, 1);
-                    else console.log(`Error: Block in hand placed, which is not in inventory`);
 					this.hand = undefined;
                 }
-                else console.log(`Impossible to place block on ${x} ${y}`)
             }
         };
 
@@ -136,7 +134,6 @@ class Player {
                     }
                 }
             } else {
-                console.log(`Attempt to move player to invalid coordinates: ${newX} ${newY}`);
                 this.vx = 0;
                 this.vy = 0;
             }
@@ -160,7 +157,6 @@ class Player {
                 if (gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT] &&
                     (block_table[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
                     block_table[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
-                    console.log(`Attempt to move to collised block: x : ${Math.floor(newX + Player.HALF_WIDTH)} y : ${y} block id : ${gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]}`);
                     return false;
                 }
             }
@@ -172,7 +168,6 @@ class Player {
                 if (gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT] &&
                     (block_table[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
                     block_table[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
-                    console.log(`Attempt to move to collised block: x : ${Math.floor(newX - Player.HALF_WIDTH)} y : ${y} block id : ${gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]}`);
                     return false;
                 }
             }
@@ -184,7 +179,6 @@ class Player {
                 if (gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT] &&
                     (block_table[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]] === undefined ||
                     block_table[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]].isCollissed)) {
-                    console.log(`Attempt to move to collised block: x : ${Math.floor(x)} y : ${Math.ceil(newY + Player.HEIGHT)} block id : ${gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]}`);
                     return false;
                 }
             }
@@ -196,7 +190,6 @@ class Player {
                 if (gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT] &&
                     (block_table[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]] === undefined ||
                     block_table[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]].isCollissed)) {
-                    console.log(`Attempt to move to collised block: x : ${Math.floor(x)} y : ${Math.floor(newY + 1)} block id : ${gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]}`);
                     return false;
                 }
             }
@@ -204,7 +197,7 @@ class Player {
         }
 
         this.onGround = () => {
-            return this.checkDownCol(gamearea.player.x - 0.001, gamearea.player.y);
+            return !this.checkDownCol(gamearea.player.x, gamearea.player.y - 0.0001);
         }
     }
 }
@@ -214,4 +207,4 @@ Player.ACTION_RADIUS = 12; // Радиус действия игрока
 Player.HEIGHT = 2.8; // "Рост" игрока в блоках
 Player.HALF_WIDTH = 0.75; // Половина ширины игрока в блоках
 Player.SPEED = 10; // Модификатор скорости игрока
-Player.JUMP_SPEED = 15; // Модификатор скорости игрока
+Player.JUMP_SPEED = 31; // Модификатор скорости игрока

@@ -602,7 +602,7 @@ const generate = (width, height, seed) => {
     // Создть карту освещения
     createShadows(9);
 
-    return new GameArea(worldMap, elevationMap, shadowMap, width, height, "./block_table.json");
+    return new GameArea(worldMap, elevationMap, shadowMap, width, height);
 }
 
 // Визуализация полученной матрицы в консоли

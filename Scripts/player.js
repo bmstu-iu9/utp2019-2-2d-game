@@ -35,7 +35,7 @@ class Player {
             // Пока ставим только в MAIN_LAYOUT
             if (this.hand && !this.hand.isTool && this.inActionRadius(x, y)) {
                 let id = gamearea.map[x][y][GameArea.MAIN_LAYOUT]; // id того, что там сейчас
-                if (id === undefined || !block_table[id].isCollissed) {
+                if (id === undefined || !blockTable[id].isCollissed) {
                     gamearea.placeBlock(x, y, GameArea.MAIN_LAYOUT, this.hand.id);
                     let ind = this.inv.indexOf(this.hand);
                     if (ind > - 1) this.inv.splice(ind, 1);
@@ -55,7 +55,7 @@ class Player {
         this.info = (x, y) => {
             // Получение информации о блоке, пока только в MAIN_LAYOUT
             if (this.inActionRadius(x, y)) {
-                let block = block_table[gamearea.map[x][y][GameArea.MAIN_LAYOUT]];
+                let block = blockTable[gamearea.map[x][y][GameArea.MAIN_LAYOUT]];
                 alert(`Block on ${x} ${y} : ` + JSON.stringify(block));
             }
         };
@@ -147,7 +147,7 @@ class Player {
 
         this.takeInHand = (invNum) => {
             let id = this.inv[invNum];
-            if (id !== undefined) this.hand = block_table[id];
+            if (id !== undefined) this.hand = blockTable[id];
         };
 
 
@@ -155,8 +155,8 @@ class Player {
         this.checkRightCol = (newX, newY) => {
             for (let y = Math.ceil(newY + Player.HEIGHT); y > Math.floor(newY); y--) {
                 if (gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT] &&
-                    (block_table[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
-                    block_table[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    (blockTable[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
+                    blockTable[gamearea.map[Math.floor(newX + Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
                     return false;
                 }
             }
@@ -166,8 +166,8 @@ class Player {
         this.checkLeftCol = (newX, newY) => {
             for (let y = Math.ceil(newY + Player.HEIGHT); y > Math.floor(newY); y--) {
                 if (gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT] &&
-                    (block_table[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
-                    block_table[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    (blockTable[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]] === undefined ||
+                    blockTable[gamearea.map[Math.floor(newX - Player.HALF_WIDTH)][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
                     return false;
                 }
             }
@@ -177,8 +177,8 @@ class Player {
         this.checkUpCol = (newX, newY) => {
             for (let x = newX - Player.HALF_WIDTH; Math.floor(x) <= Math.floor(newX + Player.HALF_WIDTH); x++) {
                 if (gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT] &&
-                    (block_table[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]] === undefined ||
-                    block_table[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    (blockTable[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]] === undefined ||
+                    blockTable[gamearea.map[Math.floor(x)][Math.ceil(newY + Player.HEIGHT)][GameArea.MAIN_LAYOUT]].isCollissed)) {
                     return false;
                 }
             }
@@ -188,8 +188,8 @@ class Player {
         this.checkDownCol = (newX, newY) => {
             for (let x = newX - Player.HALF_WIDTH; Math.floor(x) <= Math.floor(newX + Player.HALF_WIDTH); x++) {
                 if (gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT] &&
-                    (block_table[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]] === undefined ||
-                    block_table[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]].isCollissed)) {
+                    (blockTable[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]] === undefined ||
+                    blockTable[gamearea.map[Math.floor(x)][Math.floor(newY + 1)][GameArea.MAIN_LAYOUT]].isCollissed)) {
                     return false;
                 }
             }

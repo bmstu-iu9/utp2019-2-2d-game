@@ -1,4 +1,4 @@
-let block_table = {
+let blockTable = {
     "1" : {
         "id" : "1",
         "type" : "stone",

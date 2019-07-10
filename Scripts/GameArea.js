@@ -1,8 +1,8 @@
 'use strict';
 
 //============================================Описание свойств блока========================================================================
-// Cами блоки со свойствами лежат в файле block_table.json
-// id - его id в таблице block_table, а также представление в map
+// Cами блоки со свойствами лежат в файле blockTable.json
+// id - его id в таблице blockTable, а также представление в map
 /* type - тип блока, определяется на основе того, чем "добывается" блок с точки зрения логики:
                         dirt         - земля, добывается лопатой
                         stone        - камень, добывается киркой
@@ -26,7 +26,7 @@
 
 // Игровое пространство
 class GameArea{
-    constructor(map,elevationMap, shadowMap, width, height, path){
+    constructor(map,elevationMap, shadowMap, width, height){
         // map  - двумерная карта, состоящая из id блоков
         this.map = map;
         this.elevationMap = elevationMap;
@@ -109,13 +109,13 @@ class GameArea{
 
             if(shadowMap[x][y] % 1000 === 9 && map[x][y][GameArea.MAIN_LAYOUT] !== undefined){
                 deleteShadowRound(x, y, x, y, 9, true);
-            } else if(Math.floor(shadowMap[x][y] / 1000) === 9 && block_table[map[x][y][GameArea.MAIN_LAYOUT]].brightness !== 9){
+            } else if(Math.floor(shadowMap[x][y] / 1000) === 9 && blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness !== 9){
                 deleteShadowRound(x, y, x, y, 9, false);
             } else{
                 if(map[x][y][GameArea.MAIN_LAYOUT] === undefined){
                     addShadowRound(x, y, x, y, 9, true);
                 } else{
-                    addShadowRound(x, y, x, y, block_table[map[x][y][GameArea.MAIN_LAYOUT]].brightness, false);
+                    addShadowRound(x, y, x, y, blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness, false);
                 }
             }
         };
@@ -145,12 +145,12 @@ class GameArea{
         this.updateBlock = (x, y, layout) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             if (this.map[x][y][layout] === undefined) return;
-            let block = block_table[this.map[x][y][layout]];
+            let block = blockTable[this.map[x][y][layout]];
             if (block === undefined) return;
 
             if (block.hasGravity) {
                 // Если нет блока снизу
-                if ((y - 1) >=0 && block_table[this.map[x][y - 1][layout]].type === undefined) {
+                if ((y - 1) >=0 && blockTable[this.map[x][y - 1][layout]].type === undefined) {
                     let block_id = this.map[x][y][layout];
                     this.destroyBlock(x, y, layout);
                     this.placeBlock(x, y - 1, layout, block_id);
@@ -162,13 +162,13 @@ class GameArea{
                     // крайние нижние блоки - это не блоки дерева, то оно рушится
                 {
                     let downB;
-                    if (y - 1 >= 0) downB = block_table[this.map[x][y - 1][layout]];
+                    if (y - 1 >= 0) downB = blockTable[this.map[x][y - 1][layout]];
                     if (downB === undefined || downB.type === "leaf" ) {
                         let downLeftB;
-                        if (x - 1 >= 0 && y - 1 >= 0) downLeftB = block_table[this.map[x - 1][y - 1][layout]];
+                        if (x - 1 >= 0 && y - 1 >= 0) downLeftB = blockTable[this.map[x - 1][y - 1][layout]];
                         if (downLeftB === undefined || downLeftB.type !== "wood")  {
                             let downRightB;
-                            if (x + 1 < this.width && y - 1 >= 0) downRightB = block_table[this.map[x + 1][y - 1][layout]];
+                            if (x + 1 < this.width && y - 1 >= 0) downRightB = blockTable[this.map[x + 1][y - 1][layout]];
                             if (downRightB === undefined || downRightB.type !== "wood") {
                                 this.goodDestroy(x, y, layout);
                             }
@@ -181,13 +181,13 @@ class GameArea{
                     // дерева или листвы, то он рушится
                 {
                     let downLeftB;
-                    if (x - 1 >= 0 && y - 1 >= 0) downLeftB = block_table[this.map[x - 1][y - 1][layout]];
+                    if (x - 1 >= 0 && y - 1 >= 0) downLeftB = blockTable[this.map[x - 1][y - 1][layout]];
                     if (downLeftB === undefined || downLeftB.type !== "leaf" || downLeftB.type !== "wood") {
                         let downB;
-                        if (y - 1 >= 0) downB = block_table[this.map[x][y - 1][layout]];
+                        if (y - 1 >= 0) downB = blockTable[this.map[x][y - 1][layout]];
                         if (downB === undefined || downB.type !== "leaf" || downB.type !== "wood") {
                             let downRightB;
-                            if (x + 1 < this.width && y - 1 >= 0) downRightB = block_table[this.map[x + 1][y - 1][layout]];
+                            if (x + 1 < this.width && y - 1 >= 0) downRightB = blockTable[this.map[x + 1][y - 1][layout]];
                             if (downRightB === undefined || downRightB.type !== "leaf" ||
                                 downRightB.type !== "wood") {
                                 this.destroyBlock(x, y, layout);
@@ -273,7 +273,7 @@ class GameArea{
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
-            if (!this.map[x][y][layout] || block_table[this.map[x][y][layout]].isCollissed === false) {
+            if (!this.map[x][y][layout] || blockTable[this.map[x][y][layout]].isCollissed === false) {
                 this.map[x][y][layout] = id;
                 this.updateRadius(x, y, layout);
                 this.updateBlock(x, y, layout);
@@ -285,7 +285,7 @@ class GameArea{
         this.interactWithBlock = (x, y, layout) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             console.log("Interaction with block on coordinates : [${x} ${y} ${layout}]");
-            let block = block_table[this.map[x][y][layout]];
+            let block = blockTable[this.map[x][y][layout]];
             if (block.isClickable) {
                 block.interactFunction();
             }
@@ -299,7 +299,7 @@ class GameArea{
 
         // Функция разрушения блока со сбросом лута
         this.goodDestroy = (x, y, layout) => {
-            let block = block_table[this.map[x][y][layout]];
+            let block = blockTable[this.map[x][y][layout]];
             this.destroyBlock(x, y, layout);
             return this.dropLoot(x, y, block);
         };

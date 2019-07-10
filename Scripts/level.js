@@ -19,12 +19,13 @@ const beginPlay = () => {  // Вызывается только при запу�
     gameArea = generate(1024, 1024, key);
 	_x = 0;
 	_y = gameArea.elevationMap[_x];
-  player = new Player(gameArea, _x + Player.HALF_WIDTH, _y + 1);
+	player = new Player(gameArea, _x + 1 + Player.HALF_WIDTH, _y + 0.0001);
 }
 
 const eventTick = () => {  // Вызывается каждый кадр
 	currentTime += deltaTime;
 	setTimeOfDay(currentTime, 60);
+	playerMovement();
 }
 
 const setTimeOfDay = (currentTime, lenghtOfDay) => {
@@ -38,4 +39,45 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	}else{ // Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
 	}
+}
+
+const playerMovement = () => {   // Движение игрока
+	if(player.onGround()){
+		player.vy = Math.max(player.vy, 0);
+		if(controller.up.active) player.vy = Player.JUMP_SPEED;
+		console.log("Jump");
+		
+	}else{
+		player.vy -= GameArea.GRAVITY * deltaTime;
+	}
+	if(controller.left.active) player.vx = -1 * Player.SPEED;
+	if(controller.right.active) player.vx = Player.SPEED;
+	if(!controller.left.active && controller.right.active) player.vx /= 2;
+
+	let newX = gameArea.player.x + player.vx * deltaTime;
+    let newY = gameArea.player.y + player.vy * deltaTime;
+
+    // Выход за карту
+	if(newX - Player.HALF_WIDTH < 0 && newX + Player.HALF_WIDTH > gameArea.width){
+		player.vx = 0;
+		newX = 0;
+	}
+	if(newY < 0 && newY + Player.HEIGHT > gameArea.height){
+		player.vy = 0;
+		newY = 0;
+	} 
+
+	// Проверка, не упёрся ли игрок
+	if(player.checkUpCol(newX, newY) || player.checkDownCol(newX, newY)){
+		newY = gameArea.player.y;
+		player.vy = 0;
+	}
+	if(player.checkLeftCol(newX, newY) || player.checkRightCol(newX, newY)){
+		newX = gameArea.player.x;
+		player.vx = 0;
+	}
+
+	gameArea.setPlayer(newX, newY);
+
+	cameraSet(gameArea.player.x, gameArea.player.y);
 }

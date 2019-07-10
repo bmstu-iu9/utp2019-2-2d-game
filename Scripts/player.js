@@ -75,7 +75,6 @@ class Player {
                         if (this.vy > 0) {
                             if (this.checkUpCol(newX, newY)) {
                                 gamearea.setPlayer(newX, newY);
-                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
                                 this.vx /= 2;
                                 this.vy /= 2;
                             } else {
@@ -85,7 +84,6 @@ class Player {
                         } else {
                             if (this.checkDownCol(newX, newY)) {
                                 gamearea.setPlayer(newX, newY);
-                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
                                 this.vx /= 2;
                                 this.vy /= 2;
                             } else {
@@ -103,7 +101,6 @@ class Player {
                             if (this.checkUpCol(newX, newY)) {
 
                                 gamearea.setPlayer(newX, newY);
-                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
                                 this.vx /= 2;
                                 this.vy /= 2;
                             } else {
@@ -113,7 +110,6 @@ class Player {
                         } else {
                             if (this.checkDownCol(newX, newY)) {
                                 gamearea.setPlayer(newX, newY);
-                                console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
                                 this.vx /= 2;
                                 this.vy /= 2;
                             } else {
@@ -128,12 +124,10 @@ class Player {
                 } else {
                     if (this.vy > 0 && this.checkUpCol(newX, newY)) {
                         gamearea.setPlayer(newX, newY);
-                        console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
                         this.vx /= 2;
                         this.vy /= 2;
                     } else if (this.vy < 0 && this.checkDownCol(newX, newY)) {
                         gamearea.setPlayer(newX, newY);
-                        console.log(`Moved to ${newX} ${newY} Map Coord : ${mapX} ${mapY}`);
                         this.vx /= 2;
                         this.vy /= 2;
                     } else if (this.vy !== 0) {
@@ -208,6 +202,10 @@ class Player {
             }
             return true;
         }
+
+        this.onGround = () => {
+            return this.checkDownCol(gamearea.player.x - 0.001, gamearea.player.y);
+        }
     }
 }
 
@@ -216,3 +214,4 @@ Player.ACTION_RADIUS = 12; // Радиус действия игрока
 Player.HEIGHT = 2.8; // "Рост" игрока в блоках
 Player.HALF_WIDTH = 0.75; // Половина ширины игрока в блоках
 Player.SPEED = 10; // Модификатор скорости игрока
+Player.JUMP_SPEED = 15; // Модификатор скорости игрока

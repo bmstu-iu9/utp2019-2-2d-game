@@ -206,5 +206,5 @@ class Player {
 Player.ACTION_RADIUS = 12; // Радиус действия игрока
 Player.HEIGHT = 2.8; // "Рост" игрока в блоках
 Player.HALF_WIDTH = 0.75; // Половина ширины игрока в блоках
-Player.SPEED = 10; // Модификатор скорости игрока
+Player.SPEED = 15; // Модификатор скорости игрока
 Player.JUMP_SPEED = 31; // Модификатор скорости игрока

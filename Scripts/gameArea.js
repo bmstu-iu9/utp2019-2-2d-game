@@ -33,8 +33,6 @@ class GameArea{
         this.shadowMap = shadowMap;
         this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
 
-        this.player = {x : 0, y : 666}; // Координаты игрока
-
         // Ширина и высота игрового пространства
         this.width = width;
         this.height = height;
@@ -120,13 +118,13 @@ class GameArea{
             }
         };
 
+        // Делает блок воздуха = undefined
         this.makeAirBlock = () => {
-            // Делает блок воздуха = undefined
             return undefined;
         };
 
+        // Cтоячая вода - блок с гравитацией
         this.makeWaterBlock = () => {
-            // Cтоячая вода - блок с гравитацией
             return 8; //id стоячей воды
         };
 
@@ -304,14 +302,6 @@ class GameArea{
             return this.dropLoot(x, y, block);
         };
 
-        // Установка игрока по координатам
-        this.setPlayer = (x, y) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
-            this.player.x = x;
-            this.player.y = y;
-            console.log(this.player.x + " " + this.player.y);
-        };
-
     }
 }
 
@@ -325,4 +315,5 @@ GameArea.WATER_BLOCK_CAP = 12;  // Какова должна быть напол
                                 // блок стоячей воды min = 1, max = 14. При этом наполненность блока стоячей воды = 8,
                                 // в то время как наполненность блока текучей воды изменяется от 7 до 1
                                 // id изменяются соотвественно от 9 до 15 включительно
-GameArea.GRAVITY = 100;
+
+GameArea.GRAVITY = 100;         // Ускорение свободного падения

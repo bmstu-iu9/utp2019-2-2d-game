@@ -1,15 +1,23 @@
 class Player {
     constructor(gamearea, x, y) {
-        gamearea.setPlayer(x, y); // Задаем положение игрока
-        this.inv = []; // Инвентарь, в начале пуст. Блоки пока не стакаются
+        // Задаем положение игрока
+        this.x = x;
+        this.y = y;
+        
+        // Инвентарь, в начале пуст. Блоки пока не стакаются
+        this.inv = [];
+        
+        // Скорость игрока
         this.vx = 0;
         this.vy = 0;
-        this.hand = undefined; // Предмет в руках, определяет исход добычи того или иного блока
+
+        // Предмет в руках, определяет исход добычи того или иного блока
+        this.hand = undefined;
 
         this.inActionRadius = (x, y) => {
             if (x < 0 || y < 0 || x >= gamearea.width || y >= gamearea.height) return false; // проверка на выход из карты
-            let dx = x - gamearea.player.x;
-            let dy = y - gamearea.player.y;
+            let dx = x - this.x;
+            let dy = y - this.y;
             return Math.floor(Math.sqrt(dx * dx + dy * dy)) <= Player.ACTION_RADIUS;
         };
 
@@ -52,91 +60,19 @@ class Player {
             }
         };
 
+        // Получение информации о блоке, пока только в MAIN_LAYOUT
         this.info = (x, y) => {
-            // Получение информации о блоке, пока только в MAIN_LAYOUT
             if (this.inActionRadius(x, y)) {
                 let block = blockTable[gamearea.map[x][y][GameArea.MAIN_LAYOUT]];
                 alert(`Block on ${x} ${y} : ` + JSON.stringify(block));
             }
         };
 
-        // Движение игрока относительно его координат
-        this.movePlayer = (deltaT) => {
-            let newX = gamearea.player.x + this.vx*deltaT;
-            let newY = gamearea.player.y + this.vy*deltaT;
-
-            if (newX - Player.HALF_WIDTH >= 0 && newX + Player.HALF_WIDTH <= gamearea.width && newY >= 0 && newY + Player.HEIGHT <= gamearea.height) {
-                let mapX = Math.floor(newX);
-                let mapY = Math.floor(newY);
-                if (this.vx > 0) {
-                    if (this.checkRightCol(newX, newY)) {
-                        if (this.vy > 0) {
-                            if (this.checkUpCol(newX, newY)) {
-                                gamearea.setPlayer(newX, newY);
-                                this.vx /= 2;
-                                this.vy /= 2;
-                            } else {
-                                this.vx = 0;
-                                this.vy = 0;
-                            }
-                        } else {
-                            if (this.checkDownCol(newX, newY)) {
-                                gamearea.setPlayer(newX, newY);
-                                this.vx /= 2;
-                                this.vy /= 2;
-                            } else {
-                                this.vx = 0;
-                                this.vy = 0;
-                            }
-                        }
-                    } else {
-                       this.vx = 0;
-                       this.vy = 0;
-                    }
-                } else if (this.vx < 0) {
-                    if (this.checkLeftCol(newX, newY)) {
-                        if (this.vy > 0) {
-                            if (this.checkUpCol(newX, newY)) {
-
-                                gamearea.setPlayer(newX, newY);
-                                this.vx /= 2;
-                                this.vy /= 2;
-                            } else {
-                                this.vx = 0;
-                                this.vy = 0;
-                            }
-                        } else {
-                            if (this.checkDownCol(newX, newY)) {
-                                gamearea.setPlayer(newX, newY);
-                                this.vx /= 2;
-                                this.vy /= 2;
-                            } else {
-                                this.vx = 0;
-                                this.vy = 0;
-                            }
-                        }
-                    } else {
-                        this.vx = 0;
-                        this.vy = 0;
-                    }
-                } else {
-                    if (this.vy > 0 && this.checkUpCol(newX, newY)) {
-                        gamearea.setPlayer(newX, newY);
-                        this.vx /= 2;
-                        this.vy /= 2;
-                    } else if (this.vy < 0 && this.checkDownCol(newX, newY)) {
-                        gamearea.setPlayer(newX, newY);
-                        this.vx /= 2;
-                        this.vy /= 2;
-                    } else if (this.vy !== 0) {
-                        this.vx = 0;
-                        this.vy = 0;
-                    }
-                }
-            } else {
-                this.vx = 0;
-                this.vy = 0;
-            }
+        // Установка игрока по координатам
+        this.moveTo = (x, y) => {
+            if (x < 0 || y < 0 || x >= this.width || y >= this.height) throw new Error("Going beyond the world");
+            this.x = x;
+            this.y = y;
         };
 
         // Меняет скорость игрока
@@ -197,7 +133,7 @@ class Player {
         }
 
         this.onGround = () => {
-            return !this.checkDownCol(gamearea.player.x, gamearea.player.y - 0.0001);
+            return !this.checkDownCol(x, y - 0.0001);
         }
     }
 }

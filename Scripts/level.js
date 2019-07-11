@@ -13,74 +13,91 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 
 const key = performance.now();  // Ключ генерации
-let _x = 0, _y = 0;
-let currentTime = 0;
-const beginPlay = () => {  // Вызывается только при запуске
+let currentTime = 0; 			// Текущее время в миллисекундах
+
+const beginPlay = () => {
     gameArea = generate(1024, 1024, key);
-	_x = 0;
-	_y = gameArea.elevationMap[_x];
-	player = new Player(gameArea, _x + Player.HALF_WIDTH, _y + 0.0001);
+	player = new Player(gameArea, Player.HALF_WIDTH, gameArea.elevationMap[0] + 5);
 }
 
-const eventTick = () => {  // Вызывается каждый кадр
+// Вызывается каждый кадр
+const eventTick = () => {
 	currentTime += deltaTime;
 	setTimeOfDay(currentTime, 60);
 	playerMovement();
 }
 
+// Вызывается только при запуске
 const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	currentTime = currentTime / 1000 / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
-	if(currentTime < Math.PI){ //День
+	if(currentTime < Math.PI){ //.................................................... День
 		gameArea.timeOfDay = 1;
-	}else if(currentTime < 2 * Math.PI){ // День -> Ночь
+	}else if(currentTime < 2 * Math.PI){ //.......................................... День -> Ночь
 		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
-	}else if(currentTime < 3 * Math.PI){ // Ночь
+	}else if(currentTime < 3 * Math.PI){ //.......................................... Ночь
 		gameArea.timeOfDay = 0;
-	}else{ // Ночь -> День
+	}else{ //........................................................................ Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
 	}
 }
 
-const playerMovement = () => {   // Движение игрока
-	if(player.onGround()){
+// Движение игрока
+const playerMovement = () => {
+	if(player.onGround()) { //....................................................... Если игрок на земле
 		player.vy = Math.max(player.vy, 0);
-		if(controller.up.active) player.vy = Player.JUMP_SPEED;
-	}else{
+		if(controller.up.active) player.vy = Player.JUMP_SPEED; //................... Если нажат прыжок
+	} else {
 		player.vy -= GameArea.GRAVITY * deltaTime / 1000;
 	}
-	if(controller.left.active) player.vx = -Player.SPEED;
-	if(controller.right.active) player.vx = Player.SPEED;
-	if(!controller.left.active && !controller.right.active) player.vx = 0;
+	if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
+	if(controller.right.active) player.vx = Player.SPEED; //......................... Если нажато влево
+	if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
 
-	let newX = gameArea.player.x + player.vx * deltaTime / 1000;
-    let newY = gameArea.player.y + player.vy * deltaTime / 1000;
+	// Новые координаты
+	let newX = player.x + player.vx * deltaTime / 1000;
+    let newY = player.y + player.vy * deltaTime / 1000;
 
-    // Выход за карту
-	if(newX - Player.HALF_WIDTH < 0 && newX + Player.HALF_WIDTH > gameArea.width){
-		player.vx = 0;
-		newX = gameArea.player.x;
+    
+
+
+    // Пока новые координаты не будут конфликтовать с окружением
+    let canGo = false;
+    while(!canGo){
+    	canGo = true;
+
+	    // Выход за карту
+		if(newX - Player.HALF_WIDTH < 0 && newX + Player.HALF_WIDTH > gameArea.width) {
+			player.vx = 0;
+			newX = player.x;
+			canGo = false;
+		}
+		if(newY < 0 && newY + Player.HEIGHT > gameArea.height) {
+			player.vy = 0;
+			newY = player.y;
+			canGo = false;
+		}
+		if(!canGo) continue;
+
+		// Проверка, не упёрся ли игрок
+		if(!player.checkLeftCol(newX, newY) || !player.checkRightCol(newX, newY)) {
+			newX = player.x;
+			player.vx = 0;
+		}
+		if(!canGo) continue;
+
+		if(!player.checkUpCol(newX, newY)) {
+			newY = player.y;
+			player.vy = 0;
+		}
+		if(!canGo) continue;
+
+		if(!player.checkDownCol(newX, newY)) {
+			newY = Math.floor(player.y);
+			player.vy = 0;
+		}
 	}
-	if(newY < 0 && newY + Player.HEIGHT > gameArea.height){
-		player.vy = 0;
-		newY = gameArea.player.y;
-	} 
 
-	// Проверка, не упёрся ли игрок
-	if(!player.checkLeftCol(newX, newY) || !player.checkRightCol(newX, newY)){
-		newX = gameArea.player.x;
-		player.vx = 0;
-	}
-	if(!player.checkUpCol(newX, newY)){
-		newY = gameArea.player.y;
-		player.vy = 0;
-	}
-	if(!player.checkDownCol(newX, newY)){
-		newY = Math.floor(gameArea.player.y);
-		player.vy = 0;
-	}
-	
+	player.moveTo(newX, newY);
 
-	gameArea.setPlayer(newX, newY);
-
-	cameraSet(gameArea.player.x, gameArea.player.y);
+	cameraSet(player.x, player.y);
 }

@@ -23,7 +23,16 @@ const beginPlay = () => {
         controller.keyDownUp(event);
     };
     window.addEventListener("keydown", KDU);
-    window.addEventListener("keyup", KDU);
+	window.addEventListener("keyup", KDU);
+	window.addEventListener("mousemove", (event) => {
+		controller.mouseMove(event);
+	});
+	window.addEventListener("mouseup", () => {
+		controller.mouseUp();
+	});
+	window.addEventListener("mousedown", () => {
+		controller.mouseDown();
+	});
 
     gameArea = generate(1000, 1000, key);
     player = new Player(2, gameArea.elevationMap[0] + 1);

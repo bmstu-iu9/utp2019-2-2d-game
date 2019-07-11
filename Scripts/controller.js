@@ -36,11 +36,13 @@ class Controller {
             Player.HEIGHT * scale * cameraScale / 2;
     }
 
-    mouseDown() {
+    mouseDown(event) {
+        this.mouse.click = event.which;
         this.mouse.active = true;
     }
 
-    mouseUp() {
+    mouseUp(event) {
+        this.mouse.click = undefined;
         this.mouse.active = false;
     }
 }
@@ -60,7 +62,8 @@ class ButtonInput {
 class MouseInput {
 
 	constructor() {
-		this.active = false;
+        this.active = false;
+        this.click = undefined;
         this.x = this.y = 0;
         this.direction = {
             x: 0, y: 0

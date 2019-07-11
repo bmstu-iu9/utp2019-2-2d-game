@@ -43,7 +43,7 @@ const eventTick = () => {
 	currentTime += deltaTime;
 	setTimeOfDay(currentTime, 60);
 	playerMovement();
-	console.log(controller.mouse.direction);
+	mouseControl();
 }
 
 // Вызывается только при запуске
@@ -115,4 +115,20 @@ const playerMovement = () => {
 	player.y = newY;
 
 	cameraSet(player.x, player.y);
+}
+
+const mouseControl = () => {
+    // Когда зажата ЛКМ
+    if(controller.mouse.active){
+        const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
+            controller.mouse.direction.y * controller.mouse.direction.y);
+        for(let i = 0; i < Player.ACTION_RADIUS; i += 1 / scale / cameraScale){
+            let x = Math.floor(i * controller.mouse.direction.x / len + player.x);
+            let y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT);
+            if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined) {
+                gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+                break;
+            }
+        }
+    }
 }

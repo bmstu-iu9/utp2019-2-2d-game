@@ -54,6 +54,15 @@ let blockTable = {
         "name" : "flowing-water-1"
     },
 
+    "12" : {
+        "id" : "12",
+        "type" : "dirt",
+        "durability" : 100,
+        "brightness" : 0,
+        "isCollissed" : true,
+        "name" : "sand"
+    },
+
     "16" : {
         "id" : "16",
         "type" : "stone",

@@ -43,6 +43,7 @@ const eventTick = () => {
 	currentTime += deltaTime;
 	setTimeOfDay(currentTime, 60);
 	playerMovement();
+	console.log(controller.mouse.direction);
 }
 
 // Вызывается только при запуске

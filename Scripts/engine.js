@@ -173,8 +173,8 @@ class Render {
 		
 		const l = 0, h = this.size;
 		
-		let arrayOfPosition =
-			[0, 0, // ID: 0
+		let arrayOfPosition = [
+			0, 0, // ID: 0
 			this.backgroundAsp, 0,
 			0, 1,
 			0, 1,
@@ -195,14 +195,14 @@ class Render {
 			h, l,
 			h, h,
 			
-			h * -0.75, l + h, // ID: 3
-			h * 0.75, l + h,
-			h * -0.75, h * 4,
-			h * -0.75, h * 4,
-			h * 0.75, l + h,
-			h * 0.75, h * 4];
-		let arrayOfTexCoord =
-			[0, 1, // ID: 0
+			h * -0.75, l, // ID: 3
+			h * 0.75, l,
+			h * -0.75, h * 3,
+			h * -0.75, h * 3,
+			h * 0.75, l,
+			h * 0.75, h * 3];
+		let arrayOfTexCoord = [
+			0, 1, // ID: 0
 			1, 1,
 			0, 0,
 			0, 0,
@@ -230,15 +230,15 @@ class Render {
 			48 / 256, 96 / 256,
 			48 / 256, 0];
 		arrayOfObjects.forEach((obj) => {
-			arrayOfPosition = arrayOfPosition.concat(
-				[l, l,
+			arrayOfPosition = arrayOfPosition.concat([
+				l, l,
 				h, l,
 				l, h,
 				l, h,
 				h, l,
 				h, h]);
-			arrayOfTexCoord = arrayOfTexCoord.concat(
-				[obj.a[0], obj.b[1],
+			arrayOfTexCoord = arrayOfTexCoord.concat([
+				obj.a[0], obj.b[1],
 				obj.b[0], obj.b[1],
 				obj.a[0], obj.a[1],
 				obj.a[0], obj.a[1],

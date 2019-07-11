@@ -124,7 +124,7 @@ const mouseControl = () => {
             controller.mouse.direction.y * controller.mouse.direction.y);
         for(let i = 0; i < Player.ACTION_RADIUS; i += 1 / scale / cameraScale){
             const x = Math.floor(i * controller.mouse.direction.x / len + player.x);
-			const y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT);
+			const y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
 			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height) {
 				break;
 			}

@@ -34,7 +34,7 @@ const beginPlay = () => {
 		controller.mouseDown();
 	});
 
-    gameArea = generate(1000, 1000, key);
+    gameArea = generate(15, 15, key);
     player = new Player(2, gameArea.elevationMap[0] + 1);
 }
 
@@ -123,8 +123,11 @@ const mouseControl = () => {
         const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
             controller.mouse.direction.y * controller.mouse.direction.y);
         for(let i = 0; i < Player.ACTION_RADIUS; i += 1 / scale / cameraScale){
-            let x = Math.floor(i * controller.mouse.direction.x / len + player.x);
-            let y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT);
+            const x = Math.floor(i * controller.mouse.direction.x / len + player.x);
+			const y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT);
+			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height) {
+				break;
+			}
             if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined) {
                 gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
                 break;

@@ -52,7 +52,7 @@ class GameArea{
                     if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
                         && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height
                         && (shadowMap[nextX][nextY] === undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
-                        return shadowRound(startX, startY, nextX, nextY, n, isNatural);
+                        return addShadowRound(startX, startY, nextX, nextY, n, isNatural);
                     }
                     return [];
                 };
@@ -75,7 +75,7 @@ class GameArea{
                     step(x, y + 1, n - 1);
                     step(x, y - 1, n - 1);
                 }
-            };
+            }
 
             // Удаление источника света
             let lights = [];
@@ -88,7 +88,7 @@ class GameArea{
                             lights.push([nextX, nextY]);
                             return;
                         }
-                        shadowRound(startX, startY, nextX, nextY, n, isNatural);
+                        deleteShadowRound(startX, startY, nextX, nextY, n, isNatural);
                     }
                 };
                 if(n > 0 && ((isNatural && shadowMap[x][y] % 1000 === n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))){
@@ -102,8 +102,7 @@ class GameArea{
                     step(x, y + 1, n - 1);
                     step(x, y - 1, n - 1);
                 }
-            };
-
+            }
             if(shadowMap[x][y] % 1000 === 9 && map[x][y][GameArea.MAIN_LAYOUT] !== undefined){
                 deleteShadowRound(x, y, x, y, 9, true);
             } else if(Math.floor(shadowMap[x][y] / 1000) === 9 && blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness !== 9){
@@ -259,7 +258,6 @@ class GameArea{
                     break;
                 // Какое-либо стандартное поведение
             }
-
         };
 
         // Обновление окружения блока
@@ -276,6 +274,7 @@ class GameArea{
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             this.map[x][y][layout] = this.makeAirBlock();
             this.updateRadius(x, y, layout);
+            this.updateLight(x, y);
             console.log(`Block on coordinates destroyed : [${x} ${y} ${layout}]`);
         };
 

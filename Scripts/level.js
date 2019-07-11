@@ -16,7 +16,15 @@ const key = performance.now();  // Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 
 const beginPlay = () => {
-    gameArea = generate(1024, 1024, key);
+	// Управление
+	this.controller = new Controller();
+	const KDU = (event) => {
+		controller.keyDownUp(event);
+	};
+	window.addEventListener("keydown", KDU);
+	window.addEventListener("keyup", KDU);
+	
+    gameArea = generate(10000, 10000, key);
 	player = new Player(2, gameArea.elevationMap[0] + 1);
 }
 

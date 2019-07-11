@@ -140,6 +140,18 @@ class GameArea{
             return cnt; //id текучей воды : от 9 до 15 включительно
         };
 
+        // Есть ли коллизия с этим блоком
+        this.hasCollision = (x, y, layout) => {
+            if(x < 0 || y < 0 || x > width || y > height) return true;
+            let block = this.map[x][y][layout];
+
+            // Если это не блок воздуха и если он имеет коллизию или не найден в таблице => есть коллизия
+            if(block != undefined && (blockTable[block] === undefined || blockTable[block].isCollissed)) {
+                return true;
+            }
+            return false;
+        }
+
         this.updateBlock = (x, y, layout) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             if (this.map[x][y][layout] === undefined) return;

@@ -17,7 +17,7 @@ let currentTime = 0; 			// Текущее время в миллисекунда
 
 const beginPlay = () => {
     gameArea = generate(1024, 1024, key);
-	player = new Player(gameArea, Player.HALF_WIDTH, gameArea.elevationMap[0] + 5);
+	player = new Player(2, gameArea.elevationMap[0] + 1);
 }
 
 // Вызывается каждый кадр
@@ -45,9 +45,15 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 const playerMovement = () => {
 	if(player.onGround()) { //....................................................... Если игрок на земле
 		player.vy = Math.max(player.vy, 0);
-		if(controller.up.active) player.vy = Player.JUMP_SPEED; //................... Если нажат прыжок
+		if(controller.up.active) {
+			player.vy = Player.JUMP_SPEED;
+		}
 	} else {
-		player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+		if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
+			player.vy -= GameArea.GRAVITY * deltaTime / 1500;
+		} else {
+			player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+		}
 	}
 	if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
 	if(controller.right.active) player.vx = Player.SPEED; //......................... Если нажато влево
@@ -57,47 +63,37 @@ const playerMovement = () => {
 	let newX = player.x + player.vx * deltaTime / 1000;
     let newY = player.y + player.vy * deltaTime / 1000;
 
-    
-
-
-    // Пока новые координаты не будут конфликтовать с окружением
-    let canGo = false;
-    while(!canGo){
-    	canGo = true;
-
-	    // Выход за карту
-		if(newX - Player.HALF_WIDTH < 0 && newX + Player.HALF_WIDTH > gameArea.width) {
-			player.vx = 0;
-			newX = player.x;
-			canGo = false;
-		}
-		if(newY < 0 && newY + Player.HEIGHT > gameArea.height) {
-			player.vy = 0;
-			newY = player.y;
-			canGo = false;
-		}
-		if(!canGo) continue;
-
-		// Проверка, не упёрся ли игрок
-		if(!player.checkLeftCol(newX, newY) || !player.checkRightCol(newX, newY)) {
-			newX = player.x;
-			player.vx = 0;
-		}
-		if(!canGo) continue;
-
-		if(!player.checkUpCol(newX, newY)) {
-			newY = player.y;
-			player.vy = 0;
-		}
-		if(!canGo) continue;
-
-		if(!player.checkDownCol(newX, newY)) {
-			newY = Math.floor(player.y);
-			player.vy = 0;
-		}
+    // Пока новые координаты не перестанут конфликтовать с окружением
+	// Выход за карту
+	if(newX - Player.WIDTH / 2 < 0 && newX + Player.WIDTH / 2 > gameArea.width) {
+		player.vx = 0;
+		newX = player.x;
+		canGo = false;
+	}
+	if(newY < 0 && newY + Player.HEIGHT > gameArea.height) {
+		player.vy = 0;
+		newY = player.y;
+	}
+	// Проверка, не упёрся ли игрок
+	if(player.vx < 0 && player.isCollisionLeft(newX, newY)) {
+		newX = player.x;
+		player.vx = 0;
+	}
+	if(player.vx > 0 && player.isCollisionRight(newX, newY)) {
+		newX = player.x;
+		player.vx = 0;
+	}
+	if(player.vy > 0 && player.isCollisionUp(newX, newY)) {
+		newY = player.y;
+		player.vy = 0;
+	}
+	if(player.vy < 0 && player.isCollisionDown(newX, newY)) {
+		newY = Math.floor(player.y);
+		player.vy = 0;
 	}
 
-	player.moveTo(newX, newY);
+	player.x = newX;
+	player.y = newY;
 
 	cameraSet(player.x, player.y);
 }

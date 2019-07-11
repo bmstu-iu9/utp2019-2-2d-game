@@ -124,7 +124,7 @@ image.onload = () => {
 					}
 				}
 
-				r.render(cameraX, cameraY, player.x, player.y, cameraScale, arrOfChunks);
+				r.render(cameraX, cameraY, player.x, player.y - 1, cameraScale, arrOfChunks);
 				fpsUpdate()
 				requestAnimationFrame(update);
 			}

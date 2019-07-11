@@ -142,7 +142,7 @@ class GameArea{
 
         // Есть ли коллизия с этим блоком
         this.hasCollision = (x, y, layout) => {
-            if(x < 0 || y < 0 || x > width || y > height) return true;
+            if(x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
             let block = this.map[x][y][layout];
 
             // Если это не блок воздуха и если он имеет коллизию или не найден в таблице => есть коллизия

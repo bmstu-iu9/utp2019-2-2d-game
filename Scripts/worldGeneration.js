@@ -258,9 +258,9 @@ const generate = (width, height, seed) => {
     const treeGen = (heights, worldArr, minHeight, maxHeight, maxCountOfTree) => {
 
         const foliageGen = (worldArr, treeArr, treeX, treeY) => {
-            let rand = random() , radius = 1;
-            while (rand < 0.5) {
-                if (radius === 2) {
+            let rand = random() , radius = 2;
+            while (rand < 0.3) {
+                if (radius === 3) {
                     break;
                 }
                 rand = random();
@@ -378,6 +378,7 @@ const generate = (width, height, seed) => {
                                 break;
                             }
                         }
+                        if(i === 2) i = 1;
                         nextX += i * randK;
                     } else {
                         nextX += (x < startX) ? (-Math.floor(random() * 2)) : Math.floor(random() * 2);
@@ -420,7 +421,7 @@ const generate = (width, height, seed) => {
                 foliageGen(worldArr, treeArr, endOfBranchX[i], endOfBranchY[i]);
             }
 
-            for (let i = leftEdge - 5; i <= rightEdge + 5; i++) {
+            for (let i = leftEdge - 7; i <= rightEdge + 7; i++) {
                 if (i >= 0 && i < worldArr.length) {
                     if (!isTreeX[i]) countTreeX++;
                     isTreeX[i] = true;

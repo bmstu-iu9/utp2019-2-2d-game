@@ -25,7 +25,7 @@
 
 // Игровое пространство
 class GameArea{
-    constructor(map,elevationMap, shadowMap, width, height){
+    constructor(map, elevationMap, shadowMap, width, height){
         // map  - двумерная карта, состоящая из id блоков
         this.map = map;
         this.elevationMap = elevationMap;
@@ -183,8 +183,8 @@ class GameArea{
                             }
                         }
                     }
-                    break;
                 }
+                break;
                 case "leaf":
                     // Если блок листвы не видит под собой опоры в нижнем, нижнем левом и нижнем правом блоке в виде
                     // дерева или листвы, то он рушится
@@ -203,8 +203,8 @@ class GameArea{
                             }
                         }
                     }
-                    break;
                 }
+                break;
                 case "water":
                     // НЕ РАБОТАЕТ
                     // Если 2 блока воды при течении вправо/влево пересекаются своими потоками, то на месте пересечения

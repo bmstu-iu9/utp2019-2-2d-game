@@ -34,7 +34,7 @@ const beginPlay = () => {
 		controller.mouseDown();
 	});
 
-    gameArea = generate(15, 15, key);
+    gameArea = generate(1000, 1000, key);
     player = new Player(2, gameArea.elevationMap[0] + 1);
 }
 

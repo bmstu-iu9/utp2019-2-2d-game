@@ -15,7 +15,6 @@ cameraSet(x, y)                         Устанавливает ккорди�
 const key = performance.now();  // Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 
-// Вызывается при запуске игры
 const beginPlay = () => {
 	// Управление
 	this.controller = new Controller();
@@ -25,7 +24,7 @@ const beginPlay = () => {
 	window.addEventListener("keydown", KDU);
 	window.addEventListener("keyup", KDU);
 	
-    gameArea = generate(1024, 1024, key);
+    gameArea = generate(1000, 1000, key);
 	player = new Player(2, gameArea.elevationMap[0] + 1);
 }
 

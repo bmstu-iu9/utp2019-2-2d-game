@@ -98,6 +98,7 @@ image.onload = () => {
 				}
 			}
 
+      
 			beginPlay();
 
 			const update = (newTime) => {
@@ -105,7 +106,7 @@ image.onload = () => {
 				oldTime = newTime;
 
 				eventTick();
-
+        
 				{  // Обновление чанков
 					const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
 					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] / (2 * chankWidth)),

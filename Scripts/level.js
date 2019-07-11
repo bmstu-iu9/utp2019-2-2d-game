@@ -24,7 +24,7 @@ const beginPlay = () => {
 	window.addEventListener("keydown", KDU);
 	window.addEventListener("keyup", KDU);
 	
-    gameArea = generate(10000, 10000, key);
+    gameArea = generate(1000, 1000, key);
 	player = new Player(2, gameArea.elevationMap[0] + 1);
 }
 

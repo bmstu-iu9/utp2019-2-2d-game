@@ -139,7 +139,7 @@ class Render {
 			// задание параметров текстуры
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_NEAREST);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imgs[i]);
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
@@ -355,11 +355,9 @@ class Render {
 		}
 		if (type === this.gl.VERTEX_SHADER) {
 			console.log('VERTEX SHADER ERROR:');
-		}
-		else if (type === this.gl.FRAGMENT_SHADER) {
+		} else if (type === this.gl.FRAGMENT_SHADER) {
 			console.log('FRAGMENT SHADER ERROR:');
-		}
-		else {
+		} else {
 			console.log('SHADER ERROR:');
 		}
 		console.log(this.gl.getShaderInfoLog(shader));

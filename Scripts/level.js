@@ -136,6 +136,12 @@ const mouseControl = () => {
 	}
 	// Когда зажата ПКМ
 	if(controller.mouse.click === 3){
-
+        const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
+			controller.mouse.direction.y * controller.mouse.direction.y);
+		if (len / scale / cameraScale <= Player.ACTION_RADIUS) {
+			gameArea.placeBlock(Math.floor(player.x + controller.mouse.direction.x / scale / cameraScale),
+				Math.floor(player.y + Player.HEIGHT / 2 + controller.mouse.direction.y / scale / cameraScale),
+				GameArea.MAIN_LAYOUT, 1);
+		}
 	}
 }

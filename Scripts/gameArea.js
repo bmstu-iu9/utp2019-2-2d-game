@@ -275,7 +275,6 @@ class GameArea{
             this.map[x][y][layout] = this.makeAirBlock();
             this.updateRadius(x, y, layout);
             this.updateLight(x, y);
-            console.log(`Block on coordinates destroyed : [${x} ${y} ${layout}]`);
         };
 
         // Действие при установке блока

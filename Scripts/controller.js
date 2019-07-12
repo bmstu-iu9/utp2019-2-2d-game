@@ -5,23 +5,27 @@ class Controller {
         this.left   = new ButtonInput();
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
+        this.scroll = new ButtonInput();
         this.mouse 	= new MouseInput();
     }
 
     keyDownUp(event) {
         const down = event.type == "keydown"; 
         switch(event.keyCode) {
-            case 65: 
+            case 65:  //............................. A
                 this.left.getInput(down);
                 break;
-            case 87:
+            case 87:  //............................. W
                 this.up.getInput(down);
                 break;
-            case 68:
+            case 68:  //............................. D
                 this.right.getInput(down);
                 break;
-            case 83:
+            case 83:  //............................. S
                 this.down.getInput(down);
+                break;
+            case 70:  //............................. F
+                this.scroll.getInput(down);
                 break;
         }
     }

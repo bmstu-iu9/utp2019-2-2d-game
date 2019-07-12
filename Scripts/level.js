@@ -46,6 +46,7 @@ const eventTick = () => {
 	setTimeOfDay(currentTime, 300);
 	playerMovement();
 	mouseControl();
+	handScroller();
 }
 
 // Установка текущего времени суток
@@ -144,7 +145,7 @@ const mouseControl = () => {
 					currentBlock.durability -= deltaTime;
 				} else {
 					currentBlock = undefined;
-					gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+					player.destroy(x, y);
 				}
                 break;
             }
@@ -157,9 +158,25 @@ const mouseControl = () => {
 		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
 			controller.mouse.direction.y * controller.mouse.direction.y);
 		if(len / scale / cameraScale <= Player.ACTION_RADIUS) {
-			gameArea.placeBlock(Math.floor(player.x + controller.mouse.direction.x / scale / cameraScale),
-				Math.floor(player.y + Player.HEIGHT / 2 + controller.mouse.direction.y / scale / cameraScale),
-				GameArea.MAIN_LAYOUT, 1);
+			player.place(Math.floor(player.x + controller.mouse.direction.x / scale / cameraScale),
+				Math.floor(player.y + Player.HEIGHT / 2 + controller.mouse.direction.y / scale / cameraScale));
+		}
+	}
+}
+
+// Прокручивание предметов в руке
+const handScroller = () => {
+	if (controller.scroll.active) {
+		for (let i = player.hand === undefined ? 0 : player.hand; i < 64; i++) {
+			const ind = player.inv.indexOf(i);
+			console.log(player.inv)
+			if (ind !== -1) {
+				player.hand = ind;
+				break;
+			}
+		}
+		if (player.inv.indexOf(player.hand) === -1) {
+			player.hand = undefined;
 		}
 	}
 }

@@ -5,7 +5,7 @@ class Player {
         this.y = y;
         
         // Инвентарь, в начале пуст. Блоки пока не стакаются
-        this.inv = [];
+        this.inv = {};
         
         // Скорость игрока
         this.vx = 0;
@@ -29,10 +29,10 @@ class Player {
                     lt = this.hand.layout; // Блоки какого уровня добывает инструмент
                     type = this.hand.toolType; // блоки какого типа добывает инструмент
                 } else {
-                    lt = gameArea.MAIN_LAYOUT;
-                    type = undefined; // Если в руках не инструмент
+                    lt = GameArea.MAIN_LAYOUT;
+                    type = "dirt"; // Если в руках не инструмент, то собираем только грязь
                 }
-                let blockType = gameArea.map[x][y][lt]; // Тип блока
+                let blockType = blockTable[gameArea.map[x][y][lt]].type; // Тип блока
                 if (type === blockType) {
                     this.inv.push(gameArea.goodDestroy(x, y, lt)); // вставляет лут в инвентарь - пока что сразу
                 } else gameArea.destroyBlock(x, y, lt);
@@ -42,7 +42,7 @@ class Player {
         this.place = (x, y) => {
             // Пока ставим только в MAIN_LAYOUT
             if (this.hand && !this.hand.isTool && this.inActionRadius(x, y)) {
-                let id = gameArea.map[x][y][gameArea.MAIN_LAYOUT]; // id того, что там сейчас
+                let id = gameArea.map[x][y][GameArea.MAIN_LAYOUT]; // id того, что там сейчас
                 if (id === undefined || !blockTable[id].isCollissed) {
                     gameArea.placeBlock(x, y, gameArea.MAIN_LAYOUT, this.hand.id);
                     let ind = this.inv.indexOf(this.hand);

@@ -113,7 +113,7 @@ const playerMovement = () => {
 		player.vy = 0;
 	}
 
-	// // Плавное движение камеры
+	// Плавное движение камеры
 	if((Math.abs(cameraX - newX) > 0.3 || Math.abs(cameraY - newY) > 0.3)){
 		cameraSet(cameraX + 0.5 * (newX - cameraX) / deltaTime, cameraY + 0.5 * (newY - cameraY) / deltaTime);
 	}

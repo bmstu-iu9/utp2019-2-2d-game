@@ -127,7 +127,7 @@ class GameArea{
             // Текучая вода - блок без гравитации
             // В зависимости от степени наполненности имеет id от 9 до 15, 9 - наибольшая наполненность
             if (cnt > 15 || cnt < 9) {
-                console.log("Invalid ID was received while generating flowing water block : {$cnt}." +
+                alert("Invalid ID was received while generating flowing water block : {$cnt}." +
                     " Valid id : from 9 to 15. Undefined returned");
                 return undefined;
             }

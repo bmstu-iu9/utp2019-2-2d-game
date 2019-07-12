@@ -51,7 +51,7 @@ image.onload = () => {
 						delete arrOfChunks[chunk];  // Удаляем все слои чанка
 					}
 				}
-			}
+			};
 			const loadChank = (xLocate, yLocate) => {
 				const stopX = (xLocate + 1) * chankWidth;
 				const stopY = (yLocate + 1) * chankHeight;
@@ -62,7 +62,7 @@ image.onload = () => {
 				for (let layout = minLayout; layout <= maxLayout + 1; layout++) {
 					let layoutChunk = {
 						chunk: [], x: xLocate, y: yLocate
-					}
+					};
 
 					if (layout !== maxLayout + 1) {  //............ Если не слой света
 						layoutChunk.slice = layout;
@@ -85,7 +85,9 @@ image.onload = () => {
 									layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
-									layoutChunk.chunk[i - startX][j - startY] =
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 ) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+										layoutChunk.chunk[i - startX][j - startY] = 9;
+									else layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
 								}
 							} else {
@@ -96,7 +98,7 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] =
 						layoutChunk;
 				}
-			}
+			};
 
       
 			beginPlay();

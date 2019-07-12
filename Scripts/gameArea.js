@@ -40,9 +40,12 @@ class GameArea{
         this.getLight = (x, y) => {
             let grad = (y > this.elevationMap[x]) ? 1 : ((y < 0.7 * this.elevationMap[x]) ? 0.2 : ((y - 0.7 * this.elevationMap[x]) / (0.3 * this.elevationMap[x]) * 0.8 + 0.2));
             let k = Math.min(1 / 3 + this.timeOfDay * 3 / 2, grad);
-            let light = Math.max(Math.floor(shadowMap[x][y] / 1000) * 1000, shadowMap[x][y] % 1000);
-            return Math.floor(k * light * 5) / 45;
-        };
+            if(Math.floor(shadowMap[x][y] / 1000) > shadowMap[x][y] % 1000 * k){
+                return Math.floor(shadowMap[x][y] / 1000) / 9;
+            } else {
+                return Math.floor(k * (shadowMap[x][y] % 1000) * 5) / 45;
+            }
+        }
 
         // Добавление источника света
         this.addLightRound = (startX, startY, x, y, n, isNatural, isForce) => {
@@ -52,7 +55,7 @@ class GameArea{
                     && (shadowMap[nextX][nextY] === undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
                     this.addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
                 }
-            };
+            }
             if(n > 0 && (isForce || (shadowMap[x][y] === undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n)))){
                 if(isNatural){
                     if(shadowMap[x][y] === undefined){

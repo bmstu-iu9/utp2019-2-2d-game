@@ -14,6 +14,7 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 const key = performance.now();  // Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
+let currentBlock = undefined;			// Текущий блок взаимодействия
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -129,7 +130,18 @@ const mouseControl = () => {
 				break;
 			}
             if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined) {
-                gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+				if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
+					currentBlock = {
+						x: x, y: y,
+						durability: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
+					}
+					currentBlock.durability -= deltaTime;
+				} else if (currentBlock.durability > 0) {
+					currentBlock.durability -= deltaTime;
+				} else {
+					currentBlock = undefined;
+					gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+				}
                 break;
             }
         }

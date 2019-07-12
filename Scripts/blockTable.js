@@ -39,14 +39,15 @@ let blockTable = {
         "id" : "8",
         "type" : "water",
         "durability" : 100,
-        "brightness" : 0,
+        "brightness" : 6,
         "isCollissed" : false,
         "hasGravity" : true,
-        "name" : "water"
+        "name" : "water",
+        "isNaturalLight" : true
     },
 
     "9" : {
-        "id" : "8",
+        "id" : "9",
         "type" : "flowingWater",
         "durability" : 100,
         "brightness" : 0,

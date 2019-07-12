@@ -593,8 +593,8 @@ const generate = (width, height, seed) => {
 				if (shadowMap[x][y] == undefined) shadowMap[x][y] = 0;
                 if (worldMap[x][y][GameArea.MAIN_LAYOUT] == undefined || worldMap[x][y][GameArea.MAIN_LAYOUT] == 0){
                     shadowRound(x, y, x, y, maxLight, true);
-                }else if(worldMap[x][y][GameArea.MAIN_LAYOUT] == 8 || worldMap[x][y][GameArea.MAIN_LAYOUT] == 9){
-                    shadowRound(x, y, x, y, Math.floor(maxLight * 2 / 3), true);
+                }else if(blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]] != undefined && blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]].brightness > 0){
+                    shadowRound(x, y, x, y, blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]].brightness, blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]].isNaturalLight === true);
                 }
             }
         }

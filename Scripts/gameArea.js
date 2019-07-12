@@ -44,30 +44,58 @@ class GameArea{
             return Math.floor(k * light * 5) / 45;
         };
 
-        this.updateLight = (x, y) => {
-
-            // Добавление источника света
-            const addLightRound = (startX, startY, x, y, n, isNatural, isForce) => {
+        // Добавление источника света
+        this.addLightRound = (startX, startY, x, y, n, isNatural, isForce) => {
+            const step = (nextX, nextY, n) => {
+                if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
+                    && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height
+                    && (shadowMap[nextX][nextY] === undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
+                    this.addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
+                }
+            };
+            if(n > 0 && (isForce || (shadowMap[x][y] === undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n)))){
+                if(isNatural){
+                    if(shadowMap[x][y] === undefined){
+                        shadowMap[x][y] = n;
+                    } else {
+                        shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000 + n;
+                    }
+                } else{
+                    if(shadowMap[x][y] === undefined){
+                        shadowMap[x][y] = n * 1000;
+                    } else {
+                        shadowMap[x][y] = n * 1000 + shadowMap[x][y] % 1000;
+                    }
+                }
+                step(x + 1, y, n - 1);
+                step(x - 1, y, n - 1);
+                step(x, y + 1, n - 1);
+                step(x, y - 1, n - 1);
+            }
+        }
+        // Удаление источника света
+        this.deleteLightRound = (startX, startY, x, y, n, isNatural) => {
+            let lights = [];
+            const deleteLightNoUpdateRound = (startX, startY, x, y, n, isNatural) => {
                 const step = (nextX, nextY, n) => {
-                    if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
-                        && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height
-                        && (shadowMap[nextX][nextY] === undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
-                        addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
+                    if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) <
+                        (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
+                        && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height) {
+                        if(isNatural && shadowMap[nextX][nextY] % 1000 > n) {
+                            lights.push([nextX, nextY, shadowMap[nextX][nextY] % 1000, isNatural]);
+                            return;
+                        } else if(!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) > n) {
+                            lights.push([nextX, nextY, Math.floor(shadowMap[nextX][nextY] / 1000), isNatural]);
+                            return;
+                        }
+                        deleteLightNoUpdateRound(startX, startY, nextX, nextY, n, isNatural);
                     }
                 };
-                if(n > 0 && (isForce || (shadowMap[x][y] === undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n)))){
+                if(n > 0 && ((isNatural && shadowMap[x][y] % 1000 === n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))){
                     if(isNatural){
-                        if(shadowMap[x][y] === undefined){
-                            shadowMap[x][y] = n;
-                        } else{
-                            shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000 + n;
-                        }
-                    } else{
-                        if(shadowMap[x][y] === undefined){
-                            shadowMap[x][y] = n * 1000;
-                        } else{
-                            shadowMap[x][y] = n * 1000 + shadowMap[x][y] % 1000;
-                        }
+                        shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000;
+                    }else{
+                        shadowMap[x][y] = shadowMap[x][y] % 1000;
                     }
                     step(x + 1, y, n - 1);
                     step(x - 1, y, n - 1);
@@ -75,54 +103,11 @@ class GameArea{
                     step(x, y - 1, n - 1);
                 }
             }
-
-            // Удаление источника света
-            const deleteLightRound = (startX, startY, x, y, n, isNatural) => {
-                let lights = [];
-                const deleteLightNoUpdateRound = (startX, startY, x, y, n, isNatural) => {
-                    const step = (nextX, nextY, n) => {
-                        if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) <
-                            (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
-                            && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height) {
-                            if(isNatural && shadowMap[nextX][nextY] % 1000 > n) {
-                                lights.push([nextX, nextY, shadowMap[nextX][nextY] % 1000, isNatural]);
-                                return;
-                            } else if(!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) > n) {
-                                lights.push([nextX, nextY, Math.floor(shadowMap[nextX][nextY] / 1000), isNatural]);
-                                return;
-                            }
-                            deleteLightNoUpdateRound(startX, startY, nextX, nextY, n, isNatural);
-                        }
-                    };
-                    if(n > 0 && ((isNatural && shadowMap[x][y] % 1000 === n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))){
-                        if(isNatural){
-                            shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000;
-                        }else{
-                            shadowMap[x][y] = shadowMap[x][y] % 1000;
-                        }
-                        step(x + 1, y, n - 1);
-                        step(x - 1, y, n - 1);
-                        step(x, y + 1, n - 1);
-                        step(x, y - 1, n - 1);
-                    }
-                }
-                deleteLightNoUpdateRound(startX, startY, x, y, n, isNatural);
-                for(let i = 0; i < lights.length; i++){
-                    addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3], true);
-                }
+            deleteLightNoUpdateRound(startX, startY, x, y, n, isNatural);
+            for(let i = 0; i < lights.length; i++){
+                this.addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3], true);
             }
-            if(shadowMap[x][y] % 1000 === 9 && map[x][y][GameArea.MAIN_LAYOUT] !== undefined){
-                deleteLightRound(x, y, x, y, 9, true);
-            } else if(Math.floor(shadowMap[x][y] / 1000) === 9 && blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness !== 9){
-                deleteLightRound(x, y, x, y, 9, false);
-            } else{
-                if(map[x][y][GameArea.MAIN_LAYOUT] === undefined){
-                    addLightRound(x, y, x, y, 9, true, false);
-                } else{
-                    addLightRound(x, y, x, y, blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness, false, false);
-                }
-            }
-        };
+        }
 
         // Делает блок воздуха = undefined
         this.makeAirBlock = () => {
@@ -282,19 +267,27 @@ class GameArea{
         // Действие при разрушении блока
         this.destroyBlock = (x, y, layout) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
+            let lastBlock = this.map[x][y][layout];
             this.map[x][y][layout] = this.makeAirBlock();
+            this.deleteLightRound(x, y, x, y, blockTable[lastBlock].brightness, blockTable[lastBlock].isNaturalLight === true);
+            this.addLightRound(x, y, x, y, 9, true, false);
             this.updateRadius(x, y, layout);
-            this.updateLight(x, y);
         };
 
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             if (!this.map[x][y][layout] || blockTable[this.map[x][y][layout]].isCollissed === false) {
+                let lastBlock = this.map[x][y][layout];
                 this.map[x][y][layout] = id;
+                if(lastBlock == undefined){
+                    this.deleteLightRound(x, y, x, y, 9, true);
+                } else {
+                    this.deleteLightRound(x, y, x, y, blockTable[lastBlock].brightness, blockTable[lastBlock].isNaturalLight === true);
+                }
+                this.addLightRound(x, y, x, y, blockTable[id].brightness, blockTable[id].isNaturalLight === true, false);
                 this.updateRadius(x, y, layout);
                 this.updateBlock(x, y, layout);
-                this.updateLight(x, y);
             }
         };
 

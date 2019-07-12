@@ -52,9 +52,8 @@ class GameArea{
                     if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
                         && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height
                         && (shadowMap[nextX][nextY] === undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
-                        return addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
+                        addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
                     }
-                    return [];
                 };
                 if(n > 0 && (isForce || (shadowMap[x][y] === undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n)))){
                     if(isNatural){
@@ -108,7 +107,6 @@ class GameArea{
                     }
                 }
                 deleteLightNoUpdateRound(startX, startY, x, y, n, isNatural);
-                console.log(lights);
                 for(let i = 0; i < lights.length; i++){
                     addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3], true);
                 }

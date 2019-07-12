@@ -14,7 +14,6 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 const key = performance.now();  // Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
-let currentBlock = undefined;			// Текущий блок взаимодействия
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -120,7 +119,7 @@ const playerMovement = () => {
 
 const mouseControl = () => {
     // Когда зажата ЛКМ
-    if(controller.mouse.click === 1){
+    if(controller.mouse.click === 1) {
         const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
 			controller.mouse.direction.y * controller.mouse.direction.y);
         for(let i = 0; i < Math.min(Player.ACTION_RADIUS, len / scale / cameraScale); i += 1 / scale / cameraScale){
@@ -130,7 +129,7 @@ const mouseControl = () => {
 				break;
 			}
             if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined) {
-				if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
+                if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
 					currentBlock = {
 						x: x, y: y,
 						durability: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
@@ -147,10 +146,10 @@ const mouseControl = () => {
         }
 	}
 	// Когда зажата ПКМ
-	if(controller.mouse.click === 3){
-        const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
+	if(controller.mouse.click === 3) {
+		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
 			controller.mouse.direction.y * controller.mouse.direction.y);
-		if (len / scale / cameraScale <= Player.ACTION_RADIUS) {
+		if(len / scale / cameraScale <= Player.ACTION_RADIUS) {
 			gameArea.placeBlock(Math.floor(player.x + controller.mouse.direction.x / scale / cameraScale),
 				Math.floor(player.y + Player.HEIGHT / 2 + controller.mouse.direction.y / scale / cameraScale),
 				GameArea.MAIN_LAYOUT, 1);

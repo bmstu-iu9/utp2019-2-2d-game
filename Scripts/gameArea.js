@@ -47,12 +47,12 @@ class GameArea{
         this.updateLight = (x, y) => {
 
             // Добавление источника света
-            const addShadowRound = (startX, startY, x, y, n, isNatural) => {
+            const addLightRound = (startX, startY, x, y, n, isNatural) => {
                 const step = (nextX, nextY, n) => {
                     if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
                         && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height
                         && (shadowMap[nextX][nextY] === undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
-                        return addShadowRound(startX, startY, nextX, nextY, n, isNatural);
+                        return addLightRound(startX, startY, nextX, nextY, n, isNatural);
                     }
                     return [];
                 };
@@ -78,40 +78,49 @@ class GameArea{
             }
 
             // Удаление источника света
-            let lights = [];
-            const deleteShadowRound = (startX, startY, x, y, n, isNatural) => {
-                const step = (nextX, nextY, n) => {
-                    if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) <
-                        (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
-                        && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height){
-                        if((isNatural && shadowMap[nextX][nextY] % 1000 > n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) > n)){
-                            lights.push([nextX, nextY]);
-                            return;
+            const deleteLightRound = (startX, startY, x, y, n, isNatural) => {
+                let lights = [];
+                const deleteLightNoUpdateRound = (startX, startY, x, y, n, isNatural) => {
+                    const step = (nextX, nextY, n) => {
+                        if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) <
+                            (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
+                            && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height) {
+                            if(isNatural && shadowMap[nextX][nextY] % 1000 > n) {
+                                lights.push([nextX, nextY, shadowMap[nextX][nextY] % 1000, isNatural]);
+                                return;
+                            } else if(!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) > n) {
+                                lights.push([nextX, nextY, Math.floor(shadowMap[nextX][nextY] / 1000), isNatural]);
+                                return;
+                            }
+                            deleteLightNoUpdateRound(startX, startY, nextX, nextY, n, isNatural);
                         }
-                        deleteShadowRound(startX, startY, nextX, nextY, n, isNatural);
+                    };
+                    if(n > 0 && ((isNatural && shadowMap[x][y] % 1000 === n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))){
+                        if(isNatural){
+                            shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000;
+                        }else{
+                            shadowMap[x][y] = shadowMap[x][y] % 1000;
+                        }
+                        step(x + 1, y, n - 1);
+                        step(x - 1, y, n - 1);
+                        step(x, y + 1, n - 1);
+                        step(x, y - 1, n - 1);
                     }
-                };
-                if(n > 0 && ((isNatural && shadowMap[x][y] % 1000 === n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))){
-                    if(isNatural){
-                        shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000;
-                    }else{
-                        shadowMap[x][y] = shadowMap[x][y] % 1000;
-                    }
-                    step(x + 1, y, n - 1);
-                    step(x - 1, y, n - 1);
-                    step(x, y + 1, n - 1);
-                    step(x, y - 1, n - 1);
+                }
+                deleteLightNoUpdateRound(startX, startY, x, y, n, isNatural);
+                for(let i = 0; i < lights.length; i++){
+                    addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3]);
                 }
             }
             if(shadowMap[x][y] % 1000 === 9 && map[x][y][GameArea.MAIN_LAYOUT] !== undefined){
-                deleteShadowRound(x, y, x, y, 9, true);
+                deleteLightRound(x, y, x, y, 9, true);
             } else if(Math.floor(shadowMap[x][y] / 1000) === 9 && blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness !== 9){
-                deleteShadowRound(x, y, x, y, 9, false);
+                deleteLightRound(x, y, x, y, 9, false);
             } else{
                 if(map[x][y][GameArea.MAIN_LAYOUT] === undefined){
-                    addShadowRound(x, y, x, y, 9, true);
+                    addLightRound(x, y, x, y, 9, true);
                 } else{
-                    addShadowRound(x, y, x, y, blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness, false);
+                    addLightRound(x, y, x, y, blockTable[map[x][y][GameArea.MAIN_LAYOUT]].brightness, false);
                 }
             }
         };
@@ -264,7 +273,9 @@ class GameArea{
         this.updateRadius = (x, y, layout) => {
             for (let i = x - 1; i <= x + 1; i++) {
                 for (let j = y - 1; j <= y + 1; j++) {
-                    if (i !== x || y !== j) this.updateBlock(i, j, layout);
+                    if (i !== x || y !== j) {
+                        this.updateBlock(i, j, layout);
+                    }
                 }
             }
         };
@@ -284,6 +295,7 @@ class GameArea{
                 this.map[x][y][layout] = id;
                 this.updateRadius(x, y, layout);
                 this.updateBlock(x, y, layout);
+                this.updateLight(x, y);
             }
         };
 

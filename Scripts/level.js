@@ -144,6 +144,8 @@ const mouseControl = () => {
                 break;
             }
         }
+	} else {
+		currentBlock = undefined;
 	}
 	// Когда зажата ПКМ
 	if(controller.mouse.click === 3) {

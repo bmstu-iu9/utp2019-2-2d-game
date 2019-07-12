@@ -113,13 +113,22 @@ const playerMovement = () => {
 		player.vy = 0;
 	}
 
-	// Плавное движение камеры
-	if((Math.abs(cameraX - newX) > 0.3 || Math.abs(cameraY - newY) > 0.3)){
-		cameraSet(cameraX + 0.5 * (newX - cameraX) / deltaTime, cameraY + 0.5 * (newY - cameraY) / deltaTime);
-	}
-	
 	player.x = newX;
 	player.y = newY;
+	
+	// player.x = player.x + Math.round((newX - player.x) * 16 ) / 16;
+	// player.y = player.y + Math.round((newY - player.y) * 16 ) / 16;
+
+	cameraSet(player.x, player.y);
+
+	// Плавное движение камеры
+	// if(Math.abs(cameraX - newX) > 1){
+	// 	cameraSet(cameraX + Math.round((2 * (player.x - cameraX) * deltaTime / 1000) * 16) / 16, cameraY);
+	// }
+	// if(Math.abs(cameraY - newY) > 1){
+	// 	cameraSet(cameraX, cameraY + Math.round(2 * ((player.y - cameraY) * deltaTime / 1000) * 16) / 16);
+	// }
+	
 }
 
 const mouseControl = () => {

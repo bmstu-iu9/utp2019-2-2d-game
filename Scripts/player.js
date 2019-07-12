@@ -14,6 +14,10 @@ class Player {
         // Предмет в руках, определяет исход добычи того или иного блока
         this.hand = undefined;
 
+        // Параметры игрока
+        this.hp = 10;
+        this.hunger = 10;
+
         this.inActionRadius = (x, y) => {
             if (x < 0 || y < 0 || x >= gameArea.width || y >= gameArea.height) return false; // проверка на выход из карты
             let dx = x - this.x;

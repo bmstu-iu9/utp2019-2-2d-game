@@ -15,6 +15,8 @@ cameraSet(x, y)                         Устанавливает ккорди�
 const key = performance.now();  // Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
+let eventHunger = 0;				// Отсчитывает 5 сек и вызывает голод 
+let maxH = 0;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -44,9 +46,22 @@ const beginPlay = () => {
 const eventTick = () => {
 	currentTime += deltaTime;
 	setTimeOfDay(currentTime, 300);
+	if (player.hp <= 0) {  // Обработка сметри
+
+		return;
+	}
 	playerMovement();
 	mouseControl();
 	handScroller();
+	eventhunger += deltaTime;
+	if (eventHunger >= 5000) {
+		eventHunger = 0;
+		if (player.hunger > 0) {
+			player.hunger --;
+		} else if (player.hp > 0) {
+			player.hp --;
+		}
+	}
 }
 
 // Установка текущего времени суток
@@ -70,11 +85,18 @@ const playerMovement = () => {
 		if(controller.up.active) {
 			player.vy = Player.JUMP_SPEED;
 		}
+		if (maxH - player.y > 15) {  //................................................... Упал выше, чем с 15 блоков
+			player.hp -= Math.ceil((maxH - player.y) / 10)
+			maxH = 0;
+		}
 	} else {
 		if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
 			player.vy -= GameArea.GRAVITY * deltaTime / 1500;
 		} else {
 			player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+		}
+		if (player.vy <= 0 && maxH === 0) { //........................................... Достиг пика
+			maxH = player.y;
 		}
 	}
 	if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо

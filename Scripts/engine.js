@@ -80,8 +80,7 @@ image.onload = () => {
 			let e = -20;
 			let oldtime = 0;
 			const update = (newtime) => {
-				newtime *= 0.005;
-				const deltaTime = newtime - oldtime;
+				const deltaTime = (newtime - oldtime) / 1000;
 				oldtime = newtime;
 				r.render(e += deltaTime, 0, e, 0, 1, arrayOfChunk);
 				requestAnimationFrame(update);

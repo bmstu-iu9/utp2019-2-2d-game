@@ -5,7 +5,7 @@ let cameraX = 0, cameraY = 0;           Положение камеры
 const chankWidth = 8, chankHeight = 8   Размеры чанка
 const minLayout = 2, maxLayout = 3      Обрабатываемые слои
 const blockResolution = 32              Разрешение текстуры блока
-let deltaTime = 0                       Изменение времени между кадрами в мс
+let deltaTime = 0                       Изменение времени между кадрами в секундах
 let gameArea;                           Игровой мир (объект GameArea)
 cameraSet(x, y)                         Устанавливает ккординаты камеры на (x, y)
 */
@@ -13,7 +13,7 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 
 const key = Date.now();;  		// Ключ генерации
-let currentTime = 0; 			// Текущее время в миллисекундах
+let currentTime = 0; 			// Текущее время в секундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
 let playerFloatX = 0;
@@ -48,14 +48,14 @@ const beginPlay = () => {
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
-	setTimeOfDay(currentTime, 600);
+	setTimeOfDay(currentTime, 300);
 	playerMovement();
 	mouseControl();
 }
 
 // Установка текущего времени суток
 const setTimeOfDay = (currentTime, lenghtOfDay) => {
-	currentTime = currentTime / 1000 / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
+	currentTime = currentTime / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
 	if(currentTime < Math.PI){ //.................................................... День
 		gameArea.timeOfDay = 1;
 	}else if(currentTime < 2 * Math.PI){ //.......................................... День -> Ночь
@@ -76,10 +76,10 @@ const playerMovement = () => {
 		}
 	} else {
 		if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
-			player.vy -= GameArea.GRAVITY * deltaTime / 1500;
+			player.vy -= GameArea.GRAVITY * deltaTime * 2 / 3;
 		} else {
 			if(player.vy > - Player.JUMP_SPEED * 4){
-				player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+				player.vy -= GameArea.GRAVITY * deltaTime;
 			}
 		}
 	}
@@ -88,8 +88,8 @@ const playerMovement = () => {
 	if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
 
 	// Новые координаты
-	let newX = playerFloatX + player.vx * deltaTime / 1000;
-    let newY = playerFloatY + player.vy * deltaTime / 1000;
+	let newX = playerFloatX + player.vx * deltaTime;
+    let newY = playerFloatY + player.vy * deltaTime;
 
     // Пока новые координаты не перестанут конфликтовать с окружением
 	// Выход за карту
@@ -130,10 +130,10 @@ const playerMovement = () => {
 
 	// Плавное движение камеры
 	if(Math.abs(cameraX - newX) > 0.3){
-		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime / 1000) * 16) / 16, cameraY);
+		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime) * 16) / 16, cameraY);
 	}
 	if(Math.abs(cameraY - newY) > 0.3){
-		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime / 1000) * 16) / 16);
+		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime) * 16) / 16);
 	}
 	
 }
@@ -170,23 +170,23 @@ const mouseControl = () => {
 		currentBlock = undefined;
 	}
 	// Когда зажата ПКМ
-	if(controller.mouse.click === 3 && lastPlaceBlockTime < currentTime / 1000 - 0.2) {
+	if(controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
 		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
 			controller.mouse.direction.y * controller.mouse.direction.y);
 		let x = player.x;
 		let y = player.y;
-		let isOk = true; //.................................................. Действительно ли выбрано допустимое место
+		let isAllowPlace = true; //.......................................... Действительно ли выбрано допустимое место
         for(let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale){
             x = Math.floor(i * controller.mouse.direction.x / len + player.x);
 			y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
 			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height || i > Player.ACTION_RADIUS
 					|| (gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
             		&& blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
-				isOk = false;
+				isAllowPlace = false;
 				break;
 			}
         }
-        if(isOk && (x - 1 >= 0 //..................................................................... Есть блок рядом
+        if(isAllowPlace && (x - 1 >= 0 //.............................................................. Есть блок рядом
         		&& gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT] != undefined
         		&& blockTable[gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT]].type != "water"
         		|| x + 1 < gameArea.width
@@ -199,7 +199,7 @@ const mouseControl = () => {
         		&& gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT] != undefined
         		&& blockTable[gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT]].type != "water")){
         	gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, 1);
-        	lastPlaceBlockTime = currentTime / 1000;
+        	lastPlaceBlockTime = currentTime;
         }
 	}
 }

@@ -6,7 +6,7 @@ let cameraX = 0, cameraY = 0;  // Положение камеры
 const chankWidth = 8, chankHeight = 8;  // Размеры чанка
 const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
-let deltaTime = 0;  // Изменение времени между кадрами в мс
+let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
 
 const image = new Image();
@@ -104,7 +104,7 @@ image.onload = () => {
 			beginPlay();
 
 			const update = (newTime) => {
-				deltaTime = newTime - oldTime;
+				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
 
 				eventTick();

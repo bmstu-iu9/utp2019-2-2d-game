@@ -181,16 +181,12 @@ const mouseControl = () => {
         }
         if(isOk && (x - 1 >= 0 //..................................................................... Есть блок рядом
         		&& gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT]].isCollissed == true
         		|| x + 1 < gameArea.width
         		&& gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT]].isCollissed == true
         		|| y - 1 >= 0
         		&& gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT]].isCollissed == true
         		|| y + 1 < gameArea.height
-        		&& gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT]].isCollissed == true)){
+        		&& gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT] != undefined)){
         	gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, 1);
         	lastPlaceBlockTime = currentTime / 1000;
         }

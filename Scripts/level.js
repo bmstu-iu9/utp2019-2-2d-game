@@ -12,9 +12,10 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 
 
-const key = performance.now();  // Ключ генерации
+const key = Date.now();;  		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
+let lastPlaceBlockTime = 0;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -36,14 +37,14 @@ const beginPlay = () => {
 	});
 
     gameArea = generate(1000, 1000, key);
-    player = new Player(2, gameArea.elevationMap[0] + 1);
+    player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
     cameraSet(player.x, player.y);
 }
 
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
-	setTimeOfDay(currentTime, 300);
+	setTimeOfDay(currentTime, 600);
 	playerMovement();
 	mouseControl();
 }
@@ -162,13 +163,36 @@ const mouseControl = () => {
 		currentBlock = undefined;
 	}
 	// Когда зажата ПКМ
-	if(controller.mouse.click === 3) {
+	if(controller.mouse.click === 3 && lastPlaceBlockTime < currentTime / 1000 - 0.2) {
 		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
 			controller.mouse.direction.y * controller.mouse.direction.y);
-		if(len / scale / cameraScale <= Player.ACTION_RADIUS) {
-			gameArea.placeBlock(Math.floor(player.x + controller.mouse.direction.x / scale / cameraScale),
-				Math.floor(player.y + Player.HEIGHT / 2 + controller.mouse.direction.y / scale / cameraScale),
-				GameArea.MAIN_LAYOUT, 1);
-		}
+		let x = player.x;
+		let y = player.y;
+		let isOk = true; //.................................................. Действительно ли выбрано допустимое место
+        for(let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale){
+            x = Math.floor(i * controller.mouse.direction.x / len + player.x);
+			y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
+			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height || i > Player.ACTION_RADIUS
+					|| (gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
+            		&& blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
+				isOk = false;
+				break;
+			}
+        }
+        if(isOk && (x - 1 >= 0 //..................................................................... Есть блок рядом
+        		&& gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT] != undefined
+        		&& blockTable[gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT]].isCollissed == true
+        		|| x + 1 < gameArea.width
+        		&& gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT] != undefined
+        		&& blockTable[gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT]].isCollissed == true
+        		|| y - 1 >= 0
+        		&& gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT] != undefined
+        		&& blockTable[gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT]].isCollissed == true
+        		|| y + 1 < gameArea.height
+        		&& gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT] != undefined
+        		&& blockTable[gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT]].isCollissed == true)){
+        	gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, 1);
+        	lastPlaceBlockTime = currentTime / 1000;
+        }
 	}
 }

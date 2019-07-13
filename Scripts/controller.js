@@ -5,6 +5,7 @@ class Controller {
         this.left   = new ButtonInput();
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
+        this.mouse 	= new MouseInput();
     }
 
     keyDownUp(event) {
@@ -24,6 +25,26 @@ class Controller {
                 break;
         }
     }
+    
+    mouseMove(event) {
+        const playerPlixelLocateX = (player.x - cameraX) * scale * cameraScale,
+            playerPlixelLocateY = (player.y - cameraY) * scale * cameraScale;
+        this.mouse.x = event.pageX;
+        this.mouse.y = event.pageY;
+        this.mouse.direction.x = this.mouse.x - document.getElementById('canvas').width / 2 - playerPlixelLocateX;
+        this.mouse.direction.y = document.getElementById('canvas').height / 2 - playerPlixelLocateY - this.mouse.y -
+            Player.HEIGHT * scale * cameraScale / 2;
+    }
+
+    mouseDown(event) {
+        this.mouse.click = event.which;
+        this.mouse.active = true;
+    }
+
+    mouseUp(event) {
+        this.mouse.click = undefined;
+        this.mouse.active = false;
+    }
 }
 
 class ButtonInput {
@@ -36,4 +57,16 @@ class ButtonInput {
         if (this.down != down) this.active = down;
         this.down = down; 
     }
+}
+
+class MouseInput {
+
+	constructor() {
+        this.active = false;
+        this.click = undefined;
+        this.x = this.y = 0;
+        this.direction = {
+            x: 0, y: 0
+        }
+	}
 }

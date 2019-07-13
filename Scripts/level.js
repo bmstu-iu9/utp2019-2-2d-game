@@ -12,30 +12,44 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 
 
-const key = performance.now();  // Ключ генерации
+const key = Date.now();;  		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
+let currentBlock = undefined;
+let lastPlaceBlockTime = 0;
 
+// Вызывается при запуске игры
 const beginPlay = () => {
-	// Управление
-	this.controller = new Controller();
-	const KDU = (event) => {
-		controller.keyDownUp(event);
-	};
-	window.addEventListener("keydown", KDU);
+    // Управление
+    this.controller = new Controller();
+    const KDU = (event) => {
+        controller.keyDownUp(event);
+    };
+    window.addEventListener("keydown", KDU);
 	window.addEventListener("keyup", KDU);
-	
+	window.addEventListener("mousemove", (event) => {
+		controller.mouseMove(event);
+	});
+	window.addEventListener("mouseup", (event) => {
+		controller.mouseUp(event);
+	});
+	window.addEventListener("mousedown", (event) => {
+		controller.mouseDown(event);
+	});
+
     gameArea = generate(1000, 1000, key);
-	player = new Player(2, gameArea.elevationMap[0] + 1);
+    player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
+    cameraSet(player.x, player.y);
 }
 
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
-	setTimeOfDay(currentTime, 60);
+	setTimeOfDay(currentTime, 600);
 	playerMovement();
+	mouseControl();
 }
 
-// Вызывается только при запуске
+// Установка текущего времени суток
 const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	currentTime = currentTime / 1000 / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
 	if(currentTime < Math.PI){ //.................................................... День
@@ -102,6 +116,79 @@ const playerMovement = () => {
 
 	player.x = newX;
 	player.y = newY;
+	
+	// player.x = player.x + Math.round((newX - player.x) * 16 ) / 16;
+	// player.y = player.y + Math.round((newY - player.y) * 16 ) / 16;
 
 	cameraSet(player.x, player.y);
+
+	// Плавное движение камеры
+	// if(Math.abs(cameraX - newX) > 1){
+	// 	cameraSet(cameraX + Math.round((2 * (player.x - cameraX) * deltaTime / 1000) * 16) / 16, cameraY);
+	// }
+	// if(Math.abs(cameraY - newY) > 1){
+	// 	cameraSet(cameraX, cameraY + Math.round(2 * ((player.y - cameraY) * deltaTime / 1000) * 16) / 16);
+	// }
+	
+}
+
+const mouseControl = () => {
+    // Когда зажата ЛКМ
+    if(controller.mouse.click === 1) {
+        const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
+			controller.mouse.direction.y * controller.mouse.direction.y);
+        for(let i = 0; i < Math.min(Player.ACTION_RADIUS, len / scale / cameraScale); i += 1 / scale / cameraScale){
+            const x = Math.floor(i * controller.mouse.direction.x / len + player.x);
+			const y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
+			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height) {
+				break;
+			}
+            if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined) {
+                if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
+					currentBlock = {
+						x: x, y: y,
+						durability: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
+					}
+					currentBlock.durability -= deltaTime;
+				} else if (currentBlock.durability > 0) {
+					currentBlock.durability -= deltaTime;
+				} else {
+					currentBlock = undefined;
+					gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+				}
+                break;
+            }
+        }
+	} else {
+		currentBlock = undefined;
+	}
+	// Когда зажата ПКМ
+	if(controller.mouse.click === 3 && lastPlaceBlockTime < currentTime / 1000 - 0.2) {
+		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
+			controller.mouse.direction.y * controller.mouse.direction.y);
+		let x = player.x;
+		let y = player.y;
+		let isOk = true; //.................................................. Действительно ли выбрано допустимое место
+        for(let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale){
+            x = Math.floor(i * controller.mouse.direction.x / len + player.x);
+			y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
+			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height || i > Player.ACTION_RADIUS
+					|| (gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
+            		&& blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
+				isOk = false;
+				break;
+			}
+        }
+        if(isOk && (x - 1 >= 0 //..................................................................... Есть блок рядом
+        		&& gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT] != undefined
+        		|| x + 1 < gameArea.width
+        		&& gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT] != undefined
+        		|| y - 1 >= 0
+        		&& gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT] != undefined
+        		|| y + 1 < gameArea.height
+        		&& gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT] != undefined)){
+        	gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, 1);
+        	lastPlaceBlockTime = currentTime / 1000;
+        }
+	}
 }

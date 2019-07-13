@@ -355,11 +355,9 @@ class Render {
 		}
 		if (type === this.gl.VERTEX_SHADER) {
 			console.log('VERTEX SHADER ERROR:');
-		}
-		else if (type === this.gl.FRAGMENT_SHADER) {
+		} else if (type === this.gl.FRAGMENT_SHADER) {
 			console.log('FRAGMENT SHADER ERROR:');
-		}
-		else {
+		} else {
 			console.log('SHADER ERROR:');
 		}
 		console.log(this.gl.getShaderInfoLog(shader));

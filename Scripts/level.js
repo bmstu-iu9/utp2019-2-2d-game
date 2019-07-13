@@ -117,18 +117,11 @@ const playerMovement = () => {
 	player.x = newX;
 	player.y = newY;
 	
-	// player.x = player.x + Math.round((newX - player.x) * 16 ) / 16;
-	// player.y = player.y + Math.round((newY - player.y) * 16 ) / 16;
-
-	cameraSet(player.x, player.y);
+	player.x = player.x + Math.round((newX - player.x) * 16 ) / 16;
+	player.y = player.y + Math.round((newY - player.y) * 16 ) / 16;
 
 	// Плавное движение камеры
-	// if(Math.abs(cameraX - newX) > 1){
-	// 	cameraSet(cameraX + Math.round((2 * (player.x - cameraX) * deltaTime / 1000) * 16) / 16, cameraY);
-	// }
-	// if(Math.abs(cameraY - newY) > 1){
-	// 	cameraSet(cameraX, cameraY + Math.round(2 * ((player.y - cameraY) * deltaTime / 1000) * 16) / 16);
-	// }
+	cameraSet(cameraX + (player.x - cameraX) * deltaTime / 1000, cameraY + (player.y - cameraY) * deltaTime /1000);
 	
 }
 

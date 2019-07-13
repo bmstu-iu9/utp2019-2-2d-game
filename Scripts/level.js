@@ -53,9 +53,9 @@ const eventTick = () => {
 	playerMovement();
 	mouseControl();
 	handScroller();
-	eventhunger += deltaTime;
-	if (eventHunger >= 5000) {
-		eventHunger = 0;
+	eventHunger += deltaTime;
+	if (eventHun >= 5000) {
+		eventHun = 0;
 		if (player.hunger > 0) {
 			player.hunger --;
 		} else if (player.hp > 0) {

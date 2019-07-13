@@ -12,8 +12,8 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 
 
-const key = Date.now();;  		// Ключ генерации
-let currentTime = 0; 			// Текущее время в секундах
+const key = Date.now(); 		// Ключ генерации
+let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
 let playerFloatX = 0;
@@ -103,21 +103,48 @@ const playerMovement = () => {
 		newY = playerFloatY;
 	}
 	// Проверка, не упёрся ли игрок
-	if(player.vx < 0 && player.isCollisionLeft(newX, newY)) {
-		newX = playerFloatX;
-		player.vx = 0;
-	}
-	if(player.vx > 0 && player.isCollisionRight(newX, newY)) {
-		newX = playerFloatX;
-		player.vx = 0;
-	}
-	if(player.vy > 0 && player.isCollisionUp(newX, newY)) {
-		newY = playerFloatY;
-		player.vy = 0;
-	}
-	if(player.vy < 0 && player.isCollisionDown(newX, newY)) {
-		newY = Math.floor(playerFloatY);
-		player.vy = 0;
+	let changedX = false;
+	let changedY = false;
+	const steps = 5;
+	for(let i = 1; i <= steps; i++){
+		let k =  i / steps;
+		let iX = playerFloatX + (newX - playerFloatX) * k;
+		let iY = playerFloatY + (newY - playerFloatY) * k;
+		let ansX = playerFloatX + (newX - playerFloatX) * (i - 1) / steps;
+		let ansY = playerFloatY + (newY - playerFloatY) * (i - 1) / steps;
+
+		if(!changedX){
+			if(player.vx < 0 && player.isCollisionLeft(iX, changedY ? newY : iY)) {
+				player.vx = 0;
+				changedX = true;
+			}
+			if(player.vx > 0 && player.isCollisionRight(iX, changedY ? newY : iY)) {
+				player.vx = 0;
+				changedX = true;
+			}
+			if(changedX){
+				newX = ansX;
+			}
+		}
+		
+		if(!changedY){
+			if(player.vy > 0 && player.isCollisionUp(changedX ? newX : iX, iY)) {
+				player.vy = 0;
+				changedY = true;
+			}
+			if(player.vy < 0 && player.isCollisionDown(changedX ? newX : iX, iY)) {
+				ansY = Math.floor(ansY);
+				player.vy = 0;
+				changedY = true;
+			}
+			if(changedY){
+				newY = ansY;
+			}
+		}
+
+		if(changedX && changedY){
+			break;
+		}
 	}
 
 	playerFloatX = newX;

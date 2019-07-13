@@ -16,6 +16,8 @@ const key = Date.now();;  		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
+let playerFloatX = 0;
+let playerFloatY = 0;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -38,6 +40,8 @@ const beginPlay = () => {
 
     gameArea = generate(1000, 1000, key);
     player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
+    playerFloatX = player.x;
+    playerFloatY = player.y;
     cameraSet(player.x, player.y);
 }
 
@@ -82,46 +86,53 @@ const playerMovement = () => {
 	if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
 
 	// Новые координаты
-	let newX = player.x + player.vx * deltaTime / 1000;
-    let newY = player.y + player.vy * deltaTime / 1000;
+	let newX = playerFloatX + player.vx * deltaTime / 1000;
+    let newY = playerFloatY + player.vy * deltaTime / 1000;
 
     // Пока новые координаты не перестанут конфликтовать с окружением
 	// Выход за карту
 	if(newX - Player.WIDTH / 2 < 0 && newX + Player.WIDTH / 2 > gameArea.width) {
 		player.vx = 0;
-		newX = player.x;
+		newX = playerFloatX;
 		canGo = false;
 	}
 	if(newY < 0 && newY + Player.HEIGHT > gameArea.height) {
 		player.vy = 0;
-		newY = player.y;
+		newY = playerFloatY;
 	}
 	// Проверка, не упёрся ли игрок
 	if(player.vx < 0 && player.isCollisionLeft(newX, newY)) {
-		newX = player.x;
+		newX = playerFloatX;
 		player.vx = 0;
 	}
 	if(player.vx > 0 && player.isCollisionRight(newX, newY)) {
-		newX = player.x;
+		newX = playerFloatX;
 		player.vx = 0;
 	}
 	if(player.vy > 0 && player.isCollisionUp(newX, newY)) {
-		newY = player.y;
+		newY = playerFloatY;
 		player.vy = 0;
 	}
 	if(player.vy < 0 && player.isCollisionDown(newX, newY)) {
-		newY = Math.floor(player.y);
+		newY = Math.floor(playerFloatY);
 		player.vy = 0;
 	}
 
-	player.x = newX;
-	player.y = newY;
+	playerFloatX = newX;
+	playerFloatY = newY;
 	
-	player.x = player.x + Math.round((newX - player.x) * 16 ) / 16;
-	player.y = player.y + Math.round((newY - player.y) * 16 ) / 16;
+	player.x = Math.round(newX * 16) / 16;
+	player.y = Math.round(newY * 16) / 16;
+
+	// cameraSet(player.x, player.y);
 
 	// Плавное движение камеры
-	cameraSet(cameraX + (player.x - cameraX) * deltaTime / 1000, cameraY + (player.y - cameraY) * deltaTime /1000);
+	if(Math.abs(cameraX - newX) > 0.3){
+		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime / 1000) * 16) / 16, cameraY);
+	}
+	if(Math.abs(cameraY - newY) > 0.3){
+		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime / 1000) * 16) / 16);
+	}
 	
 }
 

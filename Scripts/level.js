@@ -78,7 +78,9 @@ const playerMovement = () => {
 		if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
 			player.vy -= GameArea.GRAVITY * deltaTime / 1500;
 		} else {
-			player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+			if(player.vy > - Player.JUMP_SPEED * 4){
+				player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+			}
 		}
 	}
 	if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
@@ -147,7 +149,8 @@ const mouseControl = () => {
 			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height) {
 				break;
 			}
-            if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined) {
+            if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
+            		&& blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type != "water") {
                 if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
 					currentBlock = {
 						x: x, y: y,

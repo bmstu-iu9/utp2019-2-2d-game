@@ -37,12 +37,16 @@ const beginPlay = () => {
 	window.addEventListener("mousedown", (event) => {
 		controller.mouseDown(event);
 	});
-
-    gameArea = generate(1000, 1000, key);
-    player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
+	
+    gameArea = generate(600, 150, key);
+	player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
+	if(localStorage.getItem('saved')) {
+		loadWorld();
+	}
     playerFloatX = player.x;
     playerFloatY = player.y;
-    cameraSet(player.x, player.y);
+	cameraSet(player.x, player.y);
+	
 }
 
 // Вызывается каждый кадр
@@ -228,5 +232,10 @@ const mouseControl = () => {
         	gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, 1);
         	lastPlaceBlockTime = currentTime;
         }
+	}
+
+	// Сохранение и загрузка на СКМ
+	if (controller.mouse.click === 2) {
+		saveWorld();
 	}
 }

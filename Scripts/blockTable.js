@@ -5,6 +5,7 @@ let blockTable = {
         "durability" : 0.5,
         "brightness" : 0,
         "isCollissed" : true,
+        "isSolid" : true,
         "name" : "stone"
     },
 
@@ -14,6 +15,7 @@ let blockTable = {
         "durability" : 0.2,
         "brightness" : 0,
         "isCollissed" : true,
+        "isSolid" : true,
         "name" : "grass"
     },
 
@@ -23,6 +25,7 @@ let blockTable = {
         "durability" : 0.2,
         "brightness" : 0,
         "isCollissed" : true,
+        "isSolid" : true,
         "name" : "dirt"
     },
 
@@ -32,6 +35,7 @@ let blockTable = {
         "durability" : 1,
         "brightness" : 0,
         "isCollissed" : true,
+        "isSolid" : true,
         "name" : "bedrock"
     },
 
@@ -41,7 +45,6 @@ let blockTable = {
         "durability" : 1,
         "brightness" : 6,
         "isCollissed" : false,
-        "hasGravity" : true,
         "name" : "water",
         "isNaturalLight" : true
     },
@@ -62,6 +65,7 @@ let blockTable = {
         "durability" : 0.1,
         "brightness" : 0,
         "isCollissed" : true,
+        "isSolid" : true,
         "name" : "sand"
     },
 
@@ -71,6 +75,7 @@ let blockTable = {
         "durability" : 0.5,
         "brightness" : 0,
         "isCollissed" : true,
+        "isSolid" : true,
         "name" : "coal-ore"
     },
 
@@ -80,6 +85,7 @@ let blockTable = {
         "durability" : 0.4,
         "brightness" : 0,
         "isCollissed" : false,
+        "isSolid" : true,
         "name" : "wood"
     },
 
@@ -89,6 +95,7 @@ let blockTable = {
         "durability" : 0.01,
         "brightness" : 0,
         "isCollissed" : false,
+        "isSolid" : true,
         "name" : "leaf"
     },
 
@@ -99,6 +106,7 @@ let blockTable = {
       "brightness" : 0,
       "isCollissed" : false,
       "isClickable" : true,
+      "isSolid" : true,
       "interactFunction" : () => {
           alert("1");
       } // Функция взаимодействия у кликабельных предметов

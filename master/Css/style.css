@@ -1,0 +1,17 @@
+canvas {
+	position: absolute;
+    top: 0px;
+    left: 0px;
+	width: 100%;
+	height: 100%;
+}
+.fps {
+	position: absolute;
+	top: 0px;   
+	left: 20px;
+	color: #FFF;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 20px;
+	background-color: rgba(0, 0, 0, .4);
+	padding: 10px 17px;
+}

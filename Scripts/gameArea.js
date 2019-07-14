@@ -203,12 +203,12 @@ class GameArea{
                             if (this.map[x][y - 1][layout] === undefined) this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(9016))
                         })
                     } else if(Math.floor((this.map[x][y - 1][layout]-9000)/8) !== 2) {
-                        if (this.map[x - 1][y][layout] === undefined || Math.floor((this.map[x - 1][y][layout] - 9000) / 8) === 2) {
+                        if (this.map[x - 1][y][layout] === undefined) {
                             setTimeout(() => {
                                 if (this.map[x - 1][y][layout] === undefined) this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(9000))
                             }, 200);
                         }
-                        if (this.map[x + 1][y][layout] === undefined || Math.floor((this.map[x + 1][y][layout] - 9000) / 8) === 2) {
+                        if (this.map[x + 1][y][layout] === undefined) {
                             setTimeout(() => {
                                 if (this.map[x + 1][y][layout] === undefined) this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(9008))
                             }, 200);

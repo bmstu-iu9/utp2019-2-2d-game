@@ -246,6 +246,7 @@ class Player {
             this.getDamage(Math.max((Math.abs(this.vy) - 2 * Player.JUMP_SPEED) / 2 / Player.JUMP_SPEED * 100, 0));
         }
 
+        // Урон от удушья
         this.choke = (deltaTime) => {
             if(this.bp > 0) {
                 this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime / 1000, 0);

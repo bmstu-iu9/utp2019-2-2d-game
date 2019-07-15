@@ -34,32 +34,6 @@ class Controller {
             case 83:
                 this.down.getInput(down);
                 break;
-
-            // 1 .. 8
-            case 49:
-                this.k1.getInput(down);
-                break;
-            case 50:
-                this.k2.getInput(down);
-                break;
-            case 51:
-                this.k3.getInput(down);
-                break;
-            case 52:
-                this.k4.getInput(down);
-                break;
-            case 53:
-                this.k5.getInput(down);
-                break;
-            case 54:
-                this.k6.getInput(down);
-                break;
-            case 55:
-                this.k7.getInput(down);
-                break;
-            case 56:
-                this.k8.getInput(down);
-                break;
         }
     }
     

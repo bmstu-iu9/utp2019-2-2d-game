@@ -116,11 +116,11 @@ const playerMovement = () => {
 
 		// Силы сопротивления
 		if(!player.onGround()) {
-			player.vy -= liquidK * Math.abs(player.vy) * 2 * player.vy * deltaTime / 1000;
+			player.vy -= 2 / 3 * liquidK * Math.abs(player.vy) * 2 * player.vy * deltaTime / 1000;
 		} else {
 			player.vy = Math.max(player.vy, 0);
 		}
-		player.vx -= liquidK * Math.abs(player.vx) * 2 * player.vx * deltaTime / 1000;
+		player.vx -= 2 / 3 * liquidK * Math.abs(player.vx) * 2 * player.vx * deltaTime / 1000;
 	}
 
 	// Новые координаты

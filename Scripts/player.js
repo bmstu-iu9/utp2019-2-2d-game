@@ -214,7 +214,6 @@ class Player {
             this.setHand((this.hand.index - 1) % Player.FAST_INVENTORY_SIZE);
         }
 
-
         // Проверка коллизии граней игрока с блоками
         // Задевает ли левая грань игрока блоки с коллизией
         this.isCollisionLeft = (newX, newY) => {
@@ -264,6 +263,26 @@ class Player {
         this.onGround = () => {
             if(this.y - 0.0001 < 0) return true;
             return this.isCollisionDown(this.x, this.y - 0.0001);
+        }
+
+        /*  Коэффициент плотности жидкости, в которой игрок
+            0 - игрок не касается жидкости,
+            (0..1) - максимальная плотность жидкости, которой касается игрок */
+        this.getLiquidK = () => {
+            let k = 0;
+            let startX = Math.max(Math.floor(this.x - Player.WIDTH / 2), 0);
+            let endX = Math.min(Math.floor(this.x + Player.WIDTH / 2), gameArea.width - 1);
+            let startY = Math.max(Math.floor(this.y), 0);
+            let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
+            for(let x = startX; x <= endX; x++) {
+                for(let y = startY; y <= endY; y++) {
+                    if(blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
+                            && blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density > k) {
+                        k = blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density;
+                    }
+                }
+            }
+            return k;
         }
     }
 }

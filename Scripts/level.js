@@ -89,23 +89,39 @@ const UI = () => {
 
 // Движение игрока
 const playerMovement = () => {
-	if(player.onGround()) { //....................................................... Если игрок на земле
-		player.vy = Math.max(player.vy, 0);
-		if(controller.up.active) {
-			player.vy = Player.JUMP_SPEED;
-		}
-	} else {
-		if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
-			player.vy -= GameArea.GRAVITY * deltaTime / 1500;
+	let liquidK = player.getLiquidK();
+	if(liquidK == 0) { // Если игрок на суше
+		if(player.onGround()) { //.................................................... Если игрок на поверхности
+			player.vy = Math.max(player.vy, 0);
+			if(controller.up.active) {
+				player.vy = Player.JUMP_SPEED;
+			}
 		} else {
-			if(player.vy > - Player.JUMP_SPEED * 4){
-				player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+			if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
+				player.vy -= GameArea.GRAVITY * deltaTime / 1500;
+			} else {
+				if(player.vy > - Player.JUMP_SPEED * 4){
+					player.vy -= GameArea.GRAVITY * deltaTime / 1000;
+				}
 			}
 		}
+		if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
+		if(controller.right.active) player.vx = Player.SPEED; //......................... Если нажато влево
+		if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
+	} else { //................................................................. Если в жидкости
+		if(controller.left.active) player.vx -= Player.SPEED * deltaTime / 1000;
+		if(controller.right.active) player.vx += Player.SPEED * deltaTime / 1000;
+		if(controller.up.active) player.vy += Player.SPEED * deltaTime / 1000;
+		if(controller.down.active) player.vy -= Player.SPEED * deltaTime / 1000;
+
+		// Силы сопротивления
+		if(!player.onGround()) {
+			player.vy -= liquidK * Math.abs(player.vy) * 2 * player.vy * deltaTime / 1000;
+		} else {
+			player.vy = Math.max(player.vy, 0);
+		}
+		player.vx -= liquidK * Math.abs(player.vx) * 2 * player.vx * deltaTime / 1000;
 	}
-	if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
-	if(controller.right.active) player.vx = Player.SPEED; //......................... Если нажато влево
-	if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
 
 	// Новые координаты
 	let newX = playerFloatX + player.vx * deltaTime / 1000;
@@ -172,8 +188,6 @@ const playerMovement = () => {
 	
 	player.x = Math.round(newX * 16) / 16;
 	player.y = Math.round(newY * 16) / 16;
-
-	// cameraSet(player.x, player.y);
 
 	// Плавное движение камеры
 	if(Math.abs(cameraX - newX) > 0.3){

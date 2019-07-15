@@ -42,6 +42,7 @@ let blockTable = {
         "brightness" : 6,
         "isCollissed" : false,
         "hasGravity" : true,
+        "density" : 0.5,
         "name" : "water",
         "isNaturalLight" : true
     },

@@ -260,6 +260,13 @@ class GameArea{
             this.updateRadius(x, y, layout);
         };
 
+        // Можно ставить блок на (x, y, MAIN_LAYOUT)
+        this.canPlace = (x, y) => {
+            return x >= 0 && y >= 0 && x < this.width && y < this.height
+            && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
+                || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+        }
+
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
@@ -289,7 +296,11 @@ class GameArea{
 
         // Функция сброса лута
         this.dropLoot = (x, y, block) => {
-            return block.id; // Оставил x, y - в будующем лут будет падать там, где разрушен блок, пока падает в инвентарь
+            // Оставил x, y - в будующем лут будет падать там, где разрушен блок, пока падает в инвентарь
+            return {
+                "id" : items[block.id].dropId ? items[block.id].dropId : block.id,
+                "count" : 1
+            }
         };
 
 

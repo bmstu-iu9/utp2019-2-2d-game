@@ -2,7 +2,7 @@ let blockTable = {
     "1" : {
         "id" : "1",
         "type" : "stone",
-        "durability" : 500,
+        "durability" : 7000,
         "brightness" : 0,
         "isCollissed" : true,
         "name" : "stone"
@@ -11,7 +11,7 @@ let blockTable = {
     "2" : {
         "id" : "2",
         "type" : "dirt",
-        "durability" : 200,
+        "durability" : 1500,
         "brightness" : 0,
         "isCollissed" : true,
         "name" : "grass"
@@ -20,7 +20,7 @@ let blockTable = {
     "3" : {
         "id" : "3",
         "type" : "dirt",
-        "durability" : 200,
+        "durability" : 1500,
         "brightness" : 0,
         "isCollissed" : true,
         "name" : "dirt"
@@ -29,7 +29,7 @@ let blockTable = {
     "7" : {
         "id" : "7",
         "type" : "bedrock",
-        "durability" : 1000,
+        "durability" : 100000,
         "brightness" : 0,
         "isCollissed" : true,
         "name" : "bedrock"
@@ -59,7 +59,7 @@ let blockTable = {
     "12" : {
         "id" : "12",
         "type" : "dirt",
-        "durability" : 100,
+        "durability" : 1200,
         "brightness" : 0,
         "isCollissed" : true,
         "name" : "sand"
@@ -68,7 +68,7 @@ let blockTable = {
     "16" : {
         "id" : "16",
         "type" : "stone",
-        "durability" : 500,
+        "durability" : 8000,
         "brightness" : 0,
         "isCollissed" : true,
         "name" : "coal-ore"
@@ -77,7 +77,7 @@ let blockTable = {
     "17" : {
         "id" : "17",
         "type" : "wood",
-        "durability" : 400,
+        "durability" : 4000,
         "brightness" : 0,
         "isCollissed" : false,
         "name" : "wood"
@@ -86,7 +86,7 @@ let blockTable = {
     "18" : {
         "id" : "18",
         "type" : "leaf",
-        "durability" : 10,
+        "durability" : 500,
         "brightness" : 0,
         "isCollissed" : false,
         "name" : "leaf"

@@ -43,6 +43,12 @@ const beginPlay = () => {
     playerFloatX = player.x;
     playerFloatY = player.y;
     cameraSet(player.x, player.y);
+
+    player.addToInv({
+    	"id" : 384,
+    	"durability" : 300,
+		"name" : "Iron pickaxe"
+    })
 }
 
 // Вызывается каждый кадр
@@ -51,6 +57,7 @@ const eventTick = () => {
 	setTimeOfDay(currentTime, 600);
 	playerMovement();
 	mouseControl();
+	UI();
 }
 
 // Установка текущего времени суток
@@ -64,6 +71,19 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 		gameArea.timeOfDay = 0;
 	}else{ //........................................................................ Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
+	}
+}
+
+// Управление интерфейсом
+const UI = () => {
+	// Кнопки 1..8
+	for(let i = 1; i <= 8; i++) {
+		if(controller.numbers[i].active) {
+			if(player.hand.index != i - 1){
+				player.setHand(i - 1);
+			}
+			break;
+		}
 	}
 }
 
@@ -176,19 +196,23 @@ const mouseControl = () => {
 			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height) {
 				break;
 			}
-            if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
-            		&& blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type != "water") {
+            if(!gameArea.canPlace(x, y)) {
                 if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
 					currentBlock = {
 						x: x, y: y,
+						type: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type,
 						durability: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
 					}
-					currentBlock.durability -= deltaTime;
+					let effK = ((player.hand.item && currentBlock.type == player.hand.info.type))
+						? player.hand.info.efficiency : 1;
+					currentBlock.durability -= deltaTime * effK;
 				} else if (currentBlock.durability > 0) {
-					currentBlock.durability -= deltaTime;
+					let effK = ((player.hand.item && currentBlock.type == player.hand.info.type))
+						? player.hand.info.efficiency : 1;
+					currentBlock.durability -= deltaTime * effK;
 				} else {
 					currentBlock = undefined;
-					gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+					player.destroy(x, y);
 				}
                 break;
             }
@@ -214,18 +238,14 @@ const mouseControl = () => {
 			}
         }
         if(isOk && (x - 1 >= 0 //..................................................................... Есть блок рядом
-        		&& gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT]].type != "water"
+        		&& !gameArea.canPlace(x - 1, y)
         		|| x + 1 < gameArea.width
-        		&& gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT]].type != "water"
+        		&& !gameArea.canPlace(x + 1, y)
         		|| y - 1 >= 0
-        		&& gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT]].type != "water"
+        		&& !gameArea.canPlace(x, y - 1)
         		|| y + 1 < gameArea.height
-        		&& gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT]].type != "water")){
-        	gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, 1);
+        		&& !gameArea.canPlace(x, y + 1))){
+        	player.place(x, y);
         	lastPlaceBlockTime = currentTime / 1000;
         }
 	}

@@ -1,36 +1,106 @@
 'use strict';
 
 /*
-gameArea.map хранит состояние о блоках в мире + свет
-player хранит данные о персонаже и инвентаре
+На данный момент при сохранении запоминаются:
+    * gameArea хранит состояние о мире
+    * player хранит данные о персонаже и инвентаре
+    * 
 Позднее будут сохранятся только нужные данные у этих объектов
+
+loadExist()             Существует ли сохранение
+getLoadList()           Получить массив с именами всех сохранений
+deleteDatabase()        Очистить БД
+save(имя сохранения)    Сохранить текущее состояние
+load(имя сохранения)    Возвращает объект с полями, идентичными gameArea и player
+                        (ВАЖНО! поле для корректной работы необходимо создать объект
+                        Player и скопировать данные в него)
 */
 
-const saveWorld = () => {
-    for (let i = 0; i < gameArea.width; i++) {
-        for(let j = 0; j < gameArea.height; j++) {
-            localStorage[i+'x'+j+'x'+GameArea.MAIN_LAYOUT] =
-            gameArea.map[i][j][GameArea.MAIN_LAYOUT]
-        }
-    }
-    localStorage.w=gameArea.width;
-    localStorage.h=gameArea.height;
-    localStorage.x=player.x;
-    localStorage.y=player.y;
-    localStorage.setItem('saved', true);
+const DB_NAME = 'indexedDB';
+const DB_VERSION = 1;
+const DB_STORE_NAME = 'request';
+
+let _db;
+
+const loadExist = () => {
+    return getLoadList().length !== 0;
 }
 
-const loadWorld = () => {
-    console.log("loaded")
-    gameArea.height=localStorage.h;
-    gameArea.width=localStorage.w;
-    player.x=localStorage.x;
-    player.y=localStorage.y;
-    for (let i = 0; i < gameArea.width; i++) {
-        for(let j = 0; j < gameArea.height; j++) {
-            gameArea.map[i][j][GameArea.MAIN_LAYOUT]=
-            localStorage[i+'x'+j+'x'+GameArea.MAIN_LAYOUT]
+const getLoadList = () => {
+    return localStorage.loadList !== undefined
+        ? JSON.parse(localStorage.loadList)
+        : [];
+}
+
+const deleteDatabase = () => {
+    let req = indexedDB.deleteDatabase(DB_NAME);
+    localStorage.clear();
+
+    req.onerror = (event) => {
+        console.error("Couldn't delete database: " + event);
+    }
+}
+
+const save = (worldName) => {
+    if (!window.indexedDB) {
+        window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
+    }
+
+    let request = window.indexedDB.open(DB_NAME, 1);
+
+    request.onerror = (event) => {
+        console.error("Couldn't create database: " + event);
+    }
+
+    request.onupgradeneeded = (event) => {
+        _db = event.target.result;
+
+        let objectStore = _db.createObjectStore(DB_STORE_NAME, {
+            ketPath: "worldName",
+            autoIncrement : true
+        });
+
+        objectStore.createIndex("player", "player", {
+            unique: false
+        });
+        objectStore.createIndex("gameArea", "gameArea", {
+            unique: false
+        });
+
+        objectStore.add({
+            player: JSON.stringify(player),
+            gameArea: JSON.stringify(gameArea)
+        },
+        worldName);
+        localStorage.loadList = JSON.stringify(localStorage.loadList === undefined
+            ? [worldName]
+            : JSON
+                .parse(localStorage.loadList)
+                .push(worldName));
+    }
+}
+
+const load = (worldName) => {
+    
+    let request = window.indexedDB.open(DB_NAME, 1);
+    deleteDatabase();
+    
+    request.onerror = (event) => {
+        console.error("Couldn't load database: " + event);
+    }
+
+    request.onsuccess = (event) => {
+        _db = event.target.result;
+
+        let req = _db
+        .transaction([DB_STORE_NAME], "readwrite")
+        .objectStore(DB_STORE_NAME)
+        .get(worldName);
+        req.onsuccess = (event) => {
+            return {
+                gameArea: JSON.parse(req.result.gameArea),
+                player: JSON.parse(req.result.player)
+            };
         }
     }
-    localStorage.clear();
 }

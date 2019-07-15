@@ -15,6 +15,7 @@
  durability  : Прочность блока : от 1 до 100
  brightness  : Светимость блока : от 0 до 9
  isCollissed : Можно ли проходить сквозь этот блок, true/false
+ isSolid     : Является ли данный блок твердым, то есть можно ли на его место ставить другие блоки
  isPlatform  : Является ли блок платформой - можно ли спрыгнуть с него клавишей  вниз - как в платформере
  isClickable : Можно ли нажать на блок
  hasGravity  : Подвержен ли этот блок гравитации, т.е падает ли вниз без опоры, true/false
@@ -197,36 +198,47 @@ class GameArea{
                 }
                     break;
                 case "water":
-                    if (this.map[x - 1][y][layout] === undefined) {
-                        setTimeout(() => {this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(9000))}, 200);
-                    }
-                    if (this.map[x + 1][y][layout] === undefined) {
-                        setTimeout(() => {this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(9008))}, 200);
+                    if (this.map[x][y - 1][layout] === undefined) {
+                        setTimeout(() => {
+                            if (this.map[x][y - 1][layout] === undefined) this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(9016))
+                        })
+                    } else if(Math.floor((this.map[x][y - 1][layout]-9000)/8) !== 2) {
+                        if (this.map[x - 1][y][layout] === undefined) {
+                            setTimeout(() => {
+                                if (this.map[x - 1][y][layout] === undefined) this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(9000))
+                            }, 200);
+                        }
+                        if (this.map[x + 1][y][layout] === undefined) {
+                            setTimeout(() => {
+                                if (this.map[x + 1][y][layout] === undefined) this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(9008))
+                            }, 200);
+                        }
                     }
                     break;
 
                 case "flowingWater":
-                    let power = (block.id - 9000) % 8;
+                    let power = (+block.id - 9000) % 8;
                     if (this.map[x + 1][y][layout] !== 8 && this.map[x - 1][y][layout] !== 8 && this.map[x][y + 1][layout] !== 8 &&
                         (!this.map[x + 1][y][layout] || (this.map[x + 1][y][layout] - 9000) % 8 >= power ||  this.map[x + 1][y][layout] < 9000) &&
                         (!this.map[x - 1][y][layout] ||  (this.map[x - 1][y][layout] - 9000) % 8 >= power ||  this.map[x - 1][y][layout] < 9000) &&
-                        (!this.map[x][y + 1][layout] || (this.map[x][y + 1][layout] - 9000) % 8 > power || this.map[x][y + 1][layout] < 9000)) this.destroyBlock(x, y, layout);
+                        (!this.map[x][y + 1][layout] || (this.map[x][y + 1][layout] - 9000) % 8 > power || this.map[x][y + 1][layout] < 9000))
+                        setTimeout(() => {if (this.map[x][y][layout] === +block.id) this.destroyBlock(x, y, layout)}, 50);
                     else {
-                        let direction = Math.floor((block.id - 9000) / 8);
+                        let direction = Math.floor((+block.id - 9000) / 8);
                         if (this.map[x][y - 1][layout] === undefined) {
-                            setTimeout(() => { if(this.map[x][y][layout]) this.placeBlock(x, y - 1, layout,
+                            setTimeout(() => { if(this.map[x][y][layout] === +block.id) this.placeBlock(x, y - 1, layout,
                                 this.makeFlowingWaterBlock(this.map[x][y][layout] + 8 * (2 - direction)))}, 50);
                         } else if (this.map[x][y - 1][layout] !== undefined && blockTable[this.map[x][y - 1][layout]].type !== "flowingWater" &&
-                            block.id !== 9023 && direction === Math.floor((block.id - 8999) / 8)) {
+                            +block.id !== 9023 && direction === Math.floor((+block.id - 8999) / 8)) {
                             if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
-                                if (direction === 0) setTimeout(() => {if(this.map[x][y][layout]) this.placeBlock(x - 1, y,
+                                if (direction === 0) setTimeout(() => {if(this.map[x][y][layout] === +block.id && this.map[x - 1][y][layout] === undefined) this.placeBlock(x - 1, y,
                                     layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1)) }, 200);
-                                else if (direction === 2) setTimeout(() => {if(this.map[x][y][layout])  this.placeBlock(x - 1, y,
+                                else  setTimeout(() => {if(this.map[x][y][layout] === +block.id && this.map[x - 1][y][layout] === undefined)  this.placeBlock(x - 1, y,
                                     layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15)) }, 200);
                             } else if (this.map[x + 1][y][layout] === undefined && direction !== 0) {
-                                if (direction === 1) setTimeout(() => { if(this.map[x][y][layout]) this.placeBlock(x + 1, y,
+                                if (direction === 1) setTimeout(() => { if(this.map[x][y][layout] === +block.id && this.map[x + 1][y][layout] === undefined) this.placeBlock(x + 1, y,
                                     layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1))}, 200);
-                                else if (direction === 2) setTimeout(() => {if(this.map[x][y][layout]) this.placeBlock(x + 1, y,
+                                else setTimeout(() => {if(this.map[x][y][layout] === +block.id && this.map[x + 1][y][layout] === undefined) this.placeBlock(x + 1, y,
                                     layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 7))}, 200);
                             }
                         }
@@ -260,10 +272,29 @@ class GameArea{
             this.updateRadius(x, y, layout);
         };
 
+        // Можно ставить блок на (x, y, MAIN_LAYOUT)
+        this.canPlace = (x, y) => {
+            let startX = Math.floor(player.x - Player.WIDTH / 2);
+            let endX = Math.floor(player.x + Player.WIDTH / 2);
+            let startY = Math.floor(player.y);
+            let endY = Math.floor(player.y + Player.HEIGHT);
+            return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+            && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
+            && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
+                || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+        }
+
+        // Есть что ломать
+        this.canDestroy = (x, y) => {
+            return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+            && this.map[x][y][GameArea.MAIN_LAYOUT] != undefined
+                && this.map[x][y][GameArea.MAIN_LAYOUT].type != "water";
+        }
+
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
-            if (!this.map[x][y][layout]) {
+            if (!this.map[x][y][layout] || (blockTable[this.map[x][y][layout]] && !blockTable[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
                 this.map[x][y][layout] = id;
                 if(lastBlock == undefined){
@@ -289,7 +320,11 @@ class GameArea{
 
         // Функция сброса лута
         this.dropLoot = (x, y, block) => {
-            return block.id; // Оставил x, y - в будующем лут будет падать там, где разрушен блок, пока падает в инвентарь
+            // Оставил x, y - в будующем лут будет падать там, где разрушен блок, пока падает в инвентарь
+            return {
+                "id" : items[block.id].dropId ? items[block.id].dropId : block.id,
+                "count" : 1
+            }
         };
 
 

@@ -45,16 +45,22 @@ const beginPlay = () => {
 	}
     playerFloatX = player.x;
     playerFloatY = player.y;
-	cameraSet(player.x, player.y);
-	
+    cameraSet(player.x, player.y);
+
+    player.addToInv({
+    	"id" : 384,
+    	"durability" : 300,
+		"name" : "Iron pickaxe"
+    })
 }
 
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
-	setTimeOfDay(currentTime, 300);
+	setTimeOfDay(currentTime, 600);
 	playerMovement();
 	mouseControl();
+	UI();
 }
 
 // Установка текущего времени суток
@@ -71,25 +77,65 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	}
 }
 
-// Движение игрока
-const playerMovement = () => {
-	if(player.onGround()) { //....................................................... Если игрок на земле
-		player.vy = Math.max(player.vy, 0);
-		if(controller.up.active) {
-			player.vy = Player.JUMP_SPEED;
-		}
-	} else {
-		if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
-			player.vy -= GameArea.GRAVITY * deltaTime * 2 / 3;
-		} else {
-			if(player.vy > - Player.JUMP_SPEED * 4){
-				player.vy -= GameArea.GRAVITY * deltaTime;
+// Управление интерфейсом
+const UI = () => {
+	// Кнопки 1..8
+	for(let i = 1; i <= 8; i++) {
+		if(controller.numbers[i].active) {
+			if(player.hand.index != i - 1){
+				player.setHand(i - 1);
 			}
+			break;
 		}
 	}
-	if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
-	if(controller.right.active) player.vx = Player.SPEED; //......................... Если нажато влево
-	if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
+}
+
+// Движение игрока
+const playerMovement = () => {
+	// Координаты блока, в котором голова
+	let headX = Math.floor(player.x + Player.HEAD_X);
+	let headY = Math.floor(player.y + Player.HEAD_Y);
+	// Урон от удушья 
+	if(gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
+			&& (blockTable[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
+			|| blockTable[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
+		player.choke(deltaTime);
+	} else {
+		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);
+	}
+	let liquidK = player.getLiquidK();
+	if(liquidK == 0) { // Если игрок на суше
+		if(player.onGround()) { //.................................................... Если игрок на поверхности
+			player.vy = Math.max(player.vy, 0);
+			if(controller.up.active) {
+				player.vy = Player.JUMP_SPEED;
+			}
+		} else {
+			if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
+				player.vy -= GameArea.GRAVITY * deltaTime * 2 / 3;
+			} else {
+				if(player.vy > - Player.JUMP_SPEED * 4){
+					player.vy -= GameArea.GRAVITY * deltaTime;
+				}
+			}
+		}
+		if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
+		if(controller.right.active) player.vx = Player.SPEED; //......................... Если нажато влево
+		if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
+	} else { //................................................................. Если в жидкости
+		if(controller.left.active) player.vx -= Player.SPEED * deltaTime;
+		if(controller.right.active) player.vx += Player.SPEED * deltaTime;
+		if(controller.up.active) player.vy += Player.SPEED * deltaTime;
+		if(controller.down.active) player.vy -= Player.SPEED * deltaTime;
+
+		// Силы сопротивления
+		if(!player.onGround()) {
+			player.vy -= 2 / 3 * liquidK * Math.abs(player.vy) * 2 * player.vy * deltaTime;
+		} else {
+			player.vy = Math.max(player.vy, 0);
+		}
+		player.vx -= 2 / 3 * liquidK * Math.abs(player.vx) * 2 * player.vx * deltaTime;
+	}
 
 	// Новые координаты
 	let newX = playerFloatX + player.vx * deltaTime;
@@ -137,6 +183,7 @@ const playerMovement = () => {
 				changedY = true;
 			}
 			if(player.vy < 0 && player.isCollisionDown(changedX ? newX : iX, iY)) {
+				player.fallingDamage();
 				ansY = Math.floor(ansY);
 				player.vy = 0;
 				changedY = true;
@@ -156,8 +203,6 @@ const playerMovement = () => {
 	
 	player.x = Math.round(newX * 16) / 16;
 	player.y = Math.round(newY * 16) / 16;
-
-	// cameraSet(player.x, player.y);
 
 	// Плавное движение камеры
 	if(Math.abs(cameraX - newX) > 0.3){
@@ -180,19 +225,23 @@ const mouseControl = () => {
 			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height) {
 				break;
 			}
-            if(gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
-            		&& blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type != "water") {
+            if(gameArea.canDestroy(x, y)) {
                 if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
 					currentBlock = {
 						x: x, y: y,
+						type: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type,
 						durability: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
 					}
-					currentBlock.durability -= deltaTime;
+					let effK = ((player.hand.item && currentBlock.type == player.hand.info.type))
+						? player.hand.info.efficiency : 1;
+					currentBlock.durability -= deltaTime * effK;
 				} else if (currentBlock.durability > 0) {
-					currentBlock.durability -= deltaTime;
+					let effK = ((player.hand.item && currentBlock.type == player.hand.info.type))
+						? player.hand.info.efficiency : 1;
+					currentBlock.durability -= deltaTime * effK;
 				} else {
 					currentBlock = undefined;
-					gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+					player.destroy(x, y);
 				}
                 break;
             }
@@ -217,19 +266,15 @@ const mouseControl = () => {
 				break;
 			}
         }
-        if(isAllowPlace && (x - 1 >= 0 //.............................................................. Есть блок рядом
-        		&& gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x - 1][y][GameArea.MAIN_LAYOUT]].type != "water"
+        if(isAllowPlace && (x - 1 >= 0 //..................................................................... Есть блок рядом
+        		&& gameArea.canDestroy(x - 1, y)
         		|| x + 1 < gameArea.width
-        		&& gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x + 1][y][GameArea.MAIN_LAYOUT]].type != "water"
+        		&& gameArea.canDestroy(x + 1, y)
         		|| y - 1 >= 0
-        		&& gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x][y - 1][GameArea.MAIN_LAYOUT]].type != "water"
+        		&& gameArea.canDestroy(x, y - 1)
         		|| y + 1 < gameArea.height
-        		&& gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT] != undefined
-        		&& blockTable[gameArea.map[x][y + 1][GameArea.MAIN_LAYOUT]].type != "water")){
-        	gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, 1);
+        		&& gameArea.canDestroy(x, y + 1))){
+        	player.place(x, y);
         	lastPlaceBlockTime = currentTime;
         }
 	}

@@ -3,57 +3,75 @@ class Player {
         // Задаем положение игрока
         this.x = x;
         this.y = y;
+
+        // Очки жизни
+        this.hp = 100;
+
+        // Очки дыхания
+        this.bp = 100;
         
         // Инвентарь, в начале пуст. Блоки пока не стакаются
-        this.inv = [];
+        this.inv = {
+            "items" : [],
+            "count" : [],
+            "weight" : 0,
+            "capacity" : Player.CAPACITY
+        }
+
+        // Содержит индекс предмета в инвентаре
+        this.fastInv = [];
+        for(let i = 0; i < Player.FAST_INVENTORY_SIZE; i++){
+            this.fastInv[i] = i;
+        }
+
+        // Текущий индекс предмета из быстрого инвентаря
+        this.hand = {
+            "item" : undefined,
+            "info" : undefined,
+            "index" : 0
+        }
         
         // Скорость игрока
         this.vx = 0;
         this.vy = 0;
 
-        // Предмет в руках, определяет исход добычи того или иного блока
-        this.hand = undefined;
-
-        this.inActionRadius = (x, y) => {
-            if (x < 0 || y < 0 || x >= gameArea.width || y >= gameArea.height) return false; // проверка на выход из карты
-            let dx = x - this.x;
-            let dy = y - this.y;
-            return Math.floor(Math.sqrt(dx * dx + dy * dy)) <= Player.ACTION_RADIUS;
-        };
-
+        // Сломать блок на (x, y, MAIN_LAYOUT)
         this.destroy = (x, y) => {
-            if (this.inActionRadius(x, y)) {
-                let lt;
-                let type;
-                if (this.hand && this.hand.isTool) {
-                    lt = this.hand.layout; // Блоки какого уровня добывает инструмент
-                    type = this.hand.toolType; // блоки какого типа добывает инструмент
+            let type;
+            if (this.hand.item && this.hand.info.isTool) {
+                type = this.hand.info.type; // блоки какого типа добывает инструмент
+            } else {
+                type = undefined; // Если в руках не инструмент
+            }
+            let blockType = blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type; // Тип блока
+            if (type === blockType) {
+                //Вставляет лут в инвентарь - пока что сразу
+                this.addToInv(gameArea.goodDestroy(x, y, GameArea.MAIN_LAYOUT));
+                this.hand.item.durability--;
+                if(this.hand.item.durability < 1){ // Инструмент сломался
+                    this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+                    this.hand.item = undefined;
+                    this.hand.info = undefined;
+                }
+            } else {
+                if(items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isAlwaysGoodDestroy){
+                    this.addToInv(gameArea.goodDestroy(x, y, GameArea.MAIN_LAYOUT));
                 } else {
-                    lt = gameArea.MAIN_LAYOUT;
-                    type = undefined; // Если в руках не инструмент
+                    gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
                 }
-                let blockType = gameArea.map[x][y][lt]; // Тип блока
-                if (type === blockType) {
-                    this.inv.push(gameArea.goodDestroy(x, y, lt)); // вставляет лут в инвентарь - пока что сразу
-                } else gameArea.destroyBlock(x, y, lt);
             }
         };
 
+        // Разместить блок из руки на (x, y, MAIN_LAYOUT)
         this.place = (x, y) => {
-            // Пока ставим только в MAIN_LAYOUT
-            if (this.hand && !this.hand.isTool && this.inActionRadius(x, y)) {
-                let id = gameArea.map[x][y][gameArea.MAIN_LAYOUT]; // id того, что там сейчас
-                if (id === undefined || !blockTable[id].isCollissed) {
-                    gameArea.placeBlock(x, y, gameArea.MAIN_LAYOUT, this.hand.id);
-                    let ind = this.inv.indexOf(this.hand);
-                    if (ind > - 1) this.inv.splice(ind, 1);
-					this.hand = undefined;
-                }
+            if(this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y)) {
+                gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, this.hand.item);
+                this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
             }
         };
 
+        // Если можно взаимодействовать - сделать это
         this.interact = (x, y) => {
-            // Если можно взаимодействовать - сделать это
             // Пока взаимодействуем только в MAIN_LAYOUT
             if (this.inActionRadius(x, y)) {
                 gameArea.interactWithBlock(x, y, gameArea.MAIN_LAYOUT);
@@ -68,27 +86,186 @@ class Player {
             }
         };
 
-        // Установка игрока по координатам
-        this.moveTo = (x, y) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) throw new Error("Going beyond the world");
-            this.x = x;
-            this.y = y;
-        };
 
-        // Меняет скорость игрока
-        this.adjustSpeed = (vx, vy) => {
-            this.vx += vx;
-            this.vy += vy;
-        };
+        // Функции для управления инвентарём
 
-        this.takeInHand = (invNum) => {
-            let id = this.inv[invNum];
-            if (id !== undefined) this.hand = blockTable[id];
-        };
+        /*  Добавить предмет в инвентарь
+            Передаваемый объект должен содержать поле id и count(в случае, если не инструмент)
+            Также может содержать текущие характеристики, например оставшаяся прочность у инструмента
+            Возвращает предмет не влезжший в инвентарь */
+        this.addToInv = (item) => {
+            // Вставляем предмет в инвентарь, если он стакается
+            if(item.count != undefined) {
 
+                // Если даже 1 не влезет
+                if(items[item.id].weight + this.inv.weight > this.inv.capacity) {
+                    return item;
+                }
+                for(let i = 0; i < this.inv.items.length; i++) {
+                    if(item.id == this.inv.items[i]) {
+                        if(items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
+                            this.inv.count[i] += item.count;
+                            this.inv.weight += item.count * items[item.id].weight;
+                            this.setHand(this.hand.index);
+                            return undefined;
+                        } else {
+                            this.inv.count[i] += this.inv.capacity - this.inv.weight;
+                            item.count -= this.inv.capacity - this.inv.weight;
+                            this.inv.weight = this.inv.capacity;
+                            this.setHand(this.hand.index);
+                            return item;
+                        }
+                    }
+                }
+                for(let i = 0; i <= this.inv.items.length; i++) {
+                    if(this.inv.items[i] == undefined) {
+                        this.inv.items[i] = item.id;
+                        if(items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
+                            this.inv.count[i] = item.count;
+                            this.inv.weight += item.count * items[item.id].weight;
+                            this.setHand(this.hand.index);
+                            return undefined;
+                        } else {
+                            this.inv.count[i] = this.inv.capacity - this.inv.weight;
+                            item.count -= this.inv.capacity - this.inv.weight;
+                            this.inv.weight = this.inv.capacity;
+                            this.setHand(this.hand.index);
+                            return item;
+                        }
+                    }
+                }
+            } else { //.................................................................... Не стакается
+                if(items[item.id].weight + this.inv.weight <= this.inv.capacity) {
+                    for(let i = 0; i <= this.inv.items.length; i++) {
+                        if(this.inv.items[i] == undefined) {
+                            this.inv.items[i] = item;
+                            this.inv.count[i] = undefined;
+                            this.inv.weight += items[item.id].weight;
+                            this.setHand(this.hand.index);
+                            return undefined;
+                        }
+                    }
+                } else {
+                    return item;
+                }
+            }
+        }
+
+        // Удалить count предметов в инвентаре по индексу index
+        this.deleteFromInvByIndex = (index, count) => {
+            let drop;
+            if(this.inv.items[index] == undefined || this.inv.count[index] < count
+                    || this.inv.count[index] == undefined && count > 1) {
+                throw new Error(`Can not delete ${count} item(s) on index ${index}`);
+            } else {
+                drop = {
+                    "item" : this.inv.items[index],
+                    "count" : count
+                }
+                if(this.inv.count[index] == undefined || this.inv.count[index] == count){
+                    if(this.inv.count[index] == undefined){
+                        this.inv.weight -= items[this.inv.items[index].id].weight * count;
+                    } else {
+                        this.inv.weight -= items[this.inv.items[index]].weight * count;
+                    }
+                    this.inv.items[index] = undefined;
+                    this.inv.count[index] = undefined;
+                } else {
+                    this.inv.weight -= items[this.inv.items[index]].weight * count;
+                    this.inv.count[index] -= count;
+                }
+            }
+            this.setHand(this.hand.index);
+            return drop;
+        }
+
+        // Поменять местами слоты в инвентаре
+        this.invSwapByIndex = (i1, i2) => {
+            let item = this.inv.items[i1];
+            let count = this.inv.count[i1];
+            this.inv.items[i1] = this.inv.items[i2];
+            this.inv.count[i1] = this.inv.count[i2];
+            this.inv.items[i2] = item;
+            this.inv.count[i2] = count;
+        }
+
+        // Получение "руки" по индексу в быстром инвентаре
+        this.setHand = (index) => {
+            this.hand.index = index;
+            this.hand.item = this.inv.items[this.fastInv[index]];
+            if(this.hand.item == undefined) {
+                this.hand.info = undefined;
+            } else {
+                if(this.hand.item.id == undefined) {
+                    this.hand.info = items[this.hand.item];
+                } else {
+                    this.hand.info = items[this.hand.item.id];
+                }
+            }
+
+            if(player.hand.item){
+                console.log(player.hand.info.name);
+            } else {
+                console.log("Empty hand");
+            }
+        }
+
+        // Респаун игрока
+        this.respawn = () => {
+            location.reload();
+            this.x = gameArea.width / 2;
+            this.y = gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1;
+            this.hp = 100;
+            this.vx = 0;
+            this.vy = 0;
+        }
+
+        // Смерть игрока
+        this.die = () => {
+            console.log("You died");
+            this.respawn();
+        }
+
+        // Получение урона
+        this.getDamage = (count) => {
+            console.log("Damage - " + count);
+            this.hp = Math.max(this.hp - count, 0);
+            if(this.hp == 0) {
+                this.die();
+            }
+            console.log("Now you have " + this.hp + " hp");
+        }
+
+        // Восстановление здоровья
+        this.heal = (count) => {
+            this.hp = Math.min(this.hp + count, 100);
+        }
+
+        // Урон от падения
+        this.fallingDamage = () => {
+            this.getDamage(Math.max((Math.abs(this.vy) - 2 * Player.JUMP_SPEED) / 2 / Player.JUMP_SPEED * 100, 0));
+        }
+
+        // Урон от удушья
+        this.choke = (deltaTime) => {
+            if(this.bp > 0) {
+                this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime, 0);
+            } else {
+                this.getDamage(Player.CHOKE_SPEED * deltaTime);
+            }
+        }
+
+        // Взять в руку следующий элемент быстрого инвентаря
+        this.nextItem = () => {
+            this.setHand((this.hand.index + 1) % Player.FAST_INVENTORY_SIZE);
+        }
+
+        // Взять в руку предыдущий элемент быстрого инвентаря
+        this.previousItem = () => {
+            this.setHand((this.hand.index - 1) % Player.FAST_INVENTORY_SIZE);
+        }
 
         // Проверка коллизии граней игрока с блоками
-
         // Задевает ли левая грань игрока блоки с коллизией
         this.isCollisionLeft = (newX, newY) => {
             let i = Math.floor(newX - Player.WIDTH / 2);
@@ -138,12 +315,37 @@ class Player {
             if(this.y - 0.0001 < 0) return true;
             return this.isCollisionDown(this.x, this.y - 0.0001);
         }
+
+        /*  Коэффициент плотности жидкости, в которой игрок
+            0 - игрок не касается жидкости,
+            (0..1) - максимальная плотность жидкости, которой касается игрок */
+        this.getLiquidK = () => {
+            let k = 0;
+            let startX = Math.max(Math.floor(this.x - Player.WIDTH / 2), 0);
+            let endX = Math.min(Math.floor(this.x + Player.WIDTH / 2), gameArea.width - 1);
+            let startY = Math.max(Math.floor(this.y), 0);
+            let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
+            for(let x = startX; x <= endX; x++) {
+                for(let y = startY; y <= endY; y++) {
+                    if(blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
+                            && blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density > k) {
+                        k = blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density;
+                    }
+                }
+            }
+            return k;
+        }
     }
 }
 
 
 Player.ACTION_RADIUS = 12;      // Радиус действия игрока
-Player.HEIGHT = 2.8;            // "Рост" игрока в блоках
+Player.HEIGHT = 2.8;            // Рост игрока в блоках
 Player.WIDTH = 1.5;             // Половина ширины игрока в блоках
 Player.SPEED = 15;              // Модификатор скорости игрока
 Player.JUMP_SPEED = 30;         // Модификатор максимальной скорости прыжка игрока
+Player.CAPACITY = 500;          // Максимальный носимый вес по умолчанию
+Player.FAST_INVENTORY_SIZE = 8; // Количество ячеек в инвентаре быстрого доступа
+Player.HEAD_X = 0;
+Player.HEAD_Y = 3 / 4 * Player.HEIGHT;
+Player.CHOKE_SPEED = 15;

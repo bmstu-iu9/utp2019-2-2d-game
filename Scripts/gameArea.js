@@ -262,9 +262,21 @@ class GameArea{
 
         // Можно ставить блок на (x, y, MAIN_LAYOUT)
         this.canPlace = (x, y) => {
-            return x >= 0 && y >= 0 && x < this.width && y < this.height
+            let startX = Math.floor(player.x - Player.WIDTH / 2);
+            let endX = Math.floor(player.x + Player.WIDTH / 2);
+            let startY = Math.floor(player.y);
+            let endY = Math.floor(player.y + Player.HEIGHT);
+            return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+            && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
             && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
                 || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+        }
+
+        // Есть что ломать
+        this.canDestroy = (x, y) => {
+            return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+            && this.map[x][y][GameArea.MAIN_LAYOUT] != undefined
+                && this.map[x][y][GameArea.MAIN_LAYOUT].type != "water";
         }
 
         // Действие при установке блока

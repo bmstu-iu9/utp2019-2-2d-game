@@ -196,7 +196,7 @@ const mouseControl = () => {
 			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height) {
 				break;
 			}
-            if(!gameArea.canPlace(x, y)) {
+            if(gameArea.canDestroy(x, y)) {
                 if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
 					currentBlock = {
 						x: x, y: y,
@@ -238,13 +238,13 @@ const mouseControl = () => {
 			}
         }
         if(isOk && (x - 1 >= 0 //..................................................................... Есть блок рядом
-        		&& !gameArea.canPlace(x - 1, y)
+        		&& gameArea.canDestroy(x - 1, y)
         		|| x + 1 < gameArea.width
-        		&& !gameArea.canPlace(x + 1, y)
+        		&& gameArea.canDestroy(x + 1, y)
         		|| y - 1 >= 0
-        		&& !gameArea.canPlace(x, y - 1)
+        		&& gameArea.canDestroy(x, y - 1)
         		|| y + 1 < gameArea.height
-        		&& !gameArea.canPlace(x, y + 1))){
+        		&& gameArea.canDestroy(x, y + 1))){
         	player.place(x, y);
         	lastPlaceBlockTime = currentTime / 1000;
         }

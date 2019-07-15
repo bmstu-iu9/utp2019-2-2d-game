@@ -2,7 +2,7 @@ let blockTable = {
     "1" : {
         "id" : "1",
         "type" : "stone",
-        "durability" : 0.5,
+        "durability" : 7,
         "brightness" : 0,
         "isCollissed" : true,
         "isSolid" : true,
@@ -12,7 +12,7 @@ let blockTable = {
     "2" : {
         "id" : "2",
         "type" : "dirt",
-        "durability" : 0.2,
+        "durability" : 1.5,
         "brightness" : 0,
         "isCollissed" : true,
         "isSolid" : true,
@@ -22,7 +22,7 @@ let blockTable = {
     "3" : {
         "id" : "3",
         "type" : "dirt",
-        "durability" : 0.2,
+        "durability" : 1.5,
         "brightness" : 0,
         "isCollissed" : true,
         "isSolid" : true,
@@ -32,7 +32,7 @@ let blockTable = {
     "7" : {
         "id" : "7",
         "type" : "bedrock",
-        "durability" : 1,
+        "durability" : 1000,
         "brightness" : 0,
         "isCollissed" : true,
         "isSolid" : true,
@@ -45,6 +45,8 @@ let blockTable = {
         "durability" : 1,
         "brightness" : 6,
         "isCollissed" : false,
+        "hasGravity" : true,
+        "density" : 0.5,
         "name" : "water",
         "isNaturalLight" : true
     },
@@ -62,7 +64,7 @@ let blockTable = {
     "12" : {
         "id" : "12",
         "type" : "dirt",
-        "durability" : 0.1,
+        "durability" : 1.2,
         "brightness" : 0,
         "isCollissed" : true,
         "isSolid" : true,
@@ -72,7 +74,7 @@ let blockTable = {
     "16" : {
         "id" : "16",
         "type" : "stone",
-        "durability" : 0.5,
+        "durability" : 8,
         "brightness" : 0,
         "isCollissed" : true,
         "isSolid" : true,
@@ -82,7 +84,7 @@ let blockTable = {
     "17" : {
         "id" : "17",
         "type" : "wood",
-        "durability" : 0.4,
+        "durability" : 4,
         "brightness" : 0,
         "isCollissed" : false,
         "isSolid" : true,
@@ -92,7 +94,7 @@ let blockTable = {
     "18" : {
         "id" : "18",
         "type" : "leaf",
-        "durability" : 0.01,
+        "durability" : 0.5,
         "brightness" : 0,
         "isCollissed" : false,
         "isSolid" : true,
@@ -111,16 +113,6 @@ let blockTable = {
           alert("1");
       } // Функция взаимодействия у кликабельных предметов
 
-    },
-
-    "256" : {
-        "id" : "256",
-        "type" : "shovel",
-        "durability" : 0.1,
-        "isTool" : true,                 // Является ли инструментом
-        "toolType" : "dirt",
-        "layout" : GameArea.MAIN_LAYOUT, // Область, в которой действует инструмент
-        "name" : "shovel"
     },
 
     "9000" : {

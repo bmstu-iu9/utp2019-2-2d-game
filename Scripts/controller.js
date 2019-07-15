@@ -6,11 +6,22 @@ class Controller {
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
         this.mouse 	= new MouseInput();
+
+        this.numbers = [];
+        for(let i = 0; i < 10; i++){
+            this.numbers[i] = new ButtonInput();
+        }
     }
 
     keyDownUp(event) {
-        const down = event.type == "keydown"; 
-        switch(event.keyCode) {
+        const down = event.type == "keydown";
+        if(event.keyCode >= 49 && event.keyCode <= 58) {
+            if(event.keyCode == 58){
+                this.numbers[0].getInput(down);
+            } else {
+                this.numbers[event.keyCode - 48].getInput(down);
+            }
+        } else switch(event.keyCode) {
             case 65: 
                 this.left.getInput(down);
                 break;

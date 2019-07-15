@@ -89,6 +89,17 @@ const UI = () => {
 
 // Движение игрока
 const playerMovement = () => {
+	// Координаты блока, в котором голова
+	let headX = Math.floor(player.x + Player.HEAD_X);
+	let headY = Math.floor(player.y + Player.HEAD_Y);
+	// Урон от удушья 
+	if(gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
+			&& (blockTable[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
+			|| blockTable[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
+		player.choke(deltaTime);
+	} else {
+		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime / 1000, 100);
+	}
 	let liquidK = player.getLiquidK();
 	if(liquidK == 0) { // Если игрок на суше
 		if(player.onGround()) { //.................................................... Если игрок на поверхности
@@ -169,6 +180,7 @@ const playerMovement = () => {
 				changedY = true;
 			}
 			if(player.vy < 0 && player.isCollisionDown(changedX ? newX : iX, iY)) {
+				player.fallingDamage();
 				ansY = Math.floor(ansY);
 				player.vy = 0;
 				changedY = true;

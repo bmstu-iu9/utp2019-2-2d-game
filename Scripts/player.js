@@ -3,6 +3,12 @@ class Player {
         // Задаем положение игрока
         this.x = x;
         this.y = y;
+
+        // Очки жизни
+        this.hp = 100;
+
+        // Очки дыхания
+        this.bp = 100;
         
         // Инвентарь, в начале пуст. Блоки пока не стакаются
         this.inv = {
@@ -204,6 +210,50 @@ class Player {
             }
         }
 
+        // Респаун игрока
+        this.respawn = () => {
+            location.reload();
+            this.x = gameArea.width / 2;
+            this.y = gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1;
+            this.hp = 100;
+            this.vx = 0;
+            this.vy = 0;
+        }
+
+        // Смерть игрока
+        this.die = () => {
+            console.log("You died");
+            this.respawn();
+        }
+
+        // Получение урона
+        this.getDamage = (count) => {
+            console.log("Damage - " + count);
+            this.hp = Math.max(this.hp - count, 0);
+            if(this.hp == 0) {
+                this.die();
+            }
+            console.log("Now you have " + this.hp + " hp");
+        }
+
+        // Восстановление здоровья
+        this.heal = (count) => {
+            this.hp = Math.min(this.hp + count, 100);
+        }
+
+        // Урон от падения
+        this.fallingDamage = () => {
+            this.getDamage(Math.max((Math.abs(this.vy) - 2 * Player.JUMP_SPEED) / 2 / Player.JUMP_SPEED * 100, 0));
+        }
+
+        this.choke = (deltaTime) => {
+            if(this.bp > 0) {
+                this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime / 1000, 0);
+            } else {
+                this.getDamage(Player.CHOKE_SPEED * deltaTime / 1000);
+            }
+        }
+
         // Взять в руку следующий элемент быстрого инвентаря
         this.nextItem = () => {
             this.setHand((this.hand.index + 1) % Player.FAST_INVENTORY_SIZE);
@@ -295,3 +345,6 @@ Player.SPEED = 15;              // Модификатор скорости иг�
 Player.JUMP_SPEED = 30;         // Модификатор максимальной скорости прыжка игрока
 Player.CAPACITY = 500;          // Максимальный носимый вес по умолчанию
 Player.FAST_INVENTORY_SIZE = 8; // Количество ячеек в инвентаре быстрого доступа
+Player.HEAD_X = 0;
+Player.HEAD_Y = 3 / 4 * Player.HEIGHT;
+Player.CHOKE_SPEED = 15;

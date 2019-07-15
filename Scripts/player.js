@@ -249,9 +249,9 @@ class Player {
         // Урон от удушья
         this.choke = (deltaTime) => {
             if(this.bp > 0) {
-                this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime / 1000, 0);
+                this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime, 0);
             } else {
-                this.getDamage(Player.CHOKE_SPEED * deltaTime / 1000);
+                this.getDamage(Player.CHOKE_SPEED * deltaTime);
             }
         }
 

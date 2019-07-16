@@ -99,7 +99,7 @@ let items = {
         "isBlock" : true,
         "dropId" : "14",
         "weight" : WEIGHT_OF_BLOCKS,
-        "meltingId" : "14",
+        "meltingId" : "266",
         "costOfMelting" : "100"
 
     },
@@ -111,7 +111,7 @@ let items = {
         "isBlock" : true,
         "dropId" : "15",
         "weight" : WEIGHT_OF_BLOCKS, 
-        "meltingId" : "15",
+        "meltingId" : "265",
         "costOfMelting" : "100"
     },
 
@@ -177,6 +177,12 @@ let items = {
     "265" : {
         "id" : "265",
         "name" : "Iron",
+        "weight" : WEIGHT_OF_ORES
+    },
+
+    "266" : {
+        "id" : "266",
+        "name" : "Gold",
         "weight" : WEIGHT_OF_ORES
     },
 

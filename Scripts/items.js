@@ -28,7 +28,7 @@ let items = {
         "type" : "leaf",
         "isBlock" : true,
         "isAlwaysGoodDestroy" : true,
-        "dropId" : "2",
+        "dropId" : "3",
         "weight" : WEIGHT_OF_BLOCKS
     },
 

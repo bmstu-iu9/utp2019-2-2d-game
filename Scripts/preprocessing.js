@@ -19,6 +19,7 @@ image.onload = () => {
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
 			const render = new Render(image, background, playerImage);
+			//render.init(image, background, playerImage); // заработает в одной из следующих версий
 			render.settings(scale, chankWidth, chankHeight);
 
 			// Отправка образцов объектов

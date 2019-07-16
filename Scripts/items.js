@@ -1,5 +1,5 @@
 const WOODEN_EFFICIENCY = 2;
-const STONE_EFFICIENCY = 2,5;
+const STONE_EFFICIENCY = 2.5;
 const IRON_EFFICIENCY = 3;
 const DIAMOND_EFFICIENCY = 4;
 
@@ -35,7 +35,7 @@ let items = {
     "3" : {
         "id" : "3",
         "name" : "Dirt",
-        "type" : "dirt"
+        "type" : "dirt",
         "isBlock" : true,
         "isAlwaysGoodDestroy" : true,
         "dropId" : "3",
@@ -75,8 +75,8 @@ let items = {
     "8" : {
         "id" : "8",
         "name" : "Water",
-        "dropId" : "326"
-        "weight" : WEIGHT_OF_INSTRUMETS,
+        "dropId" : "326",
+        "weight" : WEIGHT_OF_INSTRUMETS
     },
 
 

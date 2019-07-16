@@ -49,7 +49,7 @@ let items = {
         "isBlock" : true,
         "dropId" : "4",
         "weight" : WEIGHT_OF_BLOCKS,
-        "MeltingId" : "1",
+        "meltingId" : "1",
         "costOfMelting" : "100"
     },
 
@@ -61,7 +61,7 @@ let items = {
         "isAlwaysGoodDestroy" : true,
         "dropId" : "5",
         "weight" : WEIGHT_OF_BLOCKS,
-        "MeltingId" : "263",
+        "meltingId" : "263",
         "costOfMelting" : "50"
     },
 
@@ -88,7 +88,7 @@ let items = {
         "isAlwaysGoodDestroy" : true,
         "dropId" : "12",
         "weight" : WEIGHT_OF_BLOCKS,
-        "MeltingId" : "20",
+        "meltingId" : "20",
         "costOfMelting" : "100"
     },
 
@@ -99,7 +99,7 @@ let items = {
         "isBlock" : true,
         "dropId" : "14",
         "weight" : WEIGHT_OF_BLOCKS,
-        "MeltingId" : "14",
+        "meltingId" : "14",
         "costOfMelting" : "100"
 
     },
@@ -111,7 +111,7 @@ let items = {
         "isBlock" : true,
         "dropId" : "15",
         "weight" : WEIGHT_OF_BLOCKS, 
-        "MeltingId" : "15",
+        "meltingId" : "15",
         "costOfMelting" : "100"
     },
 
@@ -132,7 +132,7 @@ let items = {
         "isAlwaysGoodDestroy" : true,
         "dropId" : "17",
         "weight" : WEIGHT_OF_BLOCKS,
-        "MeltingId" : "263",
+        "meltingId" : "263",
         "costOfMelting" : "100"
     },
 

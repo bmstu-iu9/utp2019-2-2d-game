@@ -43,7 +43,7 @@ class Player {
             } else {
                 type = undefined; // Если в руках не инструмент
             }
-            let blockType = blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type; // Тип блока
+            let blockType = items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type; // Тип блока
             if (type === blockType) {
                 //Вставляет лут в инвентарь - пока что сразу
                 this.addToInv(gameArea.goodDestroy(x, y, GameArea.MAIN_LAYOUT));
@@ -81,7 +81,7 @@ class Player {
         // Получение информации о блоке, пока только в MAIN_LAYOUT
         this.info = (x, y) => {
             if (this.inActionRadius(x, y)) {
-                let block = blockTable[gameArea.map[x][y][gameArea.MAIN_LAYOUT]];
+                let block = items[gameArea.map[x][y][gameArea.MAIN_LAYOUT]];
                 alert(`Block on ${x} ${y} : ` + JSON.stringify(block));
             }
         };
@@ -327,9 +327,9 @@ class Player {
             let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
             for(let x = startX; x <= endX; x++) {
                 for(let y = startY; y <= endY; y++) {
-                    if(blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
-                            && blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density > k) {
-                        k = blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density;
+                    if(items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
+                            && items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density > k) {
+                        k = items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density;
                     }
                 }
             }

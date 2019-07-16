@@ -15,7 +15,7 @@ const DIAMOND_DURABILITY = 300;
 let items = {
     "1" : {
         "id" : "1",
-        "name" : "stone",
+        "name" : "Stone",
         "type" : "stone",
         "isBlock" : true,
         "dropId" : "4",
@@ -24,7 +24,7 @@ let items = {
 
     "2" : {
         "id" : "2",
-        "name" : "grass",
+        "name" : "Grass",
         "type" : "leaf",
         "isBlock" : true,
         "isAlwaysGoodDestroy" : true,
@@ -34,7 +34,7 @@ let items = {
 
     "3" : {
         "id" : "3",
-        "name" : "dirt",
+        "name" : "Dirt",
         "type" : "dirt"
         "isBlock" : true,
         "isAlwaysGoodDestroy" : true,
@@ -44,7 +44,7 @@ let items = {
 
     "4" : {
         "id" : "4",
-        "name" : "cobblestone",
+        "name" : "Cobblestone",
         "type" : "stone",
         "isBlock" : true,
         "dropId" : "4",
@@ -55,7 +55,7 @@ let items = {
 
     "5" : {
         "id" : "5",
-        "name" : "wood-planks",
+        "name" : "Wood Planks",
         "type" : "wood",
         "isBlock" : true,
         "isAlwaysGoodDestroy" : true,
@@ -67,14 +67,14 @@ let items = {
 
     "7" : {
         "id" : "7",
-        "name" : "bedrock",
+        "name" : "Bedrock",
         "isBlock" : true,
         "weight" : "2"
     },
 
     "8" : {
         "id" : "8",
-        "name" : "water",
+        "name" : "Water",
         "dropId" : "326"
         "weight" : WEIGHT_OF_INSTRUMETS,
     },
@@ -82,7 +82,7 @@ let items = {
 
     "12" : {
         "id" : "12",
-        "name" : "sand",
+        "name" : "Sand",
         "type" : "dirt",
         "isBlock" : true,
         "isAlwaysGoodDestroy" : true,
@@ -94,7 +94,7 @@ let items = {
 
     "14" : {
         "id" : "14",
-        "name" : "golden-ore",
+        "name" : "Golden Ore",
         "type" : "stone",
         "isBlock" : true,
         "dropId" : "14",
@@ -106,7 +106,7 @@ let items = {
 
     "15" : {
         "id" : "15",
-        "name" : "iron-ore",
+        "name" : "Iron Ore",
         "type" : "stone",
         "isBlock" : true,
         "dropId" : "15",
@@ -117,7 +117,7 @@ let items = {
 
     "16" : {
         "id" : "16",
-        "name" : "coal-ore",
+        "name" : "Coal Ore",
         "type" : "stone",
         "isBlock" : true,
         "dropId" : "263",
@@ -126,7 +126,7 @@ let items = {
 
     "17" : {
         "id" : "17",
-        "name" : "wood",
+        "name" : "Wood",
         "type" : "wood",
         "isBlock" : true,
         "isAlwaysGoodDestroy" : true,
@@ -138,7 +138,7 @@ let items = {
 
     "18" : {
         "id" : "18",
-        "name" : "leaf",
+        "name" : "Leaf",
         "type" : "leaf",
         "isBlock" : true,
         "dropId" : "18",
@@ -147,14 +147,14 @@ let items = {
 
     "20" : {
         "id" : "20",
-        "name" : "glass",
+        "name" : "Glass",
         "isBlock" : true,
         "weight" : WEIGHT_OF_BLOCKS
     },
 
     "56" : {
         "id" : "56",
-        "name" : "diamond-ore",
+        "name" : "Diamond Ore",
         "type" : "stone",
         "isBlock" : true,
         "dropId" : "264",
@@ -163,26 +163,26 @@ let items = {
 
     "263" : {
         "id" : "263",
-        "name" : "coal",
+        "name" : "Coal",
         "weight" : WEIGHT_OF_ORES
 
     },
 
     "264" : {
         "id" : "264",
-        "name" : "diamond",
+        "name" : "Diamond",
         "weight" : WEIGHT_OF_ORES
     },
 
     "265" : {
         "id" : "265",
-        "name" : "iron",
+        "name" : "Iron",
         "weight" : WEIGHT_OF_ORES
     },
 
     "256" : {
         "id" : "256",
-        "name" : "iron-shovel",
+        "name" : "Iron Shovel",
         "type" : "dirt",
         "isTool" : true,
         "durability" : IRON_DURABILITY,
@@ -192,7 +192,7 @@ let items = {
 
     "257" : {
         "id" : "257",
-        "name" : "iron-pickaxe",
+        "name" : "Iron Pickaxe",
         "type" : "stone",
         "isTool" : true,
         "durability" : IRON_DURABILITY,
@@ -202,7 +202,7 @@ let items = {
 
     "258" : {
         "id" : "258",
-        "name" : "iron-axe",
+        "name" : "Iron Axe",
         "type" : "wood",
         "isTool" : true,
         "durability" : IRON_DURABILITY,
@@ -212,7 +212,7 @@ let items = {
 
     "269" : {
         "id" : "269",
-        "name" : "wooden-shovel",
+        "name" : "Wooden Shovel",
         "type" : "dirt",
         "isTool" : true,
         "durability" : WOODEN_DURABILITY,
@@ -222,7 +222,7 @@ let items = {
 
     "270" : {
         "id" : "270",
-        "name" : "wooden-pickaxe",
+        "name" : "Wooden Pickaxe",
         "type" : "stone",
         "isTool" : true,
         "durability" : WOODEN_DURABILITY,
@@ -232,7 +232,7 @@ let items = {
 
     "271" : {
         "id" : "271",
-        "name" : "wooden-axe",
+        "name" : "Wooden Axe",
         "type" : "wood",
         "isTool" : true,
         "durability" : WOODEN_DURABILITY,
@@ -242,7 +242,7 @@ let items = {
 
     "273" : {
         "id" : "273",
-        "name" : "stone-shovel",
+        "name" : "Stone Shovel",
         "type" : "dirt",
         "isTool" : true,
         "durability" : STONE_DURABILITY,
@@ -252,7 +252,7 @@ let items = {
 
     "274" : {
         "id" : "274",
-        "name" : "stone-pickaxe",
+        "name" : "Stone Pickaxe",
         "type" : "stone",
         "isTool" : true,
         "durability" : STONE_DURABILITY,
@@ -262,7 +262,7 @@ let items = {
 
     "275" : {
         "id" : "275",
-        "name" : "stone-axe",
+        "name" : "Stone Axe",
         "type" : "wood",
         "isTool" : true,
         "durability" : STONE_DURABILITY,
@@ -272,7 +272,7 @@ let items = {
 
     "277" : {
         "id" : "277",
-        "name" : "diamond-shovel",
+        "name" : "Diamond Shovel",
         "type" : "dirt",
         "isTool" : true,
         "durability" : DIAMOND_DURABILITY,
@@ -282,7 +282,7 @@ let items = {
 
     "278" : {
         "id" : "278",
-        "name" : "diamond-pickaxe",
+        "name" : "Diamond Pickaxe",
         "type" : "stone",
         "isTool" : true,
         "durability" : DIAMOND_DURABILITY,
@@ -292,7 +292,7 @@ let items = {
 
     "279" : {
         "id" : "279",
-        "name" : "diamond-axe",
+        "name" : "Diamond Axe",
         "type" : "wood",
         "isTool" : true,
         "durability" : DIAMOND_DURABILITY,
@@ -302,7 +302,7 @@ let items = {
 
     "370" : {
         "id" : "370",
-        "name" : "scissors",
+        "name" : "Scissors",
         "type" : "leaf",
         "isTool" : true,
         "durability" : DIAMOND_DURABILITY,

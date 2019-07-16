@@ -1,9 +1,10 @@
 'use strict';
 
-let _fps_time = performance.now() || Date.now(), _fps_countner = 0;
+let _fps_time = performance.now();
+let _fps_countner = 0;
 
 const fpsUpdate = () => {
-	const nowtime = performance.now() || Date.now();
+	const nowtime = performance.now();
 	const delta = nowtime - _fps_time;
 	if (delta < 1000) {
 		_fps_countner++;

@@ -12,8 +12,8 @@ getLoadList()           Получить массив с именами всех
 deleteDatabase()        Очистить БД
 save(имя сохранения)    Сохранить текущее состояние
 load(имя сохранения)    Возвращает объект с полями, идентичными gameArea и player
-                        (ВАЖНО! поле для корректной работы необходимо создать объект
-                        Player и скопировать данные в него)
+                        (ВАЖНО! поле для корректной работы необходимо создать объекты
+                        Player, gameArea и скопировать данные в них)
 */
 
 const DB_NAME = 'indexedDB';
@@ -58,7 +58,8 @@ const save = (worldName) => {
 
         let objectStore = _db.createObjectStore(DB_STORE_NAME, {
             ketPath: "worldName",
-            autoIncrement : true
+            autoIncrement : true,
+            unique: true
         });
 
         objectStore.createIndex("player", "player", {
@@ -73,6 +74,7 @@ const save = (worldName) => {
             gameArea: JSON.stringify(gameArea)
         },
         worldName);
+
         localStorage.loadList = JSON.stringify(localStorage.loadList === undefined
             ? [worldName]
             : JSON
@@ -89,15 +91,15 @@ const load = async (worldName) => {
             console.error("Couldn't load database: " + event);
             reject(event);
         }
-    
+
         request.onsuccess = (event) => {
             _db = event.target.result;
-    
+
             let req = _db
             .transaction([DB_STORE_NAME], "readwrite")
             .objectStore(DB_STORE_NAME)
             .get(worldName);
-    
+
             req.onsuccess = (event) => {
                 resolve({
                     gameArea: JSON.parse(req.result.gameArea),
@@ -105,18 +107,5 @@ const load = async (worldName) => {
                 });
             }
         }
-    });
-}
-
-let load1 = async () => {
-    return await new Promise((resolve, reject) => {
-        load('world')
-        .then(async result => {
-            gameArea = result.gameArea;
-            player = result.player;
-            deleteDatabase();
-            resolve();
-        })
-        .catch(result => reject(result));      
     });
 }

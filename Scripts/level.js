@@ -41,6 +41,12 @@ const beginPlay = () => {
 	if (!loadExist()) {  // Обработка загрузки
 		gameArea = generate(600, 150, key);
 		player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
+
+		player.addToInv({
+			"id" : 257,
+			"durability" : items[257].durability,
+			"name" : "Iron pickaxe"
+		});
 	} else {
 		deleteDatabase();
 		gameArea = new GameArea(loadingResult.gameArea.map,
@@ -48,21 +54,15 @@ const beginPlay = () => {
 			loadingResult.gameArea.shadowMap,
 			loadingResult.gameArea.width,
 			loadingResult.gameArea.height);
+		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
+
 		player = new Player();
 		playerCopy(player, loadingResult.player);
-		console.log(gameArea);
-		console.log(loadingResult.gameArea)
 	}
-		
+
     playerFloatX = player.x;
     playerFloatY = player.y;
     cameraSet(player.x, player.y);
-
-    player.addToInv({
-    	"id" : 257,
-    	"durability" : items[257].durability,
-		"name" : "Iron pickaxe"
-    });
 }
 
 // Вызывается каждый кадр

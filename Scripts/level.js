@@ -48,10 +48,10 @@ const beginPlay = () => {
     cameraSet(player.x, player.y);
 
     player.addToInv({
-    	"id" : 384,
-    	"durability" : 300,
+    	"id" : 257,
+    	"durability" : items[257].durability,
 		"name" : "Iron pickaxe"
-    })
+    });
 }
 
 // Вызывается каждый кадр
@@ -97,8 +97,8 @@ const playerMovement = () => {
 	let headY = Math.floor(player.y + Player.HEAD_Y);
 	// Урон от удушья 
 	if(gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
-			&& (blockTable[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
-			|| blockTable[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
+			&& (items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
+			|| items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {
 		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);
@@ -229,8 +229,8 @@ const mouseControl = () => {
                 if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
 					currentBlock = {
 						x: x, y: y,
-						type: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type,
-						durability: blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
+						type: items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type,
+						durability: items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
 					}
 					let effK = ((player.hand.item && currentBlock.type == player.hand.info.type))
 						? player.hand.info.efficiency : 1;
@@ -261,7 +261,7 @@ const mouseControl = () => {
 			y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
 			if (x < 0 || x >= gameArea.width || y < 0 || y >= gameArea.height || i > Player.ACTION_RADIUS
 					|| (gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
-            		&& blockTable[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
+            		&& items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
 				isAllowPlace = false;
 				break;
 			}

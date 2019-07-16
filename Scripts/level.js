@@ -43,6 +43,15 @@ const beginPlay = () => {
 		player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
 	} else {
 		deleteDatabase();
+		gameArea = new GameArea(loadingResult.gameArea.map,
+			loadingResult.gameArea.elevationMap,
+			loadingResult.gameArea.shadowMap,
+			loadingResult.gameArea.width,
+			loadingResult.gameArea.height);
+		player = new Player();
+		playerCopy(player, loadingResult.player);
+		console.log(gameArea);
+		console.log(loadingResult.gameArea)
 	}
 		
     playerFloatX = player.x;

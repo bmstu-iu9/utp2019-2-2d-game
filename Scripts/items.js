@@ -27,6 +27,7 @@ let items = {
         "name" : "grass",
         "type" : "leaf",
         "isBlock" : true,
+        "isAlwaysGoodDestroy" : true,
         "dropId" : "2",
         "weight" : WEIGHT_OF_BLOCKS
     },
@@ -62,12 +63,12 @@ let items = {
         "weight" : WEIGHT_OF_BLOCKS,
         "isGoodMelting" : "263",
         "costOfMelting" : "50"
-    }
+    },
 
     "7" : {
         "id" : "7",
         "name" : "bedrock",
-        "isBlock" : true
+        "isBlock" : true,
         "weight" : "2"
     },
 
@@ -84,7 +85,7 @@ let items = {
         "name" : "sand",
         "type" : "dirt",
         "isBlock" : true,
-        "isAlwaysGoodDestroy" : true
+        "isAlwaysGoodDestroy" : true,
         "dropId" : "12",
         "weight" : WEIGHT_OF_BLOCKS,
         "isGoodMelting" : "20",
@@ -101,7 +102,7 @@ let items = {
         "isGoodMelting" : "14",
         "costOfMelting" : "100"
 
-    }
+    },
 
     "15" : {
         "id" : "15",
@@ -112,7 +113,7 @@ let items = {
         "weight" : WEIGHT_OF_BLOCKS, 
         "isGoodMelting" : "15",
         "costOfMelting" : "100"
-    }
+    },
 
     "16" : {
         "id" : "16",
@@ -158,7 +159,7 @@ let items = {
         "isBlock" : true,
         "dropId" : "264",
         "weight" : WEIGHT_OF_BLOCKS
-    }
+    },
 
     "263" : {
         "id" : "263",
@@ -171,7 +172,13 @@ let items = {
         "id" : "264",
         "name" : "diamond",
         "weight" : WEIGHT_OF_ORES
-    }
+    },
+
+    "265" : {
+        "id" : "265",
+        "name" : "iron",
+        "weight" : WEIGHT_OF_ORES
+    },
 
     "256" : {
         "id" : "256",
@@ -296,7 +303,7 @@ let items = {
     "370" : {
         "id" : "370",
         "name" : "scissors",
-        "type" : "leaf"
+        "type" : "leaf",
         "isTool" : true,
         "durability" : DIAMOND_DURABILITY,
         "efficiency" : DIAMOND_EFFICIENCY,

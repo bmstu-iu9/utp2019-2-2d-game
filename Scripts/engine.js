@@ -265,7 +265,7 @@ class Render {
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
-	const createFrameBuffer = (width, height) => {
+	createFrameBuffer(width, height) {
 		const frameBuffer = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
 

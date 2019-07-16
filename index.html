@@ -3,7 +3,7 @@
 	<link rel="stylesheet" href="Css/style.css">
 </head>
 <body>
-	<canvas id="canvas"></canvas>
+	<canvas id="canvas" oncontextmenu="return false"></canvas>
 	<p id="fps" class="fps">  0 FPS</p>
 	<!-- GLSL -- Тут ничего не трограть, либо писать Надиму! -->
 	<script id="vertex-shader" type="none">
@@ -42,10 +42,12 @@
 	<script src="Scripts/engine.js"></script>
 	<script src="Scripts/controller.js"></script>
 	<script src="Scripts/fps.js"></script>
-	<script src="Scripts/GameArea.js"></script>
+	<script src="Scripts/gameArea.js"></script>
 	<script src="Scripts/blockTable.js"></script>
+	<script src="Scripts/test.js"></script>
 	<script src="Scripts/player.js"></script>
-	<script src="Scripts/WorldGeneration.js"></script>
+	<script src="Scripts/worldGeneration.js"></script>
+	<script src="Scripts/saveWorld.js"></script>
 	<script src="Scripts/level.js"></script>
-	<script src="Scripts/game.js"></script>
+	<script src="Scripts/preprocessing.js"></script>
 </body>

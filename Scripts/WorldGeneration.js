@@ -8,21 +8,42 @@ const generate = (width, height, seed) => {
         return x - Math.floor(x);
     }
 
+    let lakeArr = new Array();
+    let dontGenHereArr = new Array();
+    for(let x = 0; x < width; x++){
+        lakeArr[x] = new Array();
+        dontGenHereArr[x] = false;
+    }
+
     // Генерация массива уровней поверхности
     const landGen = (minHeight, maxHeight, widthWorld, heightWorld) => {
         let heights = [Math.floor((maxHeight + minHeight) / 2)];
+
+        let waterArrStartX = [], waterArrEndX = [];
+        let waterArrStartY = [], waterArrEndY = [];
+
+        let waterStartX = 0, waterEndX = 0;
+        let waterStartY = 0, waterEndY = 0;
+
         let i = 1;
         let lastSign = 0;
         while (i < widthWorld) {
             let sectionLength = Math.round(random() * 9) + 1; // Длина сектора возрастания или убывания
             let sign = Math.floor(random() * 2);
             if (sign === 0) sign = -1;
-            i += sectionLength;
+            
             let lastDelta = 1;
             if(lastSign != sign){
                 lastDelta = 0;
             }
+
+            if (sign === -1 && lastDelta !== 0) {
+                waterStartX = i;
+                waterStartY = heights[i - 1];
+            }
+
             lastSign = sign;
+            i += sectionLength;
             while (sectionLength > 0) {
                 let delta = 0;
                 if(lastDelta == 0 && random() > 0.1){
@@ -46,6 +67,30 @@ const generate = (width, height, seed) => {
                 } else heights.push(nextHeight);
                 sectionLength--;
             }
+            if (sign === 1 && lastDelta !== 0 && waterStartX !== 1 && lastSign !== 0) {
+                if (i - 1 >= widthWorld) {
+                    i = widthWorld;
+                }
+
+                waterEndX = i - 1;
+
+                if (heights[i - 1] > waterStartY) {
+                    waterEndY = waterStartY;
+                } else if (random() < 0.07) {
+                    waterEndY = heights[i - 1];
+                    waterStartY = heights[i - 1];
+                }
+
+                if (waterEndY !== 0) {
+                    waterArrStartX.push(waterStartX);
+                    waterArrStartY.push(waterStartY);
+                    waterArrEndX.push(waterEndX);
+                    waterArrEndY.push(waterEndY);
+
+                    waterStartX = 1;
+                    waterEndY = 0;
+                }
+            }
         }
         elevationMap = heights;
         // Преобразование карты высот в матрицу
@@ -56,11 +101,32 @@ const generate = (width, height, seed) => {
                 arr[x][y] = (y <= heights[x]);
             }
         }
+        // Заполнение озёр в финальном id массиве
+        for (let i = 0; i < waterArrStartX.length; i++) {
+            let x;
+            let y;
+            for (x = waterArrStartX[i]; x < waterArrEndX[i]; x++) {
+                for (y = waterArrStartY[i]; !arr[x][y]; y--) {
+                    lakeArr[x][y] = 8;
+                    if (arr[x - 1][y]) {
+                        lakeArr[x - 1][y] = 12;
+                    }
+                    if (arr[x + 1][y]) {
+                        lakeArr[x + 1][y] = 12;
+                    }
+                }
+
+                if (lakeArr[x][y + 1] === 8 && arr[x][y]) {
+                    lakeArr[x][y] = 12;
+                }
+            }
+        }
+
         return arr;
     }
 
     // Расширение пещеры по её "направляющей"
-    const holeGen = (worldArr, caveX, caveY, maxRadius, isCaveX, countCaveX) => {
+    const holeGen = (worldArr, caveX, caveY, maxRadius, dontGenHereArr, dontGenCountX) => {
         // Выбор радиуса
         let rand = random() , radius = 1;
         while (rand < 0.5) {
@@ -77,38 +143,44 @@ const generate = (width, height, seed) => {
                 if (i >= 0 && i < worldArr.length && j >= 0 && j < worldArr[i].length &&
                     radius * radius >= (i - caveX) * (i - caveX) + (j - caveY) * (j - caveY)) {
                         worldArr[i][j] = false;
-                        if(!isCaveX[i]){
-                            isCaveX[i] = true;
-                            countCaveX++;
+                        if(!dontGenHereArr[i]){
+                            dontGenHereArr[i] = true;
+                            dontGenCountX++;
                         }
                 }
             }
         }
         // Возвращаем новое координат, под которыми есть пещеры
-        return countCaveX;
+        return dontGenCountX;
     }
 
     // Создание "направляющих" для пещер
-    const caveGen = (worldArr, maxLength) => {
+    const caveGen = (worldArr, maxCount, maxLength) => {
 
-        // Массив координат, под которыми нет пещер
-        // Используется, чтобы напосредственно под каждым блоком поверхности находилась как минимум одна пещера
-        let isCaveX = new Array();
-        for(let i = 0; i < worldArr.length; i++){
-            isCaveX[i] = false;
+        let dontGenHereArr = new Array();
+        for(let x = 0; x < width; x++){
+            dontGenHereArr[x] = false;
         }
-        let countCaveX = 0;
 
-        while(countCaveX < worldArr.length){
+        let dontGenCountX = 0;
+        let count = 0;
+
+        while(dontGenCountX < worldArr.length && maxCount > count){
+            let length = random() * 0.95 * maxLength + 0.05 * maxLength;
 
             // Ищем координаты точки старта на поверхности для будущей пещеры
-            let t = Math.ceil(random() * (worldArr.length - countCaveX));
+            let t = Math.ceil(random() * (worldArr.length - dontGenCountX));
             let x = -1;
             while(t > 0){
                 x++;
-                if(!isCaveX[x]){
+                if(!dontGenHereArr[x]){
                     t--;
                 }
+            }
+            if(lakeArr[x][elevationMap[x]] == 12){
+                dontGenCountX++;
+                dontGenHereArr[x] = true;
+                continue;
             }
             let y = worldArr[0].length - 1;
             while(y > 0 && !worldArr[x][y]){
@@ -125,7 +197,7 @@ const generate = (width, height, seed) => {
 
             // Ищем следующую координату
             let randK = (random() > 0.5) ? 1 : -1;
-            while(caveArrX.length < maxLength && y > 0 && x >= 0 && x < worldArr.length && worldArr[x][y]){
+            while(caveArrX.length < length && y > 0 && x >= 0 && x < worldArr.length && worldArr[x][y]){
                 caveArrX.push(x);
                 caveArrY.push(y);
                 let nextX = x;
@@ -146,6 +218,10 @@ const generate = (width, height, seed) => {
                             break; 
                         }
                     }
+                    if (i === 2) {
+                        i = 1;
+                    }
+
                     nextX += i * randK;
 
                     // Ищем Y (Генерируем рандомное направление следующего шага с учетом распределения вероятностей 
@@ -167,9 +243,12 @@ const generate = (width, height, seed) => {
                 x = nextX;
                 y = nextY;
             }
-            // Формируем пещеру по направляющей
-            for(let i = 0; i < caveArrX.length; i++){
-                countCaveX = holeGen(worldArr, caveArrX[i], caveArrY[i], 3, isCaveX, countCaveX)  // Дыры радиуса от 1 до 3
+            if(caveArrX.length > 0.05 * maxLength){
+                // Формируем пещеру по направляющей
+                for(let i = 0; i < caveArrX.length; i++){
+                    dontGenCountX = holeGen(worldArr, caveArrX[i], caveArrY[i], 3, dontGenHereArr, dontGenCountX)  // Дыры радиуса от 1 до 3
+                }
+                count++;
             }
         }
         return worldArr;
@@ -179,9 +258,9 @@ const generate = (width, height, seed) => {
     const treeGen = (heights, worldArr, minHeight, maxHeight, maxCountOfTree) => {
 
         const foliageGen = (worldArr, treeArr, treeX, treeY) => {
-            let rand = random() , radius = 1;
-            while (rand < 0.5) {
-                if (radius === 2) {
+            let rand = random() , radius = 2;
+            while (rand < 0.3) {
+                if (radius === 3) {
                     break;
                 }
                 rand = random();
@@ -241,6 +320,7 @@ const generate = (width, height, seed) => {
                 break;
             }
             else {
+                if(lakeArr[x][elevationMap[x]] == 12 && countTreeX <= worldArr.length) continue;
                 countTree++;
             }
 
@@ -280,9 +360,14 @@ const generate = (width, height, seed) => {
 
                     // Ищем X
                     if (x === startX) {
-                        let probabX = [(y - startY) / 2,
+                        let deltaProbably = 0;
+                        if (y - startY > currentHeight / 3) {
+                            deltaProbably = 1;
+                        }
+
+                        let probabX = [deltaProbably * maxHeight / 3,
                             maxHeight,
-                            (y - startY) / 2];
+                            deltaProbably * maxHeight / 3];
                         let maxProbab = probabX[0] + probabX[1] + probabX[2];
                         let rand = Math.ceil(random() * maxProbab);
                         let randK = (random() > 0.5) ? 1 : -1;
@@ -293,6 +378,7 @@ const generate = (width, height, seed) => {
                                 break;
                             }
                         }
+                        if(i === 2) i = 1;
                         nextX += i * randK;
                     } else {
                         nextX += (x < startX) ? (-Math.floor(random() * 2)) : Math.floor(random() * 2);
@@ -335,7 +421,7 @@ const generate = (width, height, seed) => {
                 foliageGen(worldArr, treeArr, endOfBranchX[i], endOfBranchY[i]);
             }
 
-            for (let i = leftEdge - 5; i <= rightEdge + 5; i++) {
+            for (let i = leftEdge - 7; i <= rightEdge + 7; i++) {
                 if (i >= 0 && i < worldArr.length) {
                     if (!isTreeX[i]) countTreeX++;
                     isTreeX[i] = true;
@@ -344,6 +430,7 @@ const generate = (width, height, seed) => {
         }
         return treeArr;
     }
+
 
     // Генерация руд
     const oreGen = () => {
@@ -400,20 +487,27 @@ const generate = (width, height, seed) => {
         }
     }
 
-    let withCavesMatrix = caveGen(landMatrix1, height * 2);
+    let withCavesMatrix = caveGen(landMatrix1, width / 100, height);
 
     let oreArr = oreGen();
 
     let worldMap = new Array();
-    for(let x = 0; x < width; x++){
+    for (let x = 0; x < width; x++){
         worldMap[x] = new Array();
         let grassDepth = Math.floor(random() * 7) + 15
         let dirtDepth = grassDepth - 1;
         for(let y = height - 1; y >= 0; y--){
             worldMap[x][y] = new Array();
-            if(landMatrix[x][y]){
+            if(lakeArr[x][y] != undefined) {
+                worldMap[x][y][GameArea.MAIN_LAYOUT] = lakeArr[x][y];
+                worldMap[x][y][GameArea.BACK_LAYOUT] = 12; // ID песка
+                dirtDepth = --grassDepth;
+            } else if(lakeArr[x][y + 1] == 12) {
+                worldMap[x][y][GameArea.BACK_LAYOUT] = 3 // ID грязи
+                worldMap[x][y][GameArea.MAIN_LAYOUT] = 3 // ID грязи
+            } else if(landMatrix[x][y]){
                 if(grassDepth > 0){
-                    if(grassDepth > dirtDepth){
+                    if(grassDepth > dirtDepth) {
                         worldMap[x][y][GameArea.BACK_LAYOUT] = 2 // ID травы
                         if(withCavesMatrix[x][y]){
                             worldMap[x][y][GameArea.MAIN_LAYOUT] = 2 // ID травы
@@ -438,15 +532,15 @@ const generate = (width, height, seed) => {
             }
         }
         let bedrockHeight = Math.floor(random() * 3) + 1
-        for(let y = 0; y < bedrockHeight; y++){
+        for (let y = 0; y < bedrockHeight; y++) {
             worldMap[x][y][GameArea.MAIN_LAYOUT] = 7 // ID бедрока
         }
     }
 
     // Установка деревьев
-    let treeArr = treeGen(elevationMap, withCavesMatrix, 14, 23, Math.floor(width * 2 / 3));
-    for(let i = 0; i < treeArr.length; i++){
-        for (let j = 0; j < treeArr[i].length; j++){
+    let treeArr = treeGen(elevationMap, withCavesMatrix, 16, 19, Math.floor(width * 2 / 3));
+    for (let i = 0; i < treeArr.length; i++) {
+        for (let j = 0; j < treeArr[i].length; j++) {
             if (!treeArr[i][j] == 0){
                 if (treeArr[i][j] === 1) {
                     worldMap[i][j][GameArea.MAIN_LAYOUT] = 17;
@@ -455,6 +549,7 @@ const generate = (width, height, seed) => {
             }
         }
     }
+
 
     const shadowRound = (startX, startY, x, y, n, isNatural) => {
         const step = (nextX, nextY, n) => {
@@ -498,6 +593,8 @@ const generate = (width, height, seed) => {
 				if (shadowMap[x][y] == undefined) shadowMap[x][y] = 0;
                 if (worldMap[x][y][GameArea.MAIN_LAYOUT] == undefined || worldMap[x][y][GameArea.MAIN_LAYOUT] == 0){
                     shadowRound(x, y, x, y, maxLight, true);
+                }else if(blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]] != undefined && blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]].brightness > 0){
+                    shadowRound(x, y, x, y, blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]].brightness, blockTable[worldMap[x][y][GameArea.MAIN_LAYOUT]].isNaturalLight === true);
                 }
             }
         }
@@ -506,7 +603,7 @@ const generate = (width, height, seed) => {
     // Создть карту освещения
     createShadows(9);
 
-    return new GameArea(worldMap, elevationMap, shadowMap, width, height, "./block_table.json");
+    return new GameArea(worldMap, elevationMap, shadowMap, width, height);
 }
 
 // Визуализация полученной матрицы в консоли

@@ -41,6 +41,7 @@ const deleteDatabase = () => {
     }
 }
 
+// deleteDatabase();
 const save = (worldName) => {
     if (!window.indexedDB) {
         window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
@@ -80,27 +81,42 @@ const save = (worldName) => {
     }
 }
 
-const load = (worldName) => {
-    
-    let request = window.indexedDB.open(DB_NAME, 1);
-    deleteDatabase();
-    
-    request.onerror = (event) => {
-        console.error("Couldn't load database: " + event);
-    }
+const load = async (worldName) => {
+    return await new Promise((resolve, reject) => {
+        let request = window.indexedDB.open(DB_NAME, 1);
 
-    request.onsuccess = (event) => {
-        _db = event.target.result;
-
-        let req = _db
-        .transaction([DB_STORE_NAME], "readwrite")
-        .objectStore(DB_STORE_NAME)
-        .get(worldName);
-        req.onsuccess = (event) => {
-            return {
-                gameArea: JSON.parse(req.result.gameArea),
-                player: JSON.parse(req.result.player)
-            };
+        request.onerror = (event) => {
+            console.error("Couldn't load database: " + event);
+            reject(event);
         }
-    }
+    
+        request.onsuccess = (event) => {
+            _db = event.target.result;
+    
+            let req = _db
+            .transaction([DB_STORE_NAME], "readwrite")
+            .objectStore(DB_STORE_NAME)
+            .get(worldName);
+    
+            req.onsuccess = (event) => {
+                resolve({
+                    gameArea: JSON.parse(req.result.gameArea),
+                    player: JSON.parse(req.result.player)
+                });
+            }
+        }
+    });
+}
+
+let load1 = async () => {
+    return await new Promise((resolve, reject) => {
+        load('world')
+        .then(async result => {
+            gameArea = result.gameArea;
+            player = result.player;
+            deleteDatabase();
+            resolve();
+        })
+        .catch(result => reject(result));      
+    });
 }

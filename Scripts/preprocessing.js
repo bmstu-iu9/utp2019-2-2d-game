@@ -100,9 +100,6 @@ image.onload = () => {
 				}
 			};
 
-      
-			beginPlay();
-
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
@@ -148,7 +145,27 @@ image.onload = () => {
 				requestAnimationFrame(update);
 			}
 
-			requestAnimationFrame(update);
+			if (loadExist()) {
+				let wait = async () => {
+					return new Promise (responce => {
+						load('world')
+						.then(result => {
+							player = result.player;
+							gameArea = result.gameArea;
+							responce();
+						});
+					})
+				}
+				wait().then(() => {
+					beginPlay(),
+					requestAnimationFrame(update)
+				});
+			} else {
+				beginPlay();
+				requestAnimationFrame(update);
+			}
+
+
 		}
     }
 }

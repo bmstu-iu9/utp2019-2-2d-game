@@ -38,13 +38,13 @@ const beginPlay = () => {
 		controller.mouseDown(event);
 	});
 
-
-	if (loadExist()) {  // Обработка загрузки
-		load('world');
+	if (!loadExist()) {  // Обработка загрузки
+		gameArea = generate(600, 150, key);
+		player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
+	} else {
+		deleteDatabase();
 	}
-    gameArea = generate(600, 150, key);
-	player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
-	
+		
     playerFloatX = player.x;
     playerFloatY = player.y;
     cameraSet(player.x, player.y);

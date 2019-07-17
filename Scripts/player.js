@@ -3,6 +3,8 @@ class Player {
         // Задаем положение игрока
         this.x = x;
         this.y = y;
+        this.fx = x;
+        this.fy = y;
 
         // Очки жизни
         this.hp = 100;

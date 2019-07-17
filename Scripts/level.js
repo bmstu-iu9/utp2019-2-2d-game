@@ -151,7 +151,6 @@ const playerMovement = () => {
 	if(newX - Player.WIDTH / 2 < 0 && newX + Player.WIDTH / 2 > gameArea.width) {
 		player.vx = 0;
 		newX = player.fx;
-		canGo = false;
 	}
 	if(newY < 0 && newY + Player.HEIGHT > gameArea.height) {
 		player.vy = 0;

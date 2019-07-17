@@ -340,19 +340,6 @@ class Player {
     }
 }
 
-// Для копирования player из indexedDB
-const playerCopy = (player, obj) => {
-    player.x = obj.x;
-    player.y = obj.y;
-    player.hp = obj.hp;
-    player.bp = obj.bp;
-    player.inv = obj.inv;
-    player.x = obj.x;
-    player.fastInv = obj.fastInv;
-    player.hand = obj.hand;
-    player.vx = obj.vx;
-    player.vy = obj.vy;
-}
 
 Player.ACTION_RADIUS = 12;      // Радиус действия игрока
 Player.HEIGHT = 2.8;            // Рост игрока в блоках

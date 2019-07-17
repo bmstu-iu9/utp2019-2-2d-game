@@ -35,28 +35,40 @@ const beginPlay = () => {
 	window.addEventListener("mousedown", (event) => {
 		controller.mouseDown(event);
 	});
-	
-    gameArea = generate(600, 150, key);
 
+	if (loadExist()) {
+		deleteDatabase();
+		gameArea = new GameArea(loadingResult.gameArea.map,
+			loadingResult.gameArea.elevationMap,
+			loadingResult.gameArea.shadowMap,
+			loadingResult.gameArea.width,
+			loadingResult.gameArea.height);
+		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
 
-    let px = gameArea.width / 2;
-    let py = 0;
-    for(let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
-    	py = Math.max(py, gameArea.elevationMap[i] + 1);
-    }
-	player = new Player(px, py);
+		player = new Player();
+		playerCopy(player, loadingResult.player);
+	} else {
+	    gameArea = generate(600, 150, key);
 
-	if(localStorage.getItem('saved')) {
-		loadWorld();
+	    let px = gameArea.width / 2;
+	    let py = 0;
+	    for(let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
+	    	py = Math.max(py, gameArea.elevationMap[i] + 1);
+	    }
+		player = new Player(px, py);
+
+		if(localStorage.getItem('saved')) {
+			loadWorld();
+		}
+
+	    player.addToInv({
+	    	"id" : 257,
+	    	"durability" : items[257].durability,
+			"name" : "Iron pickaxe"
+		});
 	}
-   	
-    cameraSet(player.x, player.y);
 
-    player.addToInv({
-    	"id" : 257,
-    	"durability" : items[257].durability,
-		"name" : "Iron pickaxe"
-    });
+    cameraSet(player.x, player.y);
 }
 
 // Вызывается каждый кадр
@@ -287,6 +299,6 @@ const mouseControl = () => {
 
 	// Сохранение и загрузка на СКМ
 	if (controller.mouse.click === 2) {
-		saveWorld();
+		save('world');
 	}
 }

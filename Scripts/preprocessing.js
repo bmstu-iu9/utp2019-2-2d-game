@@ -32,12 +32,12 @@ image.onload = () => {
 						objects.push({
 							'id': j * blocksCountX + i + 1,
 							'a': [
-								i * 1 / blocksCountX + 1 / image.width,
-								j * 1 / blocksCountY + 1 / image.height
+								i / blocksCountX + 1 / image.width,
+								j / blocksCountY + 1 / image.height
 							],
 							'b': [
-								(i + 1) * 1 / blocksCountX - 1 / image.width,
-								(j + 1) * 1 / blocksCountY - 1 / image.height
+								(i + 1) / blocksCountX - 1 / image.width,
+								(j + 1) / blocksCountY - 1 / image.height
 							]});
 					}
 				}

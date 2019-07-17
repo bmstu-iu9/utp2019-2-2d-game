@@ -323,11 +323,7 @@ class Render {
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture, 0);
 
 		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-		
-		
-		
 		
 		this.arrayOfChunk[`${x}x${y}`] = {
 			x: x,
@@ -448,11 +444,21 @@ class Render {
 		const h = this.heightChunk * this.size;
 		this.gl.uniform1f(this.resolutionUniformLocation, this.heightChunk * this.size);
 		
+		const frameBuffer = this.gl.createFramebuffer();
+		
 		for (let c in arrayOfChunk) {
 			if (arrayOfChunk[c].light != -100) {
 				// фреймбуфер
-				const fb = this.createFrameBuffer(w, h);
-				this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fb.f);
+				this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, frameBuffer);
+
+				const texture = this.gl.createTexture();
+				this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+				this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, w, h, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
+					null);
+				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+				this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture, 0);
+				
 				this.gl.viewport(0, 0, w, h); // указываем границы отрисовки
 				this.gl.clearColor(0.0, 0.0, 0.0, 0.0); // заливаем экран прозрачным цветом
 				this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -479,8 +485,7 @@ class Render {
 						}
 					}
 				}
-				frameBufferTextures[c] = fb.t;
-				this.gl.deleteFramebuffer(fb.f);
+				frameBufferTextures[c] = texture;
 			}
         }
 		
@@ -497,16 +502,18 @@ class Render {
 		this.gl.clearColor(0.53, 0.81, 0.98, 1);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+		//this.gl.disable(this.gl.DEPTH_TEST);
+
 		for (let c in arrayOfChunk) {
 			const xc = this.widthChunk * arrayOfChunk[c].x * ch;
 			const yc = this.heightChunk * arrayOfChunk[c].y * ch;
 			this.gl.bindTexture(this.gl.TEXTURE_2D, frameBufferTextures[c]);
 			this.gl.uniform3f(this.translateUniformLocation, xc, yc, -arrayOfChunk[c].slice);
 			this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+			this.gl.deleteTexture(frameBufferTextures[c]);
 		}
 		
 		// отрисовка игрока
-		this.gl.disable(this.gl.DEPTH_TEST);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
 		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);

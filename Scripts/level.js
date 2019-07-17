@@ -16,8 +16,6 @@ const key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
-let playerFloatX = 0;
-let playerFloatY = 0;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -39,12 +37,19 @@ const beginPlay = () => {
 	});
 	
     gameArea = generate(600, 150, key);
-	player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
+
+
+    let px = gameArea.width / 2;
+    let py = 0;
+    for(let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
+    	py = Math.max(py, gameArea.elevationMap[i] + 1);
+    }
+	player = new Player(px, py);
+
 	if(localStorage.getItem('saved')) {
 		loadWorld();
 	}
-    playerFloatX = player.x;
-    playerFloatY = player.y;
+   	
     cameraSet(player.x, player.y);
 
     player.addToInv({
@@ -138,19 +143,19 @@ const playerMovement = () => {
 	}
 
 	// Новые координаты
-	let newX = playerFloatX + player.vx * deltaTime;
-    let newY = playerFloatY + player.vy * deltaTime;
+	let newX = player.fx + player.vx * deltaTime;
+    let newY = player.fy + player.vy * deltaTime;
 
     // Пока новые координаты не перестанут конфликтовать с окружением
 	// Выход за карту
 	if(newX - Player.WIDTH / 2 < 0 && newX + Player.WIDTH / 2 > gameArea.width) {
 		player.vx = 0;
-		newX = playerFloatX;
+		newX = player.fx;
 		canGo = false;
 	}
 	if(newY < 0 && newY + Player.HEIGHT > gameArea.height) {
 		player.vy = 0;
-		newY = playerFloatY;
+		newY = player.fy;
 	}
 	// Проверка, не упёрся ли игрок
 	let changedX = false;
@@ -158,10 +163,10 @@ const playerMovement = () => {
 	const steps = 5;
 	for(let i = 1; i <= steps; i++){
 		let k =  i / steps;
-		let iX = playerFloatX + (newX - playerFloatX) * k;
-		let iY = playerFloatY + (newY - playerFloatY) * k;
-		let ansX = playerFloatX + (newX - playerFloatX) * (i - 1) / steps;
-		let ansY = playerFloatY + (newY - playerFloatY) * (i - 1) / steps;
+		let iX = player.fx + (newX - player.fx) * k;
+		let iY = player.fy + (newY - player.fy) * k;
+		let ansX = player.fx + (newX - player.fx) * (i - 1) / steps;
+		let ansY = player.fy + (newY - player.fy) * (i - 1) / steps;
 
 		if(!changedX){
 			if(player.vx < 0 && player.isCollisionLeft(iX, changedY ? newY : iY)) {
@@ -198,8 +203,8 @@ const playerMovement = () => {
 		}
 	}
 
-	playerFloatX = newX;
-	playerFloatY = newY;
+	player.fx = newX;
+	player.fy = newY;
 	
 	player.x = Math.round(newX * 16) / 16;
 	player.y = Math.round(newY * 16) / 16;

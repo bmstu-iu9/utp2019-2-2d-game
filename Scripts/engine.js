@@ -1,6 +1,6 @@
 'use strict';
 
-// Версия 2
+// Версия: 3
 
 // Не лезь, оно тебя сожрёт!
 
@@ -94,12 +94,11 @@ image.onload = () => {
 };
 
 Чего-то непонятно?
-Обращаться к Надиму.
+Обращаться к Надиму
 */
 
 class Render {
-	constructor(image, background, playerImage) {
-		this.backgroundAsp = 512 / 512; // размер фона
+	constructor() {
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
 		if (!this.gl) {
@@ -130,6 +129,13 @@ class Render {
 		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
 		this.lightUniformLocation = this.gl.getUniformLocation(this.program, 'u_light');
 		
+		// буфер чанков
+		this.arrayOfChunks = {};
+	}
+	
+	init(image, background, playerImage) {
+		this.backgroundAsp = 512 / 512; // размер фона
+		
 		// создание текстуры
 		const images = [image, background, playerImage];
 		this.textures = [];
@@ -147,11 +153,6 @@ class Render {
 			
 			this.textures.push(texture);
 		}
-	}
-	
-	// заготовка для 3 версии движка
-	init(image, background, playerImage) {
-		
 	}
 	
 	settings(size, widthChunk, heightChunk) {
@@ -289,7 +290,7 @@ class Render {
 		const frameBuffer = this.gl.createFramebuffer();
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, frameBuffer);
 
-/*
+		/*
 		const depthRenderBuffer = this.gl.createRenderbuffer();
 		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, depthRenderBuffer);
 		this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, width, height);
@@ -307,18 +308,32 @@ class Render {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-
+		
+		this.gl.flush(); // тест
+		
 		return {
 			f: frameBuffer,
 			t: texture
 		}
 	}
 	
-	render(x, y, xp, yp, scale, arrayOfChunk) {/*
-		x = 0;
-		xp = 0;
-		yp = 0;
-		y = 0;*/
+	createChunk(x, y, lightOfFrontChunk, blocksOfFrontChunk, lightOfBackChunk, blocksOfBackChunk, lightChunk) {
+		
+	}
+	
+	deleteChunk(x, y) {
+		
+	}
+	
+	isExistChunk(x, y) {
+		return this.arrayOfChunks[`${x}x${y}`] != undefined;
+	}
+	
+	NEWrender(xc, yc, xp, yp, scale) {
+		
+	}
+	
+	render(x, y, xp, yp, scale, arrayOfChunk) {
 		if (scale <= 0) {
 			throw new Error("Invalid scale: scale <= 0");
 		}
@@ -344,14 +359,15 @@ class Render {
 		
 			*/
 		// отрисовка фона
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
-		this.gl.uniform1f(this.resolutionUniformLocation, 1);
+		//this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
+		//this.gl.uniform1f(this.resolutionUniformLocation, 1);
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
 
-		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
-		const z = 0.1 - far;
+		//this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
+		//const z = 0.1 - far;
 		
 		// необходимо изменить!
+		/*
 		for (let i = 0; i < asp / 2 + 2; i++) {
 			this.gl.uniform3f(this.translateUniformLocation,
 				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * i + 0.5, y * ch - 0.5, z);
@@ -360,7 +376,7 @@ class Render {
 				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * -i - 0.5, y * ch - 0.5, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 		}
-		
+		*/
 		// отрисовка блоков
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
@@ -396,7 +412,7 @@ class Render {
 						if (id !== undefined) {
 							const light = arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "L"].chunk[x][y];
 							if (light < 0.01) {
-								//this.gl.uniform1f(this.lightUniformLocation, 0);
+								this.gl.uniform1f(this.lightUniformLocation, 0);
 								this.gl.uniform3f(this.translateUniformLocation,
 									xh/* + xc*/, yh/* + yc*/, -arrayOfChunk[c].slice);
 								this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);

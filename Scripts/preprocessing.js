@@ -9,6 +9,7 @@ const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
 
+const render = new Render();
 const image = new Image();
 image.src = 'Images/blocks.png';
 image.onload = () => {
@@ -18,8 +19,7 @@ image.onload = () => {
 		const playerImage = new Image();
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
-			const render = new Render(image, background, playerImage);
-			//render.init(image, background, playerImage); // заработает в одной из следующих версий
+			render.init(image, background, playerImage);
 			render.settings(scale, chankWidth, chankHeight);
 
 			// Отправка образцов объектов

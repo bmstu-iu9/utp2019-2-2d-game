@@ -35,6 +35,7 @@ const beginPlay = () => {
 	window.addEventListener("mousedown", (event) => {
 		controller.mouseDown(event);
 	});
+
 	if (loadExist()) {
 		deleteDatabase();
 		gameArea = new GameArea(loadingResult.gameArea.map,

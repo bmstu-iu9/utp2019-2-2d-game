@@ -345,10 +345,11 @@ class Player {
 const playerCopy = (player, obj) => {
     player.x = obj.x;
     player.y = obj.y;
+    player.fx = obj.fx;
+    player.fy = obj.fy;
     player.hp = obj.hp;
     player.bp = obj.bp;
     player.inv = obj.inv;
-    player.x = obj.x;
     player.fastInv = obj.fastInv;
     player.hand = obj.hand;
     player.vx = obj.vx;

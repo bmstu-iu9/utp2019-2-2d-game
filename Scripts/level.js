@@ -232,12 +232,14 @@ const mouseControl = () => {
 						type: items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type,
 						durability: items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].durability
 					}
-					let effK = ((player.hand.item && currentBlock.type == player.hand.info.type))
-						? player.hand.info.efficiency : 1;
+					let effK = ((player.hand.item && player.hand.info.isTool
+							&& currentBlock.type == player.hand.info.type))
+							? player.hand.info.efficiency : 1;
 					currentBlock.durability -= deltaTime * effK;
 				} else if (currentBlock.durability > 0) {
-					let effK = ((player.hand.item && currentBlock.type == player.hand.info.type))
-						? player.hand.info.efficiency : 1;
+					let effK = ((player.hand.item && player.hand.info.isTool
+							&& currentBlock.type == player.hand.info.type))
+							? player.hand.info.efficiency : 1;
 					currentBlock.durability -= deltaTime * effK;
 				} else {
 					currentBlock = undefined;

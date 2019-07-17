@@ -50,24 +50,20 @@ const beginPlay = () => {
 	} else {
 	    gameArea = generate(600, 150, key);
 
-	    let px = gameArea.width / 2;
+    	let px = gameArea.width / 2;
 	    let py = 0;
 	    for(let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
 	    	py = Math.max(py, gameArea.elevationMap[i] + 1);
-	    }
-		player = new Player(px, py);
-
-		if(localStorage.getItem('saved')) {
-			loadWorld();
 		}
 
-	    player.addToInv({
-	    	"id" : 257,
-	    	"durability" : items[257].durability,
+		player = new Player(px, py);
+		player.addToInv({
+			"id" : 257,
+			"durability" : items[257].durability,
 			"name" : "Iron pickaxe"
 		});
 	}
-
+   	
     cameraSet(player.x, player.y);
 }
 

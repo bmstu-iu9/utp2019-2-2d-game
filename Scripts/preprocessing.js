@@ -10,7 +10,6 @@ let deltaTime = 0;  // Изменение времени между кадрам
 let gameArea;  // Игровой мир (объект GameArea)
 let loadingResult = undefined;
 
-
 const image = new Image();
 image.src = 'Images/blocks.png';
 image.onload = () => {
@@ -166,7 +165,6 @@ image.onload = () => {
 				beginPlay();
 				requestAnimationFrame(update);
 			}
-
 		}
     }
 }

@@ -13,7 +13,7 @@ const IRON_DURABILITY = 200;
 const DIAMOND_DURABILITY = 300;
 
 
-let items = { 
+let items = {
     '1':
     {
         id: '1',

@@ -38,7 +38,7 @@ const beginPlay = () => {
 		controller.mouseDown(event);
 	});
 	
-    gameArea = generate(600, 150, key);
+    gameArea = generate(3200, 1024, key);
 	player = new Player(gameArea.width / 2, gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1);
 	if(localStorage.getItem('saved')) {
 		loadWorld();

@@ -38,7 +38,7 @@ const beginPlay = () => {
 	
     gameArea = generate(600, 150, key);
 
-
+    // Создаём игрока на центре карты
     let px = gameArea.width / 2;
     let py = 0;
     for(let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
@@ -46,12 +46,15 @@ const beginPlay = () => {
     }
 	player = new Player(px, py);
 
+	// Загрузка мира
 	if(localStorage.getItem('saved')) {
 		loadWorld();
 	}
    	
+	// Инициализация положения камеры
     cameraSet(player.x, player.y);
 
+    // Выдаём игроку кирку (временно)
     player.addToInv({
     	"id" : 257,
     	"durability" : items[257].durability,

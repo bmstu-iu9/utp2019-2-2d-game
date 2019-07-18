@@ -1,7 +1,7 @@
 const WOODEN_EFFICIENCY = 2;
-const STONE_EFFICIENCY = 2.5;
-const IRON_EFFICIENCY = 3;
-const DIAMOND_EFFICIENCY = 4;
+const STONE_EFFICIENCY = 4;
+const IRON_EFFICIENCY = 7;
+const DIAMOND_EFFICIENCY = 10;
 
 const WEIGHT_OF_INSTRUMENTS = 5;
 const WEIGHT_OF_BLOCKS = 2;
@@ -263,25 +263,29 @@ let items = {
         weight: WEIGHT_OF_INSTRUMENTS
     },
 
-    '263': { 
+    '263':
+    { 
         id: '263',
         name: 'Coal', 
         weight: WEIGHT_OF_ORES
     },
 
-    '264': { 
+    '264': 
+    { 
         id: '264',
         name: 'Diamond', 
         weight: WEIGHT_OF_ORES
     },
 
-    '265': { 
+    '265': 
+    { 
         id: '265', 
         name: 'Iron', 
         weight: WEIGHT_OF_ORES
     },
 
-    '266': { 
+    '266': 
+    { 
         id: '266', 
         name: 'Gold', 
         weight: WEIGHT_OF_ORES
@@ -386,54 +390,6 @@ let items = {
         weight: WEIGHT_OF_INSTRUMENTS
     },
 
-    '280':
-    {
-        id: '280',
-        name: 'Wooden Hammer',
-        type: 'background',
-        layout: 'BACK_LAYOUT',
-        isTool: true,
-        durability: WOODEN_DURABILITY,
-        efficiency: WOODEN_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
-    },
-
-    '281':
-    {
-        id: '281',
-        name: 'Stone Hammer',
-        type: 'background',
-        layout: 'BACK_LAYOUT',
-        isTool: true,
-        durability: STONE_DURABILITY,
-        efficiency: STONE_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
-    },
-
-    '282':
-    {
-        id: '282',
-        name: 'Iron Hammer',
-        type: 'background',
-        layout: 'BACK_LAYOUT',
-        isTool: true,
-        durability: IRON_DURABILITY,
-        efficiency: IRON_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
-    },
-
-    '283':
-    {
-        id: '283',
-        name: 'Diamond Hammer',
-        type: 'background',
-        layout: 'BACK_LAYOUT',
-        isTool: true,
-        durability: DIAMOND_DURABILITY,
-        efficiency: DIAMOND_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
-    },
-
     '370':
     {
         id: '370',
@@ -445,8 +401,6 @@ let items = {
         weight: WEIGHT_OF_INSTRUMENTS
     },
 
-
-    // Текучая вода
     '9000':
     {
         id: '9000',
@@ -701,7 +655,7 @@ let items = {
     },
 
     '9023':
-    { 
+    {
         id: '9023',
         type: 'flowingWater',
         durability: 1,
@@ -709,67 +663,5 @@ let items = {
         isCollissed: false,
         isNaturalLight: true,
         name: 'flowing-water-23'
-    },
-
-    // Блоки фона
-    '1000':
-    {
-        id: '1000',
-        name: 'Stone background',
-        type: 'background',
-        isBlock: true,
-        isAlwaysGoodDestroy: true,
-        layout: 'BACK_LAYOUT',
-        dropId: '4000',
-        weight: WEIGHT_OF_BLOCKS,
-        durability: 7,
-        brightness: 0,
-        isSolid: true
-    },
-
-    '3000':
-    {
-        id: '3000',
-        name: 'Dirt background',
-        type: 'background',
-        isBlock: true,
-        isAlwaysGoodDestroy: true,
-        layout: 'BACK_LAYOUT',
-        dropId: '3000',
-        weight: WEIGHT_OF_BLOCKS,
-        durability: 1.5,
-        brightness: 0,
-        isSolid: true
-    },
-
-    '4000':
-    {
-        id: '4000',
-        name: 'Cobblestone background',
-        type: 'background',
-        isBlock: true,
-        isAlwaysGoodDestroy: true,
-        layout: 'BACK_LAYOUT',
-        dropId: '4000',
-        weight: WEIGHT_OF_BLOCKS,
-        meltingId: '1000',
-        costOfMelting: '100',
-        durability: 7,
-        brightness: 0,
-        isSolid: true
-    },
-
-    '5000':
-    {
-        id: '5000',
-        name: 'Wood Planks background',
-        type: 'background',
-        isBlock: true,
-        isAlwaysGoodDestroy: true,
-        layout: 'BACK_LAYOUT',
-        dropId: '5000',
-        weight: WEIGHT_OF_BLOCKS,
-        meltingId: '263',
-        costOfMelting: '50'
     }
 }

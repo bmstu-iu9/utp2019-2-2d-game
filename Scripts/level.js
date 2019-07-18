@@ -1,6 +1,6 @@
 /*
 const cameraScale = 1;                  Масштаб, 1 - стандарт
-const scale = 16                        Масштаб камеры (пикселей в блоке при cameraScale = 1)
+const blockSize = 16                        Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;           Положение камеры
 const chankWidth = 8, chankHeight = 8   Размеры чанка
 const minLayout = 2, maxLayout = 3      Обрабатываемые слои
@@ -242,21 +242,21 @@ let liquidK = player.getLiquidK();
 
 const mouseControl = () => {
     // Когда зажата ЛКМ
-    if(controller.mouse.click === 1) {
+    if (controller.mouse.click === 1) {
     	let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
     	const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
     		controller.mouse.direction.y * controller.mouse.direction.y);
-    	let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
-    	let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
-    	if(len / scale / cameraScale <= Player.ACTION_RADIUS
+    	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
+    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
+    	if (len / blockSize / cameraScale <= Player.ACTION_RADIUS
 	    		&& targetX >= 0 && targetX < gameArea.width && targetY >= 0 && targetY < gameArea.height
 	    		&& gameArea.canDestroy(targetX, targetY, layout)) {
-    		for(let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale){
+    		for(let i = 0; i < len / blockSize / cameraScale; i += 1 / blockSize / cameraScale){
     			const x = Math.floor(i * controller.mouse.direction.x / len + player.x);
     			const y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
 
-    			if(gameArea.canDestroy(x, y, GameArea.MAIN_LAYOUT)) {
-    				if(layout !== GameArea.MAIN_LAYOUT) {
+    			if (gameArea.canDestroy(x, y, GameArea.MAIN_LAYOUT)) {
+    				if (layout !== GameArea.MAIN_LAYOUT) {
     					break;
     				} else {
     					if(x !== targetX || y !== targetY) break; // Уперлись в другой блок
@@ -296,15 +296,15 @@ const mouseControl = () => {
 		let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
 		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
 			controller.mouse.direction.y * controller.mouse.direction.y);
-		let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
-		let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
-		if(gameArea.canPlace(targetX, targetY, layout)) {
-			if(len / scale / cameraScale <= Player.ACTION_RADIUS
+		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
+		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
+		if (gameArea.canPlace(targetX, targetY, layout)) {
+			if (len / blockSize / cameraScale <= Player.ACTION_RADIUS
 					&& targetX >= 0 && targetX < gameArea.width && targetY >= 0 && targetY < gameArea.height) {
 				let x = player.x;
 				let y = player.y;
-				let isAllowPlace = true; //.......................................... Действительно ли выбрано допустимое место
-				for(let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale){
+				let isAllowPlace = true; //.................................. Действительно ли выбрано допустимое место
+				for (let i = 0; i < len / blockSize / cameraScale; i += 1 / blockSize / cameraScale){
 					x = Math.floor(i * controller.mouse.direction.x / len + player.x);
 					y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
 					if (i > Player.ACTION_RADIUS

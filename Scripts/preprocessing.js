@@ -1,7 +1,7 @@
 'use strict';
 
 const cameraScale = 1;  // Масштаб, 1 - стандарт
-const scale = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
+const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chankWidth = 8, chankHeight = 8;  // Размеры чанка
 const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
@@ -23,7 +23,7 @@ image.onload = () => {
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
 			render.init(image, background, playerImage);
-			render.settings(scale, chankWidth, chankHeight);
+			render.settings(blockSize, chankWidth, chankHeight);
 
 			// Отправка образцов объектов
 			{
@@ -157,7 +157,7 @@ image.onload = () => {
 							loadingResult = result;
 							responce();
 						});
-					})
+					});
 				}
 
 				wait().then(() => {

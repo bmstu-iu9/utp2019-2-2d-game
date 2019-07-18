@@ -9,7 +9,10 @@ const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
 
+let loadingResult = undefined;
+
 const render = new Render();
+
 const image = new Image();
 image.src = 'Images/blocks.png';
 image.onload = () => {
@@ -100,10 +103,7 @@ image.onload = () => {
 						layoutChunk;
 				}
 			};
-
-      
-			beginPlay();
-
+			
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
@@ -143,13 +143,31 @@ image.onload = () => {
 						}
 					}
 				}
-
+				
 				render.OLDrender(cameraX, cameraY, player.x, player.y, cameraScale, arrOfChunks);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}
+			
+			if (loadExist()) {
+				let wait = async () => {
+					return new Promise (responce => {
+						load('world')
+						.then(result => {
+							loadingResult = result;
+							responce();
+						});
+					})
+				}
 
-			requestAnimationFrame(update);
+				wait().then(() => {
+					beginPlay();
+					requestAnimationFrame(update);
+				});
+			} else {
+				beginPlay();
+				requestAnimationFrame(update);
+			}
 		}
     }
 }

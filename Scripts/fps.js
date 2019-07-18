@@ -8,8 +8,7 @@ const fpsUpdate = () => {
 	const delta = nowtime - _fps_time;
 	if (delta < 1000) {
 		_fps_countner++;
-	}
-	else {
+	} else {
 		if (_fps_countner < 100) {
 			document.getElementById('fps').innerHTML = ' ';
 			if (_fps_countner < 10) {

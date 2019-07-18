@@ -6,6 +6,7 @@ class Controller {
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
         this.mouse 	= new MouseInput();
+        this.shift  = new ButtonInput();
 
         this.numbers = [];
         for(let i = 0; i < 10; i++){
@@ -34,6 +35,9 @@ class Controller {
             case 83:
                 this.down.getInput(down);
                 break;
+            case 16:
+                this.shift.getInput(down);
+                break;
         }
     }
     
@@ -59,7 +63,6 @@ class Controller {
 }
 
 class ButtonInput {
-
     constructor() {
         this.active = this.down = false;
     }
@@ -71,7 +74,6 @@ class ButtonInput {
 }
 
 class MouseInput {
-
 	constructor() {
         this.active = false;
         this.click = undefined;

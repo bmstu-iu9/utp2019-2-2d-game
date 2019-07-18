@@ -446,7 +446,6 @@ class Render {
 				}
 			}
         }
-		
 		this.render(xc, yc, xp, yp, scale);
 	}
 	

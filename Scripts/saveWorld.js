@@ -43,60 +43,51 @@ const deleteDatabase = () => {
 }
 
 // deleteDatabase();
-const save = async (worldName) => {
+const save = (worldName) => {
     if (!window.indexedDB) {
         window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
     }
 
+    let request = window.indexedDB.open(DB_NAME, 1);
+
+    request.onerror = (event) => {
+        console.error("Couldn't create database: " + event);
+        deleteDatabase();
+    }
+    
+    request.onupgradeneeded = (event) => {
+        _db = event.target.result;
+    
+        let objectStore = _db.createObjectStore(DB_STORE_NAME, {
+            ketPath: "worldName",
+            autoIncrement : true,
+            unique: true
+        });
+    
+        let pCopy = {}, gCopy = {};
+        playerCopy(pCopy, player);
+        gameAreaCopy(gCopy, gameArea);
+        objectStore.add({
+            player: pCopy,
+            gameArea: gCopy
+        },
+        worldName);
+    
+        localStorage.loadList = JSON.stringify(localStorage.loadList === undefined
+            ? [worldName]
+            : JSON
+                .parse(localStorage.loadList)
+                .push(worldName));
+    }
+}
+
+const load = (worldName) => {
     return new Promise((resolve, reject) => {
         let request = window.indexedDB.open(DB_NAME, 1);
 
         request.onerror = (event) => {
-            console.error("Couldn't create database: " + event);
-            reject(event);
-        }
-    
-        request.onupgradeneeded = (event) => {
-            _db = event.target.result;
-    
-            let objectStore = _db.createObjectStore(DB_STORE_NAME, {
-                ketPath: "worldName",
-                autoIncrement : true,
-                unique: true
-            });
-    
-            objectStore.createIndex("player", "player", {
-                unique: false
-            });
-            objectStore.createIndex("gameArea", "gameArea", {
-                unique: false
-            });
-    
-            let pCopy = {}, gCopy = {};
-            playerCopy(pCopy, player);
-            gameAreaCopy(gCopy, gameArea);
-            objectStore.add({
-                player: pCopy,
-                gameArea: gCopy
-            },
-            worldName);
-    
-            localStorage.loadList = JSON.stringify(localStorage.loadList === undefined
-                ? [worldName]
-                : JSON
-                    .parse(localStorage.loadList)
-                    .push(worldName));
-            resolve(event);
-        }
-    });
-}
-
-const load = async (worldName) => {
-    return await new Promise((resolve, reject) => {
-        let request = window.indexedDB.open(DB_NAME, 1);
-
-        request.onerror = (event) => {
             console.error("Couldn't load database: " + event);
+            deleteDatabase();
             reject(event);
         }
 
@@ -108,7 +99,7 @@ const load = async (worldName) => {
             .objectStore(DB_STORE_NAME)
             .get(worldName);
 
-            req.onsuccess = (event) => {
+            req.onsuccess = () => {
                 resolve({
                     gameArea: req.result.gameArea,
                     player: req.result.player

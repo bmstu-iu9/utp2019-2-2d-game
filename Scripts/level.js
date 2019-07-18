@@ -16,7 +16,6 @@ const key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
-let countSaves = 0;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -330,8 +329,7 @@ const mouseControl = () => {
 	}
 
 	// Сохранение и загрузка на СКМ
-	if (controller.mouse.click === 2 && countSaves === 0) {
-		// countSaves++;
+	if (controller.mouse.click === 2) {
 		save('world');
 	}
 }

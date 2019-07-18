@@ -439,16 +439,6 @@ class GameArea{
     }
 }
 
-// Для копирования gameArea из indexedDB
-const gameAreaCopy = (gameArea, obj) => {
-    gameArea.map = obj.map;
-    gameArea.elevationMap = obj.elevationMap;
-    gameArea.shadowMap = obj.shadowMap;
-    gameArea.timeOfDay = obj.timeOfDay;
-    gameArea.width = obj.width;
-    gameArea.height = obj.height;
-}
-
 // Константы уровня
 GameArea.FORWARD_LAYOUT = 1;
 GameArea.MAIN_LAYOUT = 2;

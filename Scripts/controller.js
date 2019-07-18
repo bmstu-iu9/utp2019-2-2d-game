@@ -5,7 +5,7 @@ class Controller {
         this.left   = new ButtonInput();
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
-        this.mouse 	= new MouseInput();
+        this.mouse  = new MouseInput();
         this.shift  = new ButtonInput();
 
         this.numbers = [];
@@ -47,8 +47,8 @@ class Controller {
         this.mouse.x = event.pageX;
         this.mouse.y = event.pageY;
         this.mouse.direction.x = this.mouse.x - document.getElementById('canvas').width / 2 - playerPlixelLocateX;
-        this.mouse.direction.y = document.getElementById('canvas').height / 2 - playerPlixelLocateY - this.mouse.y -
-            Player.HEIGHT * scale * cameraScale / 2;
+        this.mouse.direction.y = document.getElementById('canvas').height / 2 - playerPlixelLocateY - this.mouse.y
+            - Player.HEIGHT * scale * cameraScale / 2;
     }
 
     mouseDown(event) {

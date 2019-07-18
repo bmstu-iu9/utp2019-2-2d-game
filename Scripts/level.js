@@ -48,7 +48,7 @@ const beginPlay = () => {
     	player = new Player();
     	playerCopy(player, loadingResult.player);
     } else {
-    	gameArea = generate(3200, 1500, key);
+    	gameArea = generate(1000, 1000, key);
 
     	let px = gameArea.width / 2;
     	let py = 0;

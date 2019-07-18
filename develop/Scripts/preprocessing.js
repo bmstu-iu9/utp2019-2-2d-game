@@ -8,6 +8,7 @@ const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
+let loadingResult = undefined;
 
 const image = new Image();
 image.src = 'Images/blocks.png';
@@ -100,9 +101,6 @@ image.onload = () => {
 				}
 			};
 
-      
-			beginPlay();
-
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
@@ -148,7 +146,25 @@ image.onload = () => {
 				requestAnimationFrame(update);
 			}
 
-			requestAnimationFrame(update);
+			if (loadExist()) {
+				let wait = async () => {
+					return new Promise (responce => {
+						load('world')
+						.then(result => {
+							loadingResult = result;
+							responce();
+						});
+					})
+				}
+
+				wait().then(() => {
+					beginPlay();
+					requestAnimationFrame(update);
+				});
+			} else {
+				beginPlay();
+				requestAnimationFrame(update);
+			}
 		}
     }
 }

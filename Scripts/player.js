@@ -308,7 +308,7 @@ class Player {
         // Стоит ли на поверхности
         this.onGround = () => {
             if(this.y - 0.0001 < 0) return true;
-            return this.isCollisionDown(this.x, this.y - 0.0001);
+            return this.isCollisionDown(this.fx, this.fy - 0.0001);
         }
 
         /*  Коэффициент плотности жидкости, в которой игрок

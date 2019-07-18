@@ -121,7 +121,11 @@ let liquidK = player.getLiquidK();
 		if(player.onGround()) { //.................................................... Если игрок на поверхности
 			player.vy = Math.max(player.vy, 0);
 			if(controller.up.active) {
-				player.vy = Player.JUMP_SPEED;
+				if(controller.shift.active) {
+					player.vy = Player.JUMP_SPEED * 2 / 3;
+				} else {
+					player.vy = Player.JUMP_SPEED;
+				}
 			}
 		} else {
 			if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
@@ -132,8 +136,13 @@ let liquidK = player.getLiquidK();
 				}
 			}
 		}
-		if(controller.left.active) player.vx = -Player.SPEED; //......................... Если нажато вправо
-		if(controller.right.active) player.vx = Player.SPEED; //......................... Если нажато влево
+		if(controller.shift.active) { // На шифте
+			if(controller.left.active) player.vx = -Player.SPEED / 2; //................. Если нажато вправо
+			if(controller.right.active) player.vx = Player.SPEED / 2; //................. Если нажато влево
+		} else {
+			if(controller.left.active) player.vx = -Player.SPEED; //..................... Если нажато вправо
+			if(controller.right.active) player.vx = Player.SPEED; //..................... Если нажато влево
+		}
 		if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
 	} else { //................................................................. Если в жидкости
 		if(controller.left.active) player.vx -= Player.SPEED * deltaTime;
@@ -176,6 +185,10 @@ let liquidK = player.getLiquidK();
 		let ansY = player.fy + (newY - player.fy) * (i - 1) / steps;
 
 		if(!changedX){
+			if(controller.shift.active && player.onGround() && !player.isCollisionDown(iX, player.fy - 0.001)) {
+				player.vx = 0;
+				changedX = true;
+			}
 			if(player.vx < 0 && player.isCollisionLeft(iX, changedY ? newY : iY)) {
 				player.vx = 0;
 				changedX = true;

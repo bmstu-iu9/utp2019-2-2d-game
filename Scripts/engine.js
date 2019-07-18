@@ -381,7 +381,7 @@ class Render {
 		const near = 0.01;
 		const far = 11;
 		
-		// отрисовка блоков в фреймбуфер
+		// отрисовка блоков в буфер кадров
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		
@@ -398,7 +398,7 @@ class Render {
 		for (let c in arrayOfChunk) {
 			if (arrayOfChunk[c].light != -100) {
 				if (this.arrayOfChunks[c] == undefined) {
-					// фреймбуфер
+					// буфер кадров
 					const texture = this.gl.createTexture();
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, w, h, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
@@ -456,23 +456,18 @@ class Render {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		
 		// отрисовка фона
-		//this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
-		//this.gl.uniform1f(this.resolutionUniformLocation, 1);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
+		this.gl.uniform1f(this.resolutionUniformLocation, 1);
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
-
-		//this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
-		//const z = 0.1 - far;
+		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
+		const z = 0.1 - far;
 		
 		// необходимо изменить!
-		/*
-		for (let i = 0; i < asp / 2 + 2; i++) {
+		for (let i = 0; i <= asp; i++) {
 			this.gl.uniform3f(this.translateUniformLocation,
-				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * i + 0.5, y * ch - 0.5, z);
+				x * ch - asp / 2 + i, y * ch - 0.5, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
-			this.gl.uniform3f(this.translateUniformLocation,
-				x * ch - (x * ch / 2) % (this.backgroundAsp * 2) + this.backgroundAsp * -i - 0.5, y * ch - 0.5, z);
-			this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
-		}*/
+		}
 		
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		this.gl.uniform1f(this.lightUniformLocation, 1); // стандартное освещение

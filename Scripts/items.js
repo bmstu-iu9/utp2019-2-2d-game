@@ -126,6 +126,30 @@ let items = {
         name: 'flowing-water-image'
     },
 
+    '10':
+    {
+        id: '10',
+        name: 'Lava',
+        dropId: '326',
+        weight: WEIGHT_OF_INSTRUMENTS,
+        type: 'water',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        hasGravity: true,
+        density: 0.9
+    },
+
+    '11':
+    {
+        id: '11',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        name: 'flowing-lava-image'
+    },
+
     '12':
     {
         id: '12',

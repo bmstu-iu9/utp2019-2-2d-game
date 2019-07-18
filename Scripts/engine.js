@@ -109,9 +109,8 @@ class Render {
 		}
 		
 		// сборка и компиляция шейдерной программы
-		const vertexShader = this.createShader(this.gl.VERTEX_SHADER, document.getElementById('vertex-shader').text);
-		const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER,
-			document.getElementById('fragment-shader').text);
+		const vertexShader = this.createShader(this.gl.VERTEX_SHADER, _vertexShader);
+		const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader);
 		this.program = this.createProgram(vertexShader, fragmentShader);
 		
 		// используем шейдерную программу

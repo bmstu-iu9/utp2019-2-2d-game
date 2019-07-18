@@ -226,15 +226,15 @@ let liquidK = player.getLiquidK();
 	player.fx = newX;
 	player.fy = newY;
 	
-	player.x = Math.round(newX * 16) / 16;
-	player.y = Math.round(newY * 16) / 16;
+	player.x = Math.round(newX * scale) / scale;
+	player.y = Math.round(newY * scale) / scale;
 
 	// Плавное движение камеры
 	if(Math.abs(cameraX - newX) > 0.3){
-		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime) * 16) / 16, cameraY);
+		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime) * scale) / scale, cameraY);
 	}
 	if(Math.abs(cameraY - newY) > 0.3){
-		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime) * 16) / 16);
+		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime) * scale) / scale);
 	}
 	
 }

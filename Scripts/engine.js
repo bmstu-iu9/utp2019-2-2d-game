@@ -345,7 +345,7 @@ class Render {
 
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
-		this.gl.clearColor(0.53, 0.81, 0.98, 1);
+		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		
 		// отрисовка фона
@@ -385,14 +385,10 @@ class Render {
 		this.gl.enable(this.gl.DEPTH_TEST);
 	}
 	
-	OLDrender(x, y, xp, yp, scale, arrayOfChunk) {
+	OLDrender(xc, yc, xp, yp, scale, arrayOfChunk) {
+		// отрисовка блоков в буфер кадров
 		const near = 0.01;
 		const far = 11;
-		
-		// отрисовка блоков в буфер кадров
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
-		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-		
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
 			2.0, 0.0, 0.0, 0.0,
 			0.0, 2.0, 0.0, 0.0,
@@ -400,9 +396,9 @@ class Render {
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 		const w = this.widthChunk * this.size;
 		const h = this.heightChunk * this.size;
-		this.gl.uniform1f(this.resolutionUniformLocation, this.heightChunk * this.size);
-		
+		this.gl.uniform1f(this.resolutionUniformLocation, h);
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
+		
 		for (let c in arrayOfChunk) {
 			if (arrayOfChunk[c].light != -100) {
 				if (this.arrayOfChunks[c] == undefined) {
@@ -424,7 +420,7 @@ class Render {
 					for (let x in arrayOfChunk[c].chunk) {
 						const xh = x / this.widthChunk;
 						for (let y in arrayOfChunk[c].chunk[x]) {
-							const yh = y /this.heightChunk;
+							const yh = y / this.heightChunk;
 							const id = arrayOfChunk[c].chunk[x][y];
 							if (id !== undefined) {
 								const light = arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "L"].chunk[x][y];
@@ -451,7 +447,7 @@ class Render {
 			}
         }
 		
-		this.render(x, y, xp, yp, scale);
+		this.render(xc, yc, xp, yp, scale);
 	}
 	
 	createShader(type, source) {

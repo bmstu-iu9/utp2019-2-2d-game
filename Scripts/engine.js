@@ -291,6 +291,13 @@ class Render {
 	createChunk(x, y, lightOfFrontChunk, blocksOfFrontChunk, lightOfBackChunk, blocksOfBackChunk, lightChunk) {
 		const width = this.widthChunk * this.size;
 		const height = this.heightChunk * this.size;
+		const near = 0.01;
+		const far = 11;
+		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
+			2.0, 0.0, 0.0, 0.0,
+			0.0, 2.0, 0.0, 0.0,
+			0.0, 0.0, -2.0 / (far - near), 0.0,
+			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 		
 		// буфер кадров
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
@@ -304,11 +311,47 @@ class Render {
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture, 0);
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-		
+
 		//this.gl.flush(); // тест
 		
+		this.gl.viewport(0, 0, w, h);
+		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		
+		for (let x = 0; x < this.widthChunk; x++) {
+			const xh = x / this.widthChunk;
+			for (let y = 0; y < this.heightChunk; y++) {
+				const yh = y / this.heightChunk;
+				const id0 = blocksOfFrontChunk[x][y];
+				const id1 = blocksOfBackChunk[x][y];
+				if (id0 === undefined) {
+					if (id1 !== undefined) {
+						const light = lightOfBackChunk * lightChunk[x][y];
+						if (light < 0.01) {
+							this.gl.uniform1f(this.lightUniformLocation, 0);
+							this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+							this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
+						} else {
+							this.gl.uniform1f(this.lightUniformLocation, light);
+							this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+							this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id1] * 6, 6);
+						}
+					}
+				} else {
+					const light = lightOfFrontChunk * lightChunk[x][y];
+					if (light < 0.01) {
+						this.gl.uniform1f(this.lightUniformLocation, 0);
+						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
+					} else {
+						this.gl.uniform1f(this.lightUniformLocation, light);
+						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id0] * 6, 6);
+					}
+				}
+			}
+		}
 		
 		this.arrayOfChunk[`${x}x${y}`] = {
 			x: x,
@@ -365,6 +408,7 @@ class Render {
 		}
 		
 		// отрисовка чанков
+		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		this.gl.uniform1f(this.lightUniformLocation, 1); // стандартное освещение
 		//this.gl.disable(this.gl.DEPTH_TEST);
@@ -385,7 +429,8 @@ class Render {
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
 		this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
-		this.gl.enable(this.gl.DEPTH_TEST);
+		//this.gl.enable(this.gl.DEPTH_TEST);
+		this.gl.disable(this.gl.DEPTH_TEST);
 	}
 	
 	OLDrender(xc, yc, xp, yp, scale, arrayOfChunk) {

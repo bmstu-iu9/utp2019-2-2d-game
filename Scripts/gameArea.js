@@ -1,6 +1,6 @@
 'use strict';
 
-/*============================================Описание свойств блока========================================================================
+/*============================================Описание свойств блока===================================================
  id - его id в таблице items, а также представление в map
  type - тип блока, определяется на основе того, чем "добывается" блок с точки зрения логики:
                         dirt         - земля, добывается лопатой
@@ -9,8 +9,8 @@
                         leaf         - листва, добывается ножницами
                         water        - блоки стоячей жидкости
                         flowingWater - блоки текучей жидкости
-                        backgr       - блоки фона, стоят на отдельном фоновом слое, добываются (?) молотом (если смотреть на ту же
-                                       Террарию)
+                        backgr       - блоки фона, стоят на отдельном фоновом слое, добываются (?) молотом
+                                        (если смотреть на ту же Террарию)
                         foregr       - блоки переднего плана, добываются тоже (?) молотом 
  durability  : Прочность блока : от 1 до 100
  brightness  : Светимость блока : от 0 до 9
@@ -20,7 +20,8 @@
  isClickable : Можно ли нажать на блок
  hasGravity  : Подвержен ли этот блок гравитации, т.е падает ли вниз без опоры, true/false
  name        : имя блока
-===========================================================================================================================================*/
+=======================================================================================================================
+*/
 
 
 
@@ -39,7 +40,11 @@ class GameArea{
 
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
-            let grad = (y > this.elevationMap[x]) ? 1 : ((y < 0.7 * this.elevationMap[x]) ? 0.2 : ((y - 0.7 * this.elevationMap[x]) / (0.3 * this.elevationMap[x]) * 0.8 + 0.2));
+            let grad = (y > this.elevationMap[x])
+                ? 1
+                : ((y < 0.9 * this.elevationMap[x])
+                    ? 0.2
+                    : ((y - 0.9 * this.elevationMap[x]) / (0.1 * this.elevationMap[x]) * 0.8 + 0.2));
             let k = Math.min(1 / 3 + this.timeOfDay * 3 / 2, grad);
             if(Math.floor(shadowMap[x][y] / 1000) > shadowMap[x][y] % 1000 * k){
                 return Math.floor(shadowMap[x][y] / 1000) / 9;
@@ -51,13 +56,25 @@ class GameArea{
         // Добавление источника света
         this.addLightRound = (startX, startY, x, y, n, isNatural, isForce) => {
             const step = (nextX, nextY, n) => {
-                if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
-                    && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height
-                    && (shadowMap[nextX][nextY] === undefined || (isNatural && shadowMap[nextX][nextY] % 1000 < n) || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))){
+                if (n > 0
+                        && ((startX - x) * (startX - x) + (startY - y) * (startY - y)
+                            < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY))
+                        && nextX >= 0
+                        && nextY >= 0
+                        && nextX < width
+                        && nextY < height
+                        && (shadowMap[nextX][nextY] === undefined
+                            || (isNatural && shadowMap[nextX][nextY] % 1000 < n)
+                            || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))) {
+
                     this.addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
                 }
             };
-            if(n > 0 && (isForce || (shadowMap[x][y] === undefined || (isNatural && shadowMap[x][y] % 1000 < n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n)))){
+            if (n > 0 && (isForce
+                    || (shadowMap[x][y] === undefined
+                        || (isNatural && shadowMap[x][y] % 1000 < n)
+                        || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n)))) {
+
                 if(isNatural){
                     if(shadowMap[x][y] === undefined){
                         shadowMap[x][y] = n;
@@ -85,6 +102,7 @@ class GameArea{
                     if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) <
                         (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
                         && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height) {
+
                         if(isNatural && shadowMap[nextX][nextY] % 1000 > n) {
                             lights.push([nextX, nextY, shadowMap[nextX][nextY] % 1000, isNatural]);
                             return;
@@ -95,7 +113,10 @@ class GameArea{
                         deleteLightNoUpdateRound(startX, startY, nextX, nextY, n, isNatural);
                     }
                 };
-                if(n > 0 && ((isNatural && shadowMap[x][y] % 1000 === n) || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))){
+                if (n > 0
+                    && ((isNatural && shadowMap[x][y] % 1000 === n)
+                        || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))) {
+
                     if(isNatural){
                         shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000;
                     }else{
@@ -109,7 +130,8 @@ class GameArea{
             };
             deleteLightNoUpdateRound(startX, startY, x, y, n, isNatural);
             for(let i = 0; i < lights.length; i++){
-                this.addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3], true);
+                this.addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3],
+                    true);
             }
         };
 
@@ -189,9 +211,15 @@ class GameArea{
                             if (x + 1 < this.width && y - 1 >= 0) downRightB = items[this.map[x + 1][y - 1][layout]];
                             if (downRightB === undefined || downRightB.type !== "leaf" ||
                                 downRightB.type !== "wood") {
-                                if ((x + 1 >= this.width || (!this.map[x + 1][y][layout] || items[this.map[x + 1][y][layout]].type !== "wood")) &&
-                                    (x - 1 < 0 || (!this.map[x - 1][y][layout] || items[this.map[x - 1][y][layout]].type !== "wood")))
+                                if ((x + 1 >= this.width
+                                        || (!this.map[x + 1][y][layout]
+                                            || items[this.map[x + 1][y][layout]].type !== "wood"))
+                                    && (x - 1 < 0
+                                        || (!this.map[x - 1][y][layout]
+                                            || items[this.map[x - 1][y][layout]].type !== "wood"))) {
+
                                     this.destroyBlock(x, y, layout);
+                                }
                             }
                         }
                     }
@@ -200,17 +228,23 @@ class GameArea{
                 case "water":
                     if (this.map[x][y - 1][layout] === undefined) {
                         setTimeout(() => {
-                            if (this.map[x][y - 1][layout] === undefined) this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(9016))
+                            if (this.map[x][y - 1][layout] === undefined) {
+                                this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(9016));
+                            }
                         })
                     } else if(Math.floor((this.map[x][y - 1][layout]-9000)/8) !== 2) {
                         if (this.map[x - 1][y][layout] === undefined) {
                             setTimeout(() => {
-                                if (this.map[x - 1][y][layout] === undefined) this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(9000))
+                                if (this.map[x - 1][y][layout] === undefined) {
+                                    this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(9000));
+                                }
                             }, 200);
                         }
                         if (this.map[x + 1][y][layout] === undefined) {
                             setTimeout(() => {
-                                if (this.map[x + 1][y][layout] === undefined) this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(9008))
+                                if (this.map[x + 1][y][layout] === undefined) {
+                                    this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(9008));
+                                }
                             }, 200);
                         }
                     }
@@ -218,28 +252,77 @@ class GameArea{
 
                 case "flowingWater":
                     let power = (+block.id - 9000) % 8;
-                    if (this.map[x + 1][y][layout] !== 8 && this.map[x - 1][y][layout] !== 8 && this.map[x][y + 1][layout] !== 8 &&
-                        (!this.map[x + 1][y][layout] || (this.map[x + 1][y][layout] - 9000) % 8 >= power ||  this.map[x + 1][y][layout] < 9000) &&
-                        (!this.map[x - 1][y][layout] ||  (this.map[x - 1][y][layout] - 9000) % 8 >= power ||  this.map[x - 1][y][layout] < 9000) &&
-                        (!this.map[x][y + 1][layout] || (this.map[x][y + 1][layout] - 9000) % 8 > power || this.map[x][y + 1][layout] < 9000))
-                        setTimeout(() => {if (this.map[x][y][layout] === +block.id) this.destroyBlock(x, y, layout)}, 50);
-                    else {
+                    if (this.map[x + 1][y][layout] !== 8
+                        && this.map[x - 1][y][layout] !== 8
+                        && this.map[x][y + 1][layout] !== 8
+                        && (!this.map[x + 1][y][layout]
+                            || (this.map[x + 1][y][layout] - 9000) % 8 >= power
+                            ||  this.map[x + 1][y][layout] < 9000)
+                        && (!this.map[x - 1][y][layout]
+                            ||  (this.map[x - 1][y][layout] - 9000) % 8 >= power
+                            ||  this.map[x - 1][y][layout] < 9000)
+                        && (!this.map[x][y + 1][layout]
+                            || (this.map[x][y + 1][layout] - 9000) % 8 > power
+                            || this.map[x][y + 1][layout] < 9000)) {
+
+                            setTimeout(() => {
+                                if (this.map[x][y][layout] === +block.id) this.destroyBlock(x, y, layout);
+                            }, 50);
+                    } else {
+
                         let direction = Math.floor((+block.id - 9000) / 8);
                         if (this.map[x][y - 1][layout] === undefined) {
-                            setTimeout(() => { if(this.map[x][y][layout] === +block.id) this.placeBlock(x, y - 1, layout,
-                                this.makeFlowingWaterBlock(this.map[x][y][layout] + 8 * (2 - direction)))}, 50);
-                        } else if (this.map[x][y - 1][layout] !== undefined && items[this.map[x][y - 1][layout]].type !== "flowingWater" &&
-                            +block.id !== 9023 && direction === Math.floor((+block.id - 8999) / 8)) {
+
+                            setTimeout(() => {
+                                if(this.map[x][y][layout] === +block.id)
+                                    this.placeBlock(x, y - 1, layout,
+                                        this.makeFlowingWaterBlock(this.map[x][y][layout] + 8 * (2 - direction)));
+                            }, 50);
+                        } else if (this.map[x][y - 1][layout] !== undefined
+                            && items[this.map[x][y - 1][layout]].type !== "flowingWater"
+                            && +block.id !== 9023 && direction === Math.floor((+block.id - 8999) / 8)) {
+
                             if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
-                                if (direction === 0) setTimeout(() => {if(this.map[x][y][layout] === +block.id && this.map[x - 1][y][layout] === undefined) this.placeBlock(x - 1, y,
-                                    layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1)) }, 200);
-                                else  setTimeout(() => {if(this.map[x][y][layout] === +block.id && this.map[x - 1][y][layout] === undefined)  this.placeBlock(x - 1, y,
-                                    layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15)) }, 200);
+
+                                if (direction === 0) setTimeout(() => {
+                                    if(this.map[x][y][layout] === +block.id
+                                        && this.map[x - 1][y][layout] === undefined) {
+
+                                        this.placeBlock(x - 1, y,
+                                            layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+                                        }
+                                    }, 200);
+                                else {
+                                    setTimeout(() => {
+                                        if(this.map[x][y][layout] === +block.id
+                                            && this.map[x - 1][y][layout] === undefined) {
+
+                                            this.placeBlock(x - 1, y,
+                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15));
+                                            }
+                                        }, 200);
+                                }
                             } else if (this.map[x + 1][y][layout] === undefined && direction !== 0) {
-                                if (direction === 1) setTimeout(() => { if(this.map[x][y][layout] === +block.id && this.map[x + 1][y][layout] === undefined) this.placeBlock(x + 1, y,
-                                    layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1))}, 200);
-                                else setTimeout(() => {if(this.map[x][y][layout] === +block.id && this.map[x + 1][y][layout] === undefined) this.placeBlock(x + 1, y,
-                                    layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 7))}, 200);
+                                if (direction === 1) {
+                                    setTimeout(() => {
+                                        if(this.map[x][y][layout] === +block.id
+                                            && this.map[x + 1][y][layout] === undefined) {
+
+                                            this.placeBlock(x + 1, y,
+                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+                                        }
+                                    }, 200);
+                                }
+                                else {
+                                    setTimeout(() => {
+                                        if(this.map[x][y][layout] === +block.id
+                                            && this.map[x + 1][y][layout] === undefined) {
+
+                                            this.placeBlock(x + 1, y,
+                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 7));
+                                        }
+                                    }, 200);
+                                }
                             }
                         }
                     }
@@ -267,28 +350,43 @@ class GameArea{
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.map[x][y][layout] = this.makeAirBlock();
-            this.deleteLightRound(x, y, x, y, items[lastBlock].brightness, items[lastBlock].isNaturalLight === true);
+            if(layout === GameArea.MAIN_LAYOUT) {
+                this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
+                    items[lastBlock].isNaturalLight === true);
+            }
             this.addLightRound(x, y, x, y, 9, true, false);
             this.updateRadius(x, y, layout);
         };
 
-        // Можно ставить блок на (x, y, MAIN_LAYOUT)
-        this.canPlace = (x, y) => {
-            let startX = Math.floor(player.x - Player.WIDTH / 2);
-            let endX = Math.floor(player.x + Player.WIDTH / 2);
-            let startY = Math.floor(player.y);
-            let endY = Math.floor(player.y + Player.HEIGHT);
-            return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
-            && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
-            && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
-                || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+        // Можно ставить блок на (x, y, layout)
+        this.canPlace = (x, y, layout) => {
+            if(layout === GameArea.MAIN_LAYOUT) {
+                let startX = Math.floor(player.x - Player.WIDTH / 2);
+                let endX = Math.floor(player.x + Player.WIDTH / 2);
+                let startY = Math.floor(player.y);
+                let endY = Math.floor(player.y + Player.HEIGHT);
+                return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+                    && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
+                    && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
+                    || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+            } else {
+                return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+                    && this.map[x][y][layout] == undefined;
+            }
         }
 
-        // Есть что ломать
-        this.canDestroy = (x, y) => {
+        // Можно ли ломать блок на (x, y, layout)
+        this.canDestroy = (x, y, layout) => {
+            // Если не основной слой, можно ломать только с краёв
+            if(layout != GameArea.MAIN_LAYOUT
+                && (!this.canPlace(x, y + 1, layout)
+                && !this.canPlace(x + 1, y, layout)
+                && !this.canPlace(x - 1, y, layout)
+                && !this.canPlace(x, y - 1, layout))) return false;
+
             return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
-            && this.map[x][y][GameArea.MAIN_LAYOUT] != undefined
-                && this.map[x][y][GameArea.MAIN_LAYOUT].type != "water";
+                && this.map[x][y][layout] != undefined
+                && this.map[x][y][layout].type != "water";
         }
 
         // Действие при установке блока
@@ -297,12 +395,15 @@ class GameArea{
             if (!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
                 this.map[x][y][layout] = id;
-                if(lastBlock == undefined){
-                    this.deleteLightRound(x, y, x, y, 9, true);
-                } else {
-                    this.deleteLightRound(x, y, x, y, items[lastBlock].brightness, items[lastBlock].isNaturalLight === true);
+                if(layout === GameArea.MAIN_LAYOUT) {
+                    if(lastBlock == undefined){
+                        this.deleteLightRound(x, y, x, y, 9, true);
+                    } else {
+                        this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
+                            items[lastBlock].isNaturalLight === true);
+                    }
+                    this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 }
-                this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 this.updateRadius(x, y, layout);
                 this.updateBlock(x, y, layout);
             }
@@ -338,7 +439,6 @@ class GameArea{
     }
 }
 
-
 // Для копирования gameArea из indexedDB
 const gameAreaCopy = (gameArea, obj) => {
     gameArea.map = obj.map;
@@ -348,7 +448,6 @@ const gameAreaCopy = (gameArea, obj) => {
     gameArea.width = obj.width;
     gameArea.height = obj.height;
 }
-
 
 // Константы уровня
 GameArea.FORWARD_LAYOUT = 1;

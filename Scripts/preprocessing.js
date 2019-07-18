@@ -10,8 +10,6 @@ let deltaTime = 0;  // Изменение времени между кадрам
 let gameArea;  // Игровой мир (объект GameArea)
 let loadingResult = undefined;
 
-
-
 const image = new Image();
 image.src = 'Images/blocks.png';
 image.onload = () => {
@@ -88,7 +86,8 @@ image.onload = () => {
 									layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 ) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+									// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 )
 										layoutChunk.chunk[i - startX][j - startY] = 9;
 									else layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
@@ -148,7 +147,6 @@ image.onload = () => {
 				requestAnimationFrame(update);
 			}
 
-
 			if (loadExist()) {
 				let wait = async () => {
 					return new Promise (responce => {
@@ -168,7 +166,6 @@ image.onload = () => {
 				beginPlay();
 				requestAnimationFrame(update);
 			}
-
 		}
     }
 }

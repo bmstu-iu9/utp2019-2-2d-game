@@ -37,18 +37,18 @@ class Player {
         this.vx = 0;
         this.vy = 0;
 
-        // Сломать блок на (x, y, MAIN_LAYOUT)
-        this.destroy = (x, y) => {
+        // Сломать блок на (x, y, layout)
+        this.destroy = (x, y, layout) => {
             let type;
             if (this.hand.item && this.hand.info.isTool) {
                 type = this.hand.info.type; // блоки какого типа добывает инструмент
             } else {
                 type = undefined; // Если в руках не инструмент
             }
-            let blockType = items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type; // Тип блока
+            let blockType = items[gameArea.map[x][y][layout]].type; // Тип блока
             if (type === blockType) {
                 //Вставляет лут в инвентарь - пока что сразу
-                this.addToInv(gameArea.goodDestroy(x, y, GameArea.MAIN_LAYOUT));
+                this.addToInv(gameArea.goodDestroy(x, y, layout));
                 this.hand.item.durability--;
                 if(this.hand.item.durability < 1){ // Инструмент сломался
                     this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
@@ -56,35 +56,26 @@ class Player {
                     this.hand.info = undefined;
                 }
             } else {
-                if(items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isAlwaysGoodDestroy){
-                    this.addToInv(gameArea.goodDestroy(x, y, GameArea.MAIN_LAYOUT));
+                if(items[gameArea.map[x][y][layout]].isAlwaysGoodDestroy){
+                    this.addToInv(gameArea.goodDestroy(x, y, layout));
                 } else {
-                    gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+                    gameArea.destroyBlock(x, y, layout);
                 }
             }
         };
 
-        // Разместить блок из руки на (x, y, MAIN_LAYOUT)
-        this.place = (x, y) => {
-            if(this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y)) {
-                gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, this.hand.item);
+        // Разместить блок из руки на (x, y, layout)
+        this.place = (x, y, layout) => {
+            if(this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)) {
+                gameArea.placeBlock(x, y, layout, this.hand.item);
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
             }
         };
 
         // Если можно взаимодействовать - сделать это
-        this.interact = (x, y) => {
-            // Пока взаимодействуем только в MAIN_LAYOUT
+        this.interact = (x, y, layout) => {
             if (this.inActionRadius(x, y)) {
-                gameArea.interactWithBlock(x, y, gameArea.MAIN_LAYOUT);
-            }
-        };
-
-        // Получение информации о блоке, пока только в MAIN_LAYOUT
-        this.info = (x, y) => {
-            if (this.inActionRadius(x, y)) {
-                let block = items[gameArea.map[x][y][gameArea.MAIN_LAYOUT]];
-                alert(`Block on ${x} ${y} : ` + JSON.stringify(block));
+                gameArea.interactWithBlock(x, y, layout);
             }
         };
 
@@ -97,15 +88,15 @@ class Player {
             Возвращает предмет не влезжший в инвентарь */
         this.addToInv = (item) => {
             // Вставляем предмет в инвентарь, если он стакается
-            if(item.count != undefined) {
+            if (item.count != undefined) {
 
                 // Если даже 1 не влезет
-                if(items[item.id].weight + this.inv.weight > this.inv.capacity) {
+                if (items[item.id].weight + this.inv.weight > this.inv.capacity) {
                     return item;
                 }
-                for(let i = 0; i < this.inv.items.length; i++) {
-                    if(item.id == this.inv.items[i]) {
-                        if(items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
+                for (let i = 0; i < this.inv.items.length; i++) {
+                    if (item.id == this.inv.items[i]) {
+                        if (items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
                             this.inv.count[i] += item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
@@ -119,10 +110,10 @@ class Player {
                         }
                     }
                 }
-                for(let i = 0; i <= this.inv.items.length; i++) {
-                    if(this.inv.items[i] == undefined) {
+                for (let i = 0; i <= this.inv.items.length; i++) {
+                    if (this.inv.items[i] == undefined) {
                         this.inv.items[i] = item.id;
-                        if(items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
+                        if (items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
                             this.inv.count[i] = item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
@@ -230,12 +221,14 @@ class Player {
 
         // Получение урона
         this.getDamage = (count) => {
-            console.log("Damage - " + count);
-            this.hp = Math.max(this.hp - count, 0);
-            if(this.hp == 0) {
-                this.die();
+            if(count > 0) {
+                console.log("Damage - " + count);
+                this.hp = Math.max(this.hp - count, 0);
+                if(this.hp == 0) {
+                    this.die();
+                }
+                console.log("Now you have " + this.hp + " hp");
             }
-            console.log("Now you have " + this.hp + " hp");
         }
 
         // Восстановление здоровья
@@ -293,8 +286,8 @@ class Player {
         // Задевает ли верхняя грань игрока блоки с коллизией
         this.isCollisionUp = (newX, newY) => {
             let j = Math.floor(newY + Player.HEIGHT);
-            for(let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
-                if(gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)){
+            for (let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
+                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
                     return true;
                 }
             }
@@ -304,8 +297,8 @@ class Player {
         // Задевает ли нижняя грань игрока блоки с коллизией
         this.isCollisionDown = (newX, newY) => {
             let j = Math.floor(newY);
-            for(let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
-                if(gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)){
+            for (let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
+                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
                     return true;
                 }
             }
@@ -314,8 +307,8 @@ class Player {
 
         // Стоит ли на поверхности
         this.onGround = () => {
-            if(this.y - 0.0001 < 0) return true;
-            return this.isCollisionDown(this.x, this.y - 0.0001);
+            if (this.y - 0.0001 < 0) return true;
+            return this.isCollisionDown(this.fx, this.fy - 0.0001);
         }
 
         /*  Коэффициент плотности жидкости, в которой игрок
@@ -327,9 +320,9 @@ class Player {
             let endX = Math.min(Math.floor(this.x + Player.WIDTH / 2), gameArea.width - 1);
             let startY = Math.max(Math.floor(this.y), 0);
             let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
-            for(let x = startX; x <= endX; x++) {
-                for(let y = startY; y <= endY; y++) {
-                    if(items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
+            for (let x = startX; x <= endX; x++) {
+                for (let y = startY; y <= endY; y++) {
+                    if (items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
                             && items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density > k) {
                         k = items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density;
                     }
@@ -344,10 +337,11 @@ class Player {
 const playerCopy = (player, obj) => {
     player.x = obj.x;
     player.y = obj.y;
+    player.fx = obj.fx;
+    player.fy = obj.fy;
     player.hp = obj.hp;
     player.bp = obj.bp;
     player.inv = obj.inv;
-    player.x = obj.x;
     player.fastInv = obj.fastInv;
     player.hand = obj.hand;
     player.vx = obj.vx;

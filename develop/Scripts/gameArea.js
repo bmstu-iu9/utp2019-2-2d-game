@@ -39,7 +39,7 @@ class GameArea{
 
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
-            let grad = (y > this.elevationMap[x]) ? 1 : ((y < 0.7 * this.elevationMap[x]) ? 0.2 : ((y - 0.7 * this.elevationMap[x]) / (0.3 * this.elevationMap[x]) * 0.8 + 0.2));
+            let grad = (y > this.elevationMap[x]) ? 1 : ((y < 0.9 * this.elevationMap[x]) ? 0.2 : ((y - 0.9 * this.elevationMap[x]) / (0.1 * this.elevationMap[x]) * 0.8 + 0.2));
             let k = Math.min(1 / 3 + this.timeOfDay * 3 / 2, grad);
             if(Math.floor(shadowMap[x][y] / 1000) > shadowMap[x][y] % 1000 * k){
                 return Math.floor(shadowMap[x][y] / 1000) / 9;

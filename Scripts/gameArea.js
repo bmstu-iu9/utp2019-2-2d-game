@@ -267,28 +267,42 @@ class GameArea{
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.map[x][y][layout] = this.makeAirBlock();
-            this.deleteLightRound(x, y, x, y, items[lastBlock].brightness, items[lastBlock].isNaturalLight === true);
+            if(layout === GameArea.MAIN_LAYOUT) {
+                this.deleteLightRound(x, y, x, y, items[lastBlock].brightness, items[lastBlock].isNaturalLight === true);
+            }
             this.addLightRound(x, y, x, y, 9, true, false);
             this.updateRadius(x, y, layout);
         };
 
-        // Можно ставить блок на (x, y, MAIN_LAYOUT)
-        this.canPlace = (x, y) => {
-            let startX = Math.floor(player.x - Player.WIDTH / 2);
-            let endX = Math.floor(player.x + Player.WIDTH / 2);
-            let startY = Math.floor(player.y);
-            let endY = Math.floor(player.y + Player.HEIGHT);
-            return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
-            && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
-            && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
-                || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+        // Можно ставить блок на (x, y, layout)
+        this.canPlace = (x, y, layout) => {
+            if(layout === GameArea.MAIN_LAYOUT) {
+                let startX = Math.floor(player.x - Player.WIDTH / 2);
+                let endX = Math.floor(player.x + Player.WIDTH / 2);
+                let startY = Math.floor(player.y);
+                let endY = Math.floor(player.y + Player.HEIGHT);
+                return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+                    && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
+                    && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
+                    || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+            } else {
+                return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+                    && this.map[x][y][layout] == undefined;
+            }
         }
 
-        // Есть что ломать
-        this.canDestroy = (x, y) => {
+        // Можно ли ломать блок на (x, y, layout)
+        this.canDestroy = (x, y, layout) => {
+            // Если не основной слой, можно ломать только с краёв
+            if(layout != GameArea.MAIN_LAYOUT
+                && (!this.canPlace(x, y + 1, layout)
+                && !this.canPlace(x + 1, y, layout)
+                && !this.canPlace(x - 1, y, layout)
+                && !this.canPlace(x, y - 1, layout))) return false;
+
             return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
-            && this.map[x][y][GameArea.MAIN_LAYOUT] != undefined
-                && this.map[x][y][GameArea.MAIN_LAYOUT].type != "water";
+                && this.map[x][y][layout] != undefined
+                && this.map[x][y][layout].type != "water";
         }
 
         // Действие при установке блока
@@ -297,12 +311,14 @@ class GameArea{
             if (!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
                 this.map[x][y][layout] = id;
-                if(lastBlock == undefined){
-                    this.deleteLightRound(x, y, x, y, 9, true);
-                } else {
-                    this.deleteLightRound(x, y, x, y, items[lastBlock].brightness, items[lastBlock].isNaturalLight === true);
+                if(layout === GameArea.MAIN_LAYOUT) {
+                    if(lastBlock == undefined){
+                        this.deleteLightRound(x, y, x, y, 9, true);
+                    } else {
+                        this.deleteLightRound(x, y, x, y, items[lastBlock].brightness, items[lastBlock].isNaturalLight === true);
+                    }
+                    this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 }
-                this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 this.updateRadius(x, y, layout);
                 this.updateBlock(x, y, layout);
             }

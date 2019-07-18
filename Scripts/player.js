@@ -37,18 +37,18 @@ class Player {
         this.vx = 0;
         this.vy = 0;
 
-        // Сломать блок на (x, y, MAIN_LAYOUT)
-        this.destroy = (x, y) => {
+        // Сломать блок на (x, y, layout)
+        this.destroy = (x, y, layout) => {
             let type;
             if (this.hand.item && this.hand.info.isTool) {
                 type = this.hand.info.type; // блоки какого типа добывает инструмент
             } else {
                 type = undefined; // Если в руках не инструмент
             }
-            let blockType = items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type; // Тип блока
+            let blockType = items[gameArea.map[x][y][layout]].type; // Тип блока
             if (type === blockType) {
                 //Вставляет лут в инвентарь - пока что сразу
-                this.addToInv(gameArea.goodDestroy(x, y, GameArea.MAIN_LAYOUT));
+                this.addToInv(gameArea.goodDestroy(x, y, layout));
                 this.hand.item.durability--;
                 if(this.hand.item.durability < 1){ // Инструмент сломался
                     this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
@@ -56,35 +56,26 @@ class Player {
                     this.hand.info = undefined;
                 }
             } else {
-                if(items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isAlwaysGoodDestroy){
-                    this.addToInv(gameArea.goodDestroy(x, y, GameArea.MAIN_LAYOUT));
+                if(items[gameArea.map[x][y][layout]].isAlwaysGoodDestroy){
+                    this.addToInv(gameArea.goodDestroy(x, y, layout));
                 } else {
-                    gameArea.destroyBlock(x, y, GameArea.MAIN_LAYOUT);
+                    gameArea.destroyBlock(x, y, layout);
                 }
             }
         };
 
-        // Разместить блок из руки на (x, y, MAIN_LAYOUT)
-        this.place = (x, y) => {
-            if(this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y)) {
-                gameArea.placeBlock(x, y, GameArea.MAIN_LAYOUT, this.hand.item);
+        // Разместить блок из руки на (x, y, layout)
+        this.place = (x, y, layout) => {
+            if(this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)) {
+                gameArea.placeBlock(x, y, layout, this.hand.item);
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
             }
         };
 
         // Если можно взаимодействовать - сделать это
-        this.interact = (x, y) => {
-            // Пока взаимодействуем только в MAIN_LAYOUT
+        this.interact = (x, y, layout) => {
             if (this.inActionRadius(x, y)) {
-                gameArea.interactWithBlock(x, y, gameArea.MAIN_LAYOUT);
-            }
-        };
-
-        // Получение информации о блоке, пока только в MAIN_LAYOUT
-        this.info = (x, y) => {
-            if (this.inActionRadius(x, y)) {
-                let block = items[gameArea.map[x][y][gameArea.MAIN_LAYOUT]];
-                alert(`Block on ${x} ${y} : ` + JSON.stringify(block));
+                gameArea.interactWithBlock(x, y, layout);
             }
         };
 

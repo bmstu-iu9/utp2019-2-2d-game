@@ -251,8 +251,6 @@ const mouseControl = () => {
     			
     			if(x === targetX && y === targetY) {
     				if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
-    					console.log(player.x + " " + player.y);
-    					console.log(x + " " + y + " " + layout + " " + gameArea.map[x][y][layout]);
     					currentBlock = {
     						x: x, y: y, layout: layout,
     						type: items[gameArea.map[x][y][layout]].type,

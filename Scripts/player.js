@@ -221,12 +221,14 @@ class Player {
 
         // Получение урона
         this.getDamage = (count) => {
-            console.log("Damage - " + count);
-            this.hp = Math.max(this.hp - count, 0);
-            if(this.hp == 0) {
-                this.die();
+            if(count > 0) {
+                console.log("Damage - " + count);
+                this.hp = Math.max(this.hp - count, 0);
+                if(this.hp == 0) {
+                    this.die();
+                }
+                console.log("Now you have " + this.hp + " hp");
             }
-            console.log("Now you have " + this.hp + " hp");
         }
 
         // Восстановление здоровья

@@ -1,6 +1,6 @@
 'use strict';
 
-const cameraScale = 1;  // Масштаб, 1 - стандарт
+let cameraScale = 1;  // Масштаб, 1 - стандарт
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chankWidth = 8, chankHeight = 8;  // Размеры чанка

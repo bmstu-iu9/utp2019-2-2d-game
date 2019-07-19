@@ -107,6 +107,8 @@ class Render {
 			alert(ErrorMsg);
 			throw new Error(ErrorMsg);
 		}
+		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		
 		// сборка и компиляция шейдерной программы
 		const vertexShader = this.createShader(this.gl.VERTEX_SHADER, _vertexShader);

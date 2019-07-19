@@ -162,10 +162,14 @@ image.onload = () => {
 
 				wait().then(() => {
 					beginPlay();
+					const elem = document.getElementById("loading");
+					elem.parentNode.removeChild(elem);
 					requestAnimationFrame(update);
 				});
 			} else {
 				beginPlay();
+				const elem = document.getElementById("loading");
+				elem.parentNode.removeChild(elem);
 				requestAnimationFrame(update);
 			}
 		}

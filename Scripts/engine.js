@@ -119,10 +119,10 @@ class Render {
 		this.gl.useProgram(this.program);
 		
 		// прозрачность
+		this.gl.enable(this.gl.BLEND);
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		this.gl.enable(this.gl.CULL_FACE);
 		this.gl.enable(this.gl.DEPTH_TEST);
-		this.gl.enable(this.gl.BLEND);
 		
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
@@ -317,7 +317,7 @@ class Render {
 		//this.gl.flush(); // тест
 		
 		this.gl.viewport(0, 0, w, h);
-		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		
@@ -398,14 +398,14 @@ class Render {
 		
 		// отрисовка фона
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
-		this.gl.uniform1f(this.resolutionUniformLocation, 1);
-		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
 		const z = 0.1 - far;
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
+		this.gl.uniform1f(this.resolutionUniformLocation, 1 / scale);
+		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
 		
-		for (let i = 0; i <= asp; i++) {
+		for (let i = 0; i <= asp * scale + 1; i++) {
 			this.gl.uniform3f(this.translateUniformLocation,
-				xc * ch - asp / 2 + i, yc * ch - 0.5, z);
+				xc * ch + i - asp * scale / 2, yc * ch - scale / 2, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		
@@ -465,7 +465,7 @@ class Render {
 						texture, 0);
 					
 					this.gl.viewport(0, 0, w, h); // указываем границы отрисовки
-					this.gl.clearColor(0.0, 0.0, 0.0, 0.0); // заливаем экран прозрачным цветом
+					this.gl.clearColor(1.0, 1.0, 1.0, 0.0); // заливаем экран прозрачным цветом
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 					

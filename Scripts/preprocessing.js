@@ -3,7 +3,7 @@
 let cameraScale = 1;  // Масштаб, 1 - стандарт
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
-const chankWidth = 8, chankHeight = 8;  // Размеры чанка
+const chunkWidth = 8, chunkHeight = 8;  // Размеры чанка
 const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
@@ -23,7 +23,7 @@ image.onload = () => {
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
 			render.init(image, background, playerImage);
-			render.settings(blockSize, chankWidth, chankHeight);
+			render.settings(blockSize, chunkWidth, chunkHeight);
 
 			// Отправка образцов объектов
 			{
@@ -49,18 +49,19 @@ image.onload = () => {
 
 			let arrOfChunks = {};
 			let oldTime = 0;
-			const deleteChankById = (xLocate, yLocate) => {
+			const deletechunkById = (xLocate, yLocate) => {
 				for (let chunk in arrOfChunks) {
 					if (arrOfChunks[chunk].x === xLocate && arrOfChunks[chunk].y === yLocate) {
 						delete arrOfChunks[chunk];  // Удаляем все слои чанка
 					}
 				}
+				render.deletechunk(xLocate, yLocate);
 			};
-			const loadChank = (xLocate, yLocate) => {
-				const stopX = (xLocate + 1) * chankWidth;
-				const stopY = (yLocate + 1) * chankHeight;
-				const startX = xLocate * chankWidth;
-				const startY = yLocate * chankHeight;
+			const loadchunk = (xLocate, yLocate) => {
+				const stopX = (xLocate + 1) * chunkWidth;
+				const stopY = (yLocate + 1) * chunkHeight;
+				const startX = xLocate * chunkWidth;
+				const startY = yLocate * chunkHeight;
 
 				// + 1 слой света
 				for (let layout = minLayout; layout <= maxLayout + 1; layout++) {
@@ -102,6 +103,10 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] =
 						layoutChunk;
 				}
+				// Строго 2 слоя
+				render.createChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout],
+					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout],
+					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"]);
 			};
 			
 			const update = (newTime) => {
@@ -111,14 +116,14 @@ image.onload = () => {
 				eventTick();
         
 				{  // Обновление чанков
-					const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
-					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] / (2 * chankWidth)),
-						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] / (2 * chankHeight))
+					const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
+					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] / (2 * chunkWidth)),
+						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] / (2 * chunkHeight))
 					let neigChunk = {};
-					for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX;
+					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {
 						neigChunk[i] = {};
-						for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY;
+						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
 							neigChunk[i][j] = false;
 						}
@@ -128,23 +133,24 @@ image.onload = () => {
 						if (neigChunk[arrOfChunks[chunk].x] === undefined ||
 						neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] === undefined) {
 							// Если не ближайший чанк, то удаляем
-							deleteChankById(arrOfChunks[chunk].x, arrOfChunks[chunk].y);
+							deletechunkById(arrOfChunks[chunk].x, arrOfChunks[chunk].y);
 						} else {
 							// Если чанк ближайший, то помечаем как отрисованный
 							neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true;
 						}
 					}
 
-					for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX;
+					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {
-						for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY;
+						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
-							loadChank(i, j);
+							loadchunk(i, j);
 						}
 					}
 				}
 				
-				render.OLDrender(cameraX, cameraY, player.x, player.y, cameraScale, arrOfChunks);
+				// render.OLDrender(cameraX, cameraY, player.x, player.y, cameraScale, arrOfChunks);
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}

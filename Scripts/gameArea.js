@@ -162,7 +162,7 @@ class GameArea{
             return false;
         };
 
-        this.updateBlock = (x, y, layout) => {
+        this.updateBlock = (x, y, layout, player) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             if (this.map[x][y][layout] === undefined) return;
             let block = items[this.map[x][y][layout]];
@@ -182,18 +182,16 @@ class GameArea{
                     // Если блок дерева не видит под собой опоры в нижнем блоке, либо стоит на листве, плюс
                     // крайние нижние блоки - это не блоки дерева, то оно рушится
                 {
-                    let downB;
-                    if (y - 1 >= 0) downB = items[this.map[x][y - 1][layout]];
-                    if (downB === undefined || downB.type === "leaf" ) {
-                        let downLeftB;
-                        if (x - 1 >= 0 && y - 1 >= 0) downLeftB = items[this.map[x - 1][y - 1][layout]];
-                        if (downLeftB === undefined || downLeftB.type !== "wood")  {
-                            let downRightB;
-                            if (x + 1 < this.width && y - 1 >= 0) downRightB = items[this.map[x + 1][y - 1][layout]];
-                            if (downRightB === undefined || downRightB.type !== "wood") {
-                                this.goodDestroy(x, y, layout);
+
+                    if (y - 1 >= 0 && this.map[x][y - 1][GameArea.MAIN_LAYOUT] === undefined) {
+                        for (let i = x - 1; i <= x + 1; i++) {
+                            if (i >=0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
+                                items[this.map[x][y - 1][layout]].type !== "wood")) {}
+                            else {
+                                return;
                             }
                         }
+                        this.goodDestroy(x, y, layout, player);
                     }
                 }
                 break;
@@ -201,28 +199,21 @@ class GameArea{
                     // Если блок листвы не видит под собой опоры в нижнем, нижнем левом и нижнем правом блоке в виде
                     // дерева или листвы или же в левом или правом, в виде дерева, то он рушится
                 {
-                    let downLeftB;
-                    if (x - 1 >= 0 && y - 1 >= 0) downLeftB = items[this.map[x - 1][y - 1][layout]];
-                    if (downLeftB === undefined || downLeftB.type !== "leaf" || downLeftB.type !== "wood") {
-                        let downB;
-                        if (y - 1 >= 0) downB = items[this.map[x][y - 1][layout]];
-                        if (downB === undefined || downB.type !== "leaf" || downB.type !== "wood") {
-                            let downRightB;
-                            if (x + 1 < this.width && y - 1 >= 0) downRightB = items[this.map[x + 1][y - 1][layout]];
-                            if (downRightB === undefined || downRightB.type !== "leaf" ||
-                                downRightB.type !== "wood") {
-                                if ((x + 1 >= this.width
-                                        || (!this.map[x + 1][y][layout]
-                                            || items[this.map[x + 1][y][layout]].type !== "wood"))
-                                    && (x - 1 < 0
-                                        || (!this.map[x - 1][y][layout]
-                                            || items[this.map[x - 1][y][layout]].type !== "wood"))) {
-
-                                    this.destroyBlock(x, y, layout);
-                                }
+                    for (let i = x - 1; i <= x + 1; i++) {
+                        if (i >=0 && i < this.width)
+                            for (let j = y - 1; j <= y; j++) {
+                                if (i !== x && j !== y)
+                                    if (j === y - 1)
+                                        if (this.map[i][j][layout] === undefined ||
+                                            items[this.map[i][j][layout]].type !== "leaf" &&
+                                            items[this.map[i][j][layout]].type !== "wood"){}
+                                        else return;
+                                    else if (this.map[i][j][layout] === undefined ||
+                                        items[this.map[i][j][layout]].type !== "wood") {}
+                                    else return;
                             }
-                        }
                     }
+                    this.destroyBlock(x, y, layout);
                 }
                     break;
                 case "water":
@@ -335,18 +326,19 @@ class GameArea{
         };
 
         // Обновление окружения блока
-        this.updateRadius = (x, y, layout) => {
+        this.updateRadius = (x, y, layout, player) => {
             for (let i = x - 1; i <= x + 1; i++) {
                 for (let j = y - 1; j <= y + 1; j++) {
                     if (i !== x || y !== j) {
-                        this.updateBlock(i, j, layout);
+                        this.updateBlock(i, j, layout, player);
+                        if (layout === GameArea.MAIN_LAYOUT) this.updateBlock(i, j, GameArea.BACK_LAYOUT, player);
                     }
                 }
             }
         };
 
         // Действие при разрушении блока
-        this.destroyBlock = (x, y, layout) => {
+        this.destroyBlock = (x, y, layout, player) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.map[x][y][layout] = this.makeAirBlock();
@@ -355,7 +347,7 @@ class GameArea{
                     items[lastBlock].isNaturalLight === true);
             }
             this.addLightRound(x, y, x, y, 9, true, false);
-            this.updateRadius(x, y, layout);
+            this.updateRadius(x, y, layout, player);
         };
 
         // Можно ставить блок на (x, y, layout)
@@ -430,10 +422,12 @@ class GameArea{
 
 
         // Функция разрушения блока со сбросом лута
-        this.goodDestroy = (x, y, layout) => {
+        this.goodDestroy = (x, y, layout, player) => {
             let block = items[this.map[x][y][layout]];
-            this.destroyBlock(x, y, layout);
-            return this.dropLoot(x, y, block);
+            if (player) {
+                this.destroyBlock(x, y, layout, player);
+                player.addToInv(this.dropLoot(x, y, block));
+            } else this.destroyBlock(x, y, layout, player);
         };
 
     }

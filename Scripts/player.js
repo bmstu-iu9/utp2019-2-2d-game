@@ -48,7 +48,7 @@ class Player {
             let blockType = items[gameArea.map[x][y][layout]].type; // Тип блока
             if (type === blockType) {
                 //Вставляет лут в инвентарь - пока что сразу
-                this.addToInv(gameArea.goodDestroy(x, y, layout));
+               gameArea.goodDestroy(x, y, layout, this);
                 this.hand.item.durability--;
                 if(this.hand.item.durability < 1){ // Инструмент сломался
                     this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
@@ -57,7 +57,7 @@ class Player {
                 }
             } else {
                 if(items[gameArea.map[x][y][layout]].isAlwaysGoodDestroy){
-                    this.addToInv(gameArea.goodDestroy(x, y, layout));
+                    gameArea.goodDestroy(x, y, layout, this);
                 } else {
                     gameArea.destroyBlock(x, y, layout);
                 }

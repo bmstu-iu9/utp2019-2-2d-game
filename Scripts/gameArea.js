@@ -38,7 +38,7 @@ class GameArea{
         this.height = height;
         
         // Отслеживание изменений для engine.js
-        this.chankDifferList = {};  // Хранит объекты вида {chankX, chankY, layout, list:[{x, y, value} ... { }] }
+        this.chunkDifferList = {};  // Хранит объекты вида {chunkX, chunkY, layout, list:[{x, y, value} ... { }] }
 
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
@@ -358,22 +358,22 @@ class GameArea{
 
     // Необходим для отслеживания изменений
     gameAreaMapSet (x, y, layout, id) {
-        const chankX = Math.floor(x / chankWidth), chankY = Math.floor(y / chankHeight);
+        const chunkX = Math.floor(x / chunkWidth), chunkY = Math.floor(y / chunkHeight);
         const value = {
-            x: x % chankWidth,
-            y: y % chankHeight,
+            x: x % chunkWidth,
+            y: y % chunkHeight,
             value: id
         }
     
-        chankDifferList[chankX + "x" + chankY + "x" + layout] =
-            chankDifferList[chankX + "x" + chankY + "x" + layout] === undefined
+        chunkDifferList[chunkX + "x" + chunkY + "x" + layout] =
+            chunkDifferList[chunkX + "x" + chunkY + "x" + layout] === undefined
             ? {
-                chankX: chankX,
-                chankY: chankY,
+                chunkX: chunkX,
+                chunkY: chunkY,
                 layout: layout,
                 list: [value]
             }
-            : chankDifferList[chankX + "x" + chankY + "x" + layout]
+            : chunkDifferList[chunkX + "x" + chunkY + "x" + layout]
                 .list
                 .push(value);
     

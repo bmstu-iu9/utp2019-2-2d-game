@@ -138,7 +138,6 @@ class Render {
 	}
 	
 	init(image, background, playerImage) {
-		
 		// создание текстуры
 		const images = [image, background, playerImage];
 		this.textures = [];
@@ -158,10 +157,12 @@ class Render {
 		}
 	}
 	
-	settings(size, widthChunk, heightChunk) {
+	settings(size, widthChunk, heightChunk, lightOfFrontChunk, lightOfBackChunk) {
 		this.size = size;
 		this.widthChunk = widthChunk;
 		this.heightChunk = heightChunk;
+		this.lightOfFrontChunk = lightOfFrontChunk || 1;
+		this.lightOfBackChunk = lightOfBackChunk || 0.5;
 	}
 	
 	getFieldSize() {
@@ -290,7 +291,7 @@ class Render {
 		this.frameBufferTextures = {};
 	}
 	
-	createChunk(x, y, lightOfFrontChunk, blocksOfFrontChunk, lightOfBackChunk, blocksOfBackChunk, lightChunk) {
+	drawChunk(x, y, blocksOfFrontChunk, blocksOfBackChunk, lightChunk) {
 		const width = this.widthChunk * this.size;
 		const height = this.heightChunk * this.size;
 		const near = 0.01;
@@ -302,16 +303,22 @@ class Render {
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 		
 		// буфер кадров
+		let texture;
+		if (this.arrayOfChunks[`${x}x${y}`] == undefined) {
+			texture = this.gl.createTexture();
+			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
+				null);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+		} else {
+			texture = arrayOfChunk[`${x}x${y}`].tex;
+		}
+		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.uniform1f(this.resolutionUniformLocation, height);
-		const texture = this.gl.createTexture();
-		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
-			null);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture, 0);
 
 		//this.gl.flush(); // тест
@@ -329,7 +336,7 @@ class Render {
 				const id1 = blocksOfBackChunk[x][y];
 				if (id0 === undefined) {
 					if (id1 !== undefined) {
-						const light = lightOfBackChunk * lightChunk[x][y];
+						const light = this.lightOfBackChunk * lightChunk[x][y];
 						if (light < 0.01) {
 							this.gl.uniform1f(this.lightUniformLocation, 0);
 							this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
@@ -341,7 +348,7 @@ class Render {
 						}
 					}
 				} else {
-					const light = lightOfFrontChunk * lightChunk[x][y];
+					const light = this.lightOfFrontChunk * lightChunk[x][y];
 					if (light < 0.01) {
 						this.gl.uniform1f(this.lightUniformLocation, 0);
 						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
@@ -358,7 +365,7 @@ class Render {
 		this.arrayOfChunk[`${x}x${y}`] = {
 			x: x,
 			y: y,
-			tex: textute
+			tex: texture
 		};
 	}
 	

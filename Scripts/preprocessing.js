@@ -87,8 +87,9 @@ image.onload = () => {
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
 									// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 )
-										layoutChunk.chunk[i - startX][j - startY] = 9;
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 1000) >= 1 )
+										layoutChunk.chunk[i - startX][j - startY] = Math.floor(gameArea
+											.map[Math.floor(i)][Math.floor(j)][layout] / 1000);
 									else layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
 								}

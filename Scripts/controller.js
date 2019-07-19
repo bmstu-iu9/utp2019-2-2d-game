@@ -1,12 +1,14 @@
 class Controller {
 
     constructor() {
+        this.mouse  = new MouseInput();
         this.down   = new ButtonInput();
         this.left   = new ButtonInput();
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
-        this.mouse  = new MouseInput();
         this.shift  = new ButtonInput();
+        this.f      = new ButtonInput();
+        this.g      = new ButtonInput();
 
         this.numbers = [];
         for(let i = 0; i < 10; i++){
@@ -37,6 +39,12 @@ class Controller {
                 break;
             case 16:
                 this.shift.getInput(down);
+                break;
+            case 70:
+                this.f.getInput(down);
+                break;
+            case 71:
+                this.g.getInput(down);
                 break;
         }
     }

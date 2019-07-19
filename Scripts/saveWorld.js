@@ -24,13 +24,11 @@ const DB_STORE_NAME = 'request';
 let _db;
 
 const loadExist = () => {
-    return getLoadList().length !== 0;
+    return getLoadList() !== undefined;
 }
 
 const getLoadList = () => {
-    return localStorage.loadList !== undefined
-        ? JSON.parse(localStorage.loadList)
-        : [];
+    return localStorage.loadList;
 }
 
 const deleteDatabase = () => {
@@ -43,7 +41,7 @@ const deleteDatabase = () => {
 }
 
 // deleteDatabase();
-const save = (worldName) => {
+const save = (worldName) => {console.log(1)
     if (!window.indexedDB) {
         window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
     }
@@ -55,7 +53,7 @@ const save = (worldName) => {
         deleteDatabase();
     }
     
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = (event) => {console.log(2)
         _db = event.target.result;
     
         let objectStore = _db.createObjectStore(DB_STORE_NAME, {
@@ -73,11 +71,7 @@ const save = (worldName) => {
         },
         worldName);
     
-        localStorage.loadList = JSON.stringify(localStorage.loadList === undefined
-            ? [worldName]
-            : JSON
-                .parse(localStorage.loadList)
-                .push(worldName));
+        localStorage.loadList = worldName;
     }
 }
 

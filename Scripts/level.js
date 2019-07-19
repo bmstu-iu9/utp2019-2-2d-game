@@ -37,7 +37,6 @@ const beginPlay = () => {
     });
 
     if (loadExist()) {
-    	deleteDatabase();
     	gameArea = new GameArea(loadingResult.gameArea.map,
     		loadingResult.gameArea.elevationMap,
     		loadingResult.gameArea.shadowMap,
@@ -74,6 +73,7 @@ const eventTick = () => {
 	playerMovement();
 	mouseControl();
 	UI();
+	playerActionButtons();
 }
 
 // Установка текущего времени суток
@@ -100,6 +100,17 @@ const UI = () => {
 			}
 			break;
 		}
+	}
+}
+
+// Действия при нажатии клавиш действия
+const playerActionButtons = () => {
+	if (controller.f.active) {  // Сохранение
+		// setTimeout(save, 100, 'world');
+		save('world');
+	}
+	if (controller.g.active) { // Удалить сохранение
+		deleteDatabase();
 	}
 }
 
@@ -326,10 +337,5 @@ const mouseControl = () => {
 		    	}
 			}
 		}
-	}
-
-	// Сохранение и загрузка на СКМ
-	if (controller.mouse.click === 2) {
-		save('world');
 	}
 }

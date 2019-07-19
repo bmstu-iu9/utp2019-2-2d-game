@@ -48,7 +48,7 @@ class Player {
             let blockType = items[gameArea.map[x][y][layout]].type; // Тип блока
             if (type === blockType) {
                 //Вставляет лут в инвентарь - пока что сразу
-               gameArea.goodDestroy(x, y, layout, this);
+                this.addToInv(gameArea.goodDestroy(x, y, layout));
                 this.hand.item.durability--;
                 if(this.hand.item.durability < 1){ // Инструмент сломался
                     this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
@@ -56,8 +56,8 @@ class Player {
                     this.hand.info = undefined;
                 }
             } else {
-                if (items[gameArea.map[x][y][layout]].isAlwaysGoodDestroy) {
-                    gameArea.goodDestroy(x, y, layout, this);
+                if (items[gameArea.map[x][y][layout]].isAlwaysGoodDestroy){
+                    this.addToInv(gameArea.goodDestroy(x, y, layout));
                 } else {
                     gameArea.destroyBlock(x, y, layout);
                 }
@@ -88,15 +88,15 @@ class Player {
             Возвращает предмет не влезжший в инвентарь */
         this.addToInv = (item) => {
             // Вставляем предмет в инвентарь, если он стакается
-            if (item.count != undefined) {
+            if(item.count != undefined) {
 
                 // Если даже 1 не влезет
-                if (items[item.id].weight + this.inv.weight > this.inv.capacity) {
+                if(items[item.id].weight + this.inv.weight > this.inv.capacity) {
                     return item;
                 }
-                for (let i = 0; i < this.inv.items.length; i++) {
-                    if (item.id == this.inv.items[i]) {
-                        if (items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
+                for(let i = 0; i < this.inv.items.length; i++) {
+                    if(item.id == this.inv.items[i]) {
+                        if(items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
                             this.inv.count[i] += item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
@@ -110,10 +110,10 @@ class Player {
                         }
                     }
                 }
-                for (let i = 0; i <= this.inv.items.length; i++) {
-                    if (this.inv.items[i] == undefined) {
+                for(let i = 0; i <= this.inv.items.length; i++) {
+                    if(this.inv.items[i] == undefined) {
                         this.inv.items[i] = item.id;
-                        if (items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
+                        if(items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
                             this.inv.count[i] = item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
@@ -286,8 +286,8 @@ class Player {
         // Задевает ли верхняя грань игрока блоки с коллизией
         this.isCollisionUp = (newX, newY) => {
             let j = Math.floor(newY + Player.HEIGHT);
-            for (let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
-                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
+            for(let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
+                if(gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)){
                     return true;
                 }
             }
@@ -297,8 +297,8 @@ class Player {
         // Задевает ли нижняя грань игрока блоки с коллизией
         this.isCollisionDown = (newX, newY) => {
             let j = Math.floor(newY);
-            for (let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
-                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
+            for(let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
+                if(gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)){
                     return true;
                 }
             }
@@ -322,7 +322,7 @@ class Player {
             let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
             for (let x = startX; x <= endX; x++) {
                 for (let y = startY; y <= endY; y++) {
-                    if (items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
+                    if(items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
                             && items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density > k) {
                         k = items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density;
                     }
@@ -332,6 +332,7 @@ class Player {
         }
     }
 }
+
 
 // Для копирования player из indexedDB
 const playerCopy = (player, obj) => {

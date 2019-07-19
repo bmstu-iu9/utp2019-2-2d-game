@@ -48,11 +48,11 @@ const beginPlay = () => {
     	player = new Player();
     	playerCopy(player, loadingResult.player);
     } else {
-    	gameArea = generate(1000, 1000, key);
+    	gameArea = generate(3200, 1500, key);
 
     	let px = gameArea.width / 2;
     	let py = 0;
-    	for (let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
+    	for(let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
     		py = Math.max(py, gameArea.elevationMap[i] + 1);
     	}
 
@@ -79,13 +79,13 @@ const eventTick = () => {
 // Установка текущего времени суток
 const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	currentTime = currentTime / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
-	if (currentTime < Math.PI){ //................................................... День
+	if(currentTime < Math.PI){ //.................................................... День
 		gameArea.timeOfDay = 1;
-	} else if (currentTime < 2 * Math.PI) { //....................................... День -> Ночь
+	}else if(currentTime < 2 * Math.PI){ //.......................................... День -> Ночь
 		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
-	} else if (currentTime < 3 * Math.PI) { //....................................... Ночь
+	}else if(currentTime < 3 * Math.PI){ //.......................................... Ночь
 		gameArea.timeOfDay = 0;
-	} else { //...................................................................... Ночь -> День
+	}else{ //........................................................................ Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
 	}
 }
@@ -93,9 +93,9 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 // Управление интерфейсом
 const UI = () => {
 	// Кнопки 1..8
-	for (let i = 1; i <= 8; i++) {
-		if (controller.numbers[i].active) {
-			if (player.hand.index != i - 1) {
+	for(let i = 1; i <= 8; i++) {
+		if(controller.numbers[i].active) {
+			if(player.hand.index != i - 1){
 				player.setHand(i - 1);
 			}
 			break;
@@ -108,21 +108,20 @@ const playerMovement = () => {
 	// Координаты блока, в котором голова
 	let headX = Math.floor(player.x + Player.HEAD_X);
 	let headY = Math.floor(player.y + Player.HEAD_Y);
-
 	// Урон от удушья 
 	if(gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
 		&& (items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
 			|| items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
 		player.choke(deltaTime);
-	} else {
-		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);
-	}
-	let liquidK = player.getLiquidK();
+} else {
+	player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);
+}
 
-	if (liquidK == 0) { // Если игрок на суше
-		if (player.onGround()) { //...................................................... Если игрок на поверхности
+let liquidK = player.getLiquidK();
+	if(liquidK == 0) { // Если игрок на суше
+		if(player.onGround()) { //.................................................... Если игрок на поверхности
 			player.vy = Math.max(player.vy, 0);
-			if (controller.up.active) {
+			if(controller.up.active) {
 				if(controller.shift.active) {
 					player.vy = Player.JUMP_SPEED * 2 / 3;
 				} else {
@@ -130,30 +129,30 @@ const playerMovement = () => {
 				}
 			}
 		} else {
-			if (controller.up.active && player.vy > 0) { //.............................. Удержание прыжка
+			if(controller.up.active && player.vy > 0) { //................................... Удержание прыжка
 				player.vy -= GameArea.GRAVITY * deltaTime * 2 / 3;
 			} else {
-				if (player.vy > - Player.JUMP_SPEED * 4) {
+				if(player.vy > - Player.JUMP_SPEED * 4){
 					player.vy -= GameArea.GRAVITY * deltaTime;
 				}
 			}
 		}
-		if (controller.shift.active) { // На шифте
-			if (controller.left.active) player.vx = -Player.SPEED / 2; //................ Если нажато вправо
-			if (controller.right.active) player.vx = Player.SPEED / 2; //................ Если нажато влево
+		if(controller.shift.active) { // На шифте
+			if(controller.left.active) player.vx = -Player.SPEED / 2; //................. Если нажато вправо
+			if(controller.right.active) player.vx = Player.SPEED / 2; //................. Если нажато влево
 		} else {
-			if (controller.left.active) player.vx = -Player.SPEED; //.................... Если нажато вправо
-			if (controller.right.active) player.vx = Player.SPEED; //.................... Если нажато влево
+			if(controller.left.active) player.vx = -Player.SPEED; //..................... Если нажато вправо
+			if(controller.right.active) player.vx = Player.SPEED; //..................... Если нажато влево
 		}
-		if (!controller.left.active && !controller.right.active) player.vx = 0; //....... Если нет движения в стороны
-	} else { //.......................................................................... Если в жидкости
-		if (controller.left.active) player.vx -= Player.SPEED * deltaTime;
-		if (controller.right.active) player.vx += Player.SPEED * deltaTime;
-		if (controller.up.active) player.vy += Player.SPEED * deltaTime;
-		if (controller.down.active) player.vy -= Player.SPEED * deltaTime;
+		if(!controller.left.active && !controller.right.active) player.vx = 0; //........ Если нет движения в стороны
+	} else { //................................................................. Если в жидкости
+		if(controller.left.active) player.vx -= Player.SPEED * deltaTime;
+		if(controller.right.active) player.vx += Player.SPEED * deltaTime;
+		if(controller.up.active) player.vy += Player.SPEED * deltaTime;
+		if(controller.down.active) player.vy -= Player.SPEED * deltaTime;
 
 		// Силы сопротивления
-		if (!player.onGround()) {
+		if(!player.onGround()) {
 			player.vy -= 2 / 3 * liquidK * Math.abs(player.vy) * 2 * player.vy * deltaTime;
 		} else {
 			player.vy = Math.max(player.vy, 0);
@@ -167,11 +166,11 @@ const playerMovement = () => {
 
     // Пока новые координаты не перестанут конфликтовать с окружением
 	// Выход за карту
-	if (newX - Player.WIDTH / 2 < 0 && newX + Player.WIDTH / 2 > gameArea.width) {
+	if(newX - Player.WIDTH / 2 < 0 && newX + Player.WIDTH / 2 > gameArea.width) {
 		player.vx = 0;
 		newX = player.fx;
 	}
-	if (newY < 0 && newY + Player.HEIGHT > gameArea.height) {
+	if(newY < 0 && newY + Player.HEIGHT > gameArea.height) {
 		player.vy = 0;
 		newY = player.fy;
 	}
@@ -179,43 +178,43 @@ const playerMovement = () => {
 	let changedX = false;
 	let changedY = false;
 	const steps = 5;
-	for (let i = 1; i <= steps; i++) {
+	for(let i = 1; i <= steps; i++){
 		let k =  i / steps;
 		let iX = player.fx + (newX - player.fx) * k;
 		let iY = player.fy + (newY - player.fy) * k;
 		let ansX = player.fx + (newX - player.fx) * (i - 1) / steps;
 		let ansY = player.fy + (newY - player.fy) * (i - 1) / steps;
 
-		if (!changedX) {
-			if (controller.shift.active && player.onGround() && !player.isCollisionDown(iX, player.fy - 0.001)) {
+		if(!changedX){
+			if(controller.shift.active && player.onGround() && !player.isCollisionDown(iX, player.fy - 0.001)) {
 				player.vx = 0;
 				changedX = true;
 			}
-			if (player.vx < 0 && player.isCollisionLeft(iX, changedY ? newY : iY)) {
+			if(player.vx < 0 && player.isCollisionLeft(iX, changedY ? newY : iY)) {
 				player.vx = 0;
 				changedX = true;
 			}
-			if (player.vx > 0 && player.isCollisionRight(iX, changedY ? newY : iY)) {
+			if(player.vx > 0 && player.isCollisionRight(iX, changedY ? newY : iY)) {
 				player.vx = 0;
 				changedX = true;
 			}
-			if (changedX) {
+			if(changedX){
 				newX = ansX;
 			}
 		}
 		
-		if (!changedY) {
-			if (player.vy > 0 && player.isCollisionUp(changedX ? newX : iX, iY)) {
+		if(!changedY){
+			if(player.vy > 0 && player.isCollisionUp(changedX ? newX : iX, iY)) {
 				player.vy = 0;
 				changedY = true;
 			}
-			if (player.vy < 0 && player.isCollisionDown(changedX ? newX : iX, iY)) {
+			if(player.vy < 0 && player.isCollisionDown(changedX ? newX : iX, iY)) {
 				player.fallingDamage();
 				ansY = Math.floor(ansY);
 				player.vy = 0;
 				changedY = true;
 			}
-			if (changedY) {
+			if(changedY){
 				newY = ansY;
 			}
 		}
@@ -232,10 +231,10 @@ const playerMovement = () => {
 	player.y = Math.round(newY * 16) / 16;
 
 	// Плавное движение камеры
-	if (Math.abs(cameraX - newX) > 0.3) {
+	if(Math.abs(cameraX - newX) > 0.3){
 		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime) * 16) / 16, cameraY);
 	}
-	if (Math.abs(cameraY - newY) > 0.3) {
+	if(Math.abs(cameraY - newY) > 0.3){
 		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime) * 16) / 16);
 	}
 	
@@ -264,7 +263,7 @@ const mouseControl = () => {
     				}
     			}
     			
-    			if (x === targetX && y === targetY) {
+    			if(x === targetX && y === targetY) {
     				if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
     					currentBlock = {
     						x: x, y: y, layout: layout,
@@ -293,7 +292,7 @@ const mouseControl = () => {
     }
 
 	// Когда зажата ПКМ
-	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
+	if(controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
 		let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
 		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
 			controller.mouse.direction.y * controller.mouse.direction.y);
@@ -315,18 +314,17 @@ const mouseControl = () => {
 						break;
 					}
 				}
-		        if (isAllowPlace && //....................................... Есть блок рядом
+		        if(isAllowPlace && //..................................................................... Есть блок рядом
 		        	(gameArea.canDestroy(x - 1, y, layout)
 		        	|| gameArea.canDestroy(x + 1, y, layout)
 		        	|| gameArea.canDestroy(x, y - 1, layout)
-		        	|| gameArea.canDestroy(x, y + 1, layout))) {
-
+		        	|| gameArea.canDestroy(x, y + 1, layout))){
 		        	player.place(x, y, layout);
-		        	lastPlaceBlockTime = currentTime;
-		    	}
-			}
+		        lastPlaceBlockTime = currentTime;
+		    }
 		}
 	}
+}
 
 	// Сохранение и загрузка на СКМ
 	if (controller.mouse.click === 2) {

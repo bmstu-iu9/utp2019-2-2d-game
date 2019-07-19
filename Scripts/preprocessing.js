@@ -89,10 +89,8 @@ image.onload = () => {
 									layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
-									// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 1000) >= 1 )
-										layoutChunk.chunk[i - startX][j - startY] = Math.floor(gameArea
-											.map[Math.floor(i)][Math.floor(j)][layout] / 1000);
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 ) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+										layoutChunk.chunk[i - startX][j - startY] = 9;
 									else layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
 								}
@@ -164,14 +162,10 @@ image.onload = () => {
 
 				wait().then(() => {
 					beginPlay();
-					const elem = document.getElementById("loading");
-					elem.parentNode.removeChild(elem);
 					requestAnimationFrame(update);
 				});
 			} else {
 				beginPlay();
-				const elem = document.getElementById("loading");
-				elem.parentNode.removeChild(elem);
 				requestAnimationFrame(update);
 			}
 		}

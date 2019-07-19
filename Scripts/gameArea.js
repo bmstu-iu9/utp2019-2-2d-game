@@ -36,6 +36,9 @@ class GameArea{
         // Ширина и высота игрового пространства
         this.width = width;
         this.height = height;
+        
+        // Отслеживание изменений для engine.js
+        this.chankDifferList = {};  // Хранит объекты вида {chankX, chankY, layout, list:[{x, y, value} ... { }] }
 
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
@@ -351,6 +354,30 @@ class GameArea{
             return this.dropLoot(x, y, block);
         };
 
+    }
+
+    // Необходим для отслеживания изменений
+    gameAreaMapSet (x, y, layout, id) {
+        const chankX = Math.floor(x / chankWidth), chankY = Math.floor(y / chankHeight);
+        const value = {
+            x: x % chankWidth,
+            y: y % chankHeight,
+            value: id
+        }
+    
+        chankDifferList[chankX + "x" + chankY + "x" + layout] =
+            chankDifferList[chankX + "x" + chankY + "x" + layout] === undefined
+            ? {
+                chankX: chankX,
+                chankY: chankY,
+                layout: layout,
+                list: [value]
+            }
+            : chankDifferList[chankX + "x" + chankY + "x" + layout]
+                .list
+                .push(value);
+    
+        this.map[x][y][layout] = id;
     }
 }
 

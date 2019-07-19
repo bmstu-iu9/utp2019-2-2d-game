@@ -104,7 +104,7 @@ image.onload = () => {
 						layoutChunk;
 				}
 				// Строго 2 слоя
-				render.createChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout],
+				render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout],
 					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout],
 					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"]);
 			};
@@ -117,8 +117,8 @@ image.onload = () => {
         
 				{  // Обновление чанков
 					const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
-					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] / (2 * chunkWidth)),
-						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] / (2 * chunkHeight))
+					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] * cameraScale / (2 * chunkWidth)),
+						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] * cameraScale / (2 * chunkHeight))
 					let neigChunk = {};
 					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {
@@ -144,7 +144,10 @@ image.onload = () => {
 						i++) {
 						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
-							loadchunk(i, j);
+							if (!neigChunk[arrOfChunks[i + "x" + j + "xL"].x][arrOfChunks[i + "x" + j + "xL"].y]
+								|| chunkDifferList[i + "x" + j + "x" + layout] !== undefined) {
+									loadchunk(i, j);
+								}
 						}
 					}
 				}

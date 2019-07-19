@@ -203,7 +203,7 @@ class GameArea{
                         if (i >=0 && i < this.width)
                             for (let j = y - 1; j <= y; j++) {
                                 if (i !== x && j !== y)
-                                    if (j === y - 1)
+                                    if (y - 1 >= 0 && j === y - 1)
                                         if (this.map[i][j][layout] === undefined ||
                                             items[this.map[i][j][layout]].type !== "leaf" &&
                                             items[this.map[i][j][layout]].type !== "wood"){}

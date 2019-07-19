@@ -403,7 +403,7 @@ class Render {
 		this.gl.uniform1f(this.resolutionUniformLocation, 1 / scale);
 		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
 		
-		for (let i = 0; i <= asp * scale / 2 + 1; i++) {
+		for (let i = 0; i <= asp * scale + 1; i++) {
 			this.gl.uniform3f(this.translateUniformLocation,
 				xc * ch + i - asp * scale / 2, yc * ch - scale / 2, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);

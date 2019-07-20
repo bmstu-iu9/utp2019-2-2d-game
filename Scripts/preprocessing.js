@@ -41,7 +41,10 @@ image.onload = () => {
 							'b': [
 								(i + 1) / blocksCountX - 1 / image.width,
 								(j + 1) / blocksCountY - 1 / image.height
-							]});
+							],
+							'isSolid': items[j * blocksCountX + i + 1] === undefined
+								? !items[j * blocksCountX + i + 1].isSolid
+								: false});
 					}
 				}
 				render.createObjects(objects);
@@ -55,7 +58,7 @@ image.onload = () => {
 						delete arrOfChunks[chunk];  // Удаляем все слои чанка
 					}
 				}
-				render.deletechunk(xLocate, yLocate);
+				render.deleteChunk(xLocate, yLocate);
 			};
 			const loadchunk = (xLocate, yLocate) => {
 				const stopX = (xLocate + 1) * chunkWidth;

@@ -55,16 +55,16 @@ class GameArea{
                     : ((y - 0.9 * this.elevationMap[x]) / (0.1 * this.elevationMap[x]) * 0.8 + 0.2));
             let k = Math.min(1 / 3 + this.timeOfDay * 3 / 2, grad);
 
-            // Берем наибольший свет из натурального и искусственного
+            // Берем наибольший свет из естественный и искусственного
             if(this.getArtificalLight(x, y) > this.getNaturalLight(x, y) * k){
                 return this.getArtificalLight(x, y) / 9;
             } else {
-                // Натуральный свет с шагом в 5 (чтобы не изменялся каждый кадр)
-                return roundTo(k * this.getNaturalLight(x, y), 1/5) / 9;
+                // Естественный свет с шагом в 5 (чтобы не изменялся каждый кадр)
+                return roundTo(k * this.getNaturalLight(x, y), 5) / 9;
             }
         }
 
-        // Натуральный свет в точке (без времени суток и высоты)
+        // Естественный свет в точке (без времени суток и высоты)
         this.getNaturalLight = (x, y) => {
             if(shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
                 return undefined;
@@ -86,9 +86,7 @@ class GameArea{
                 if (n > 0 && vectorLengthSqr(x, y, startX, startY) < vectorLengthSqr(startX, startY, nextX, nextY)
                         && inRange(nextX, 0, width) && inRange(nextY, 0, height)
                         && (shadowMap[nextX][nextY] === undefined
-                            //............................................. Натуральный свет меньше n
                             || (isNatural && this.getNaturalLight(nextX, nextY) < n)
-                            //............................................ Искуственный свет меньше n
                             || (!isNatural && this.getArtificalLight(nextX, nextY) < n))) {
 
                     this.addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
@@ -469,9 +467,16 @@ const inRange = (n, start, length) => {
     return n >= start && n < length - start;
 }
 
+const hypotenuse = (x, y) => {
+    return Math.sqrt(x * x + y * y);
+}
+
 // Округление до
+const roundToFunc = (x, fraction, roundFunction) => {
+    return roundFunction(x * fraction) / fraction;
+}
 const roundTo = (x, fraction) => {
-    return Math.floor(x / fraction) * fraction;
+    return roundToFunc(x, fraction, Math.floor);
 }
 
 // Константы уровня

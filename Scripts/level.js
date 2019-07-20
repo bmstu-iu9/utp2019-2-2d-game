@@ -228,15 +228,15 @@ const playerMovement = () => {
 	player.fx = newX;
 	player.fy = newY;
 	
-	player.x = Math.round(newX * 16) / 16;
-	player.y = Math.round(newY * 16) / 16;
+	player.x = roundToFunc(newX, scale, Math.round);
+	player.y = roundToFunc(newY, scale, Math.round);
 
 	// Плавное движение камеры
 	if (Math.abs(cameraX - newX) > 0.3) {
-		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime) * 16) / 16, cameraY);
+		cameraSet(cameraX + roundToFunc(1.5 * (player.x - cameraX) * deltaTime, scale, Math.round), cameraY);
 	}
 	if (Math.abs(cameraY - newY) > 0.3) {
-		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime) * 16) / 16);
+		cameraSet(cameraX, cameraY + roundToFunc(1.5 * (player.y - cameraY) * deltaTime, scale, Math.round));
 	}
 	
 }
@@ -245,8 +245,7 @@ const mouseControl = () => {
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
     	let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
-    	const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
-    		controller.mouse.direction.y * controller.mouse.direction.y);
+    	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
     	if (len / scale / cameraScale <= Player.ACTION_RADIUS
@@ -295,8 +294,7 @@ const mouseControl = () => {
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
 		let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
-		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
-			controller.mouse.direction.y * controller.mouse.direction.y);
+		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
 		if (gameArea.canPlace(targetX, targetY, layout)) {

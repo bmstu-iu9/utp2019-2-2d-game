@@ -161,8 +161,8 @@ class Render {
 		this.size = size;
 		this.widthChunk = widthChunk;
 		this.heightChunk = heightChunk;
-		this.lightOfFrontChunk = lightOfFrontChunk || 1;
-		this.lightOfBackChunk = lightOfBackChunk || 0.5;
+		this.lightOfFrontChunk = lightOfFrontChunk;
+		this.lightOfBackChunk = lightOfBackChunk;
 	}
 	
 	getFieldSize() {
@@ -314,7 +314,7 @@ class Render {
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 		} else {
-			texture = arrayOfChunks[`${x}x${y}`].tex;
+			texture = this.arrayOfChunks[`${x}x${y}`].tex;
 		}
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);

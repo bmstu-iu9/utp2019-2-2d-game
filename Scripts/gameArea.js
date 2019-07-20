@@ -54,46 +54,61 @@ class GameArea{
                     ? 0.2
                     : ((y - 0.9 * this.elevationMap[x]) / (0.1 * this.elevationMap[x]) * 0.8 + 0.2));
             let k = Math.min(1 / 3 + this.timeOfDay * 3 / 2, grad);
-            if(Math.floor(shadowMap[x][y] / 1000) > shadowMap[x][y] % 1000 * k){
-                return Math.floor(shadowMap[x][y] / 1000) / 9;
+
+            // Берем наибольший свет из натурального и искусственного
+            if(this.getArtificalLight(x, y) > this.getNaturalLight(x, y) * k){
+                return this.getArtificalLight(x, y) / 9;
             } else {
-                return Math.floor(k * (shadowMap[x][y] % 1000) * 5) / 45;
+                // Натуральный свет с шагом в 5 (чтобы не изменялся каждый кадр)
+                return roundTo(k * this.getNaturalLight(x, y), 1/5) / 9;
             }
-        };
+        }
+
+        // Натуральный свет в точке (без времени суток и высоты)
+        this.getNaturalLight = (x, y) => {
+            if(shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
+                return undefined;
+            }
+            return shadowMap[x][y] % 1000;
+        }
+
+        // Искусственный свет в точке
+        this.getArtificalLight = (x, y) => {
+            if(shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
+                return undefined;
+            }
+            return Math.floor(shadowMap[x][y] / 1000);
+        }
 
         // Добавление источника света
         this.addLightRound = (startX, startY, x, y, n, isNatural, isForce) => {
             const step = (nextX, nextY, n) => {
-                if (n > 0
-                        && ((startX - x) * (startX - x) + (startY - y) * (startY - y)
-                            < (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY))
-                        && nextX >= 0
-                        && nextY >= 0
-                        && nextX < width
-                        && nextY < height
+                if (n > 0 && vectorLength(x, y, startX, startY) < vectorLength(startX, startY, nextX, nextY)
+                        && inRange(nextX, 0, width) && inRange(nextY, 0, height)
                         && (shadowMap[nextX][nextY] === undefined
-                            || (isNatural && shadowMap[nextX][nextY] % 1000 < n)
-                            || (!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) < n))) {
+                            //............................................. Натуральный свет меньше n
+                            || (isNatural && this.getNaturalLight(nextX, nextY) < n)
+                            //............................................ Искуственный свет меньше n
+                            || (!isNatural && this.getArtificalLight(nextX, nextY) < n))) {
 
                     this.addLightRound(startX, startY, nextX, nextY, n, isNatural, isForce);
                 }
             };
-            if (n > 0 && (isForce
-                    || (shadowMap[x][y] === undefined
-                        || (isNatural && shadowMap[x][y] % 1000 < n)
-                        || (!isNatural && Math.floor(shadowMap[x][y] / 1000) < n)))) {
+            if (n > 0 && (isForce || (shadowMap[x][y] === undefined
+                    || (isNatural && this.getNaturalLight(x, y) < n)
+                    || (!isNatural && this.getArtificalLight(x, y) < n)))) {
 
                 if(isNatural){
                     if(shadowMap[x][y] === undefined){
                         shadowMap[x][y] = n;
                     } else {
-                        shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000 + n;
+                        shadowMap[x][y] = this.getArtificalLight(x, y) * 1000 + n;
                     }
                 } else{
                     if(shadowMap[x][y] === undefined){
                         shadowMap[x][y] = n * 1000;
                     } else {
-                        shadowMap[x][y] = n * 1000 + shadowMap[x][y] % 1000;
+                        shadowMap[x][y] = n * 1000 + this.getNaturalLight(x, y);
                     }
                 }
                 step(x + 1, y, n - 1);
@@ -101,34 +116,35 @@ class GameArea{
                 step(x, y + 1, n - 1);
                 step(x, y - 1, n - 1);
             }
-        };
+        }
+
         // Удаление источника света
         this.deleteLightRound = (startX, startY, x, y, n, isNatural) => {
             let lights = [];
+
             const deleteLightNoUpdateRound = (startX, startY, x, y, n, isNatural) => {
                 const step = (nextX, nextY, n) => {
-                    if(n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) <
-                        (startX - nextX) * (startX - nextX) + (startY - nextY) * (startY - nextY)
-                        && nextX >= 0 && nextY >= 0 && nextX < width && nextY < height) {
+                    if(n > 0 && vectorLength(x, y, startX, startY) < vectorLength(startX, startY, nextX, nextY)
+                            && inRange(nextX, 0, width) && inRange(nextY, 0, height)) {
 
-                        if(isNatural && shadowMap[nextX][nextY] % 1000 > n) {
-                            lights.push([nextX, nextY, shadowMap[nextX][nextY] % 1000, isNatural]);
+                        if(isNatural && this.getNaturalLight(nextX, nextY) > n) {
+                            lights.push([nextX, nextY, this.getNaturalLight(nextX, nextY), isNatural]);
                             return;
-                        } else if(!isNatural && Math.floor(shadowMap[nextX][nextY] / 1000) > n) {
-                            lights.push([nextX, nextY, Math.floor(shadowMap[nextX][nextY] / 1000), isNatural]);
+                        } else if(!isNatural && this.getArtificalLight(nextX, nextY) > n) {
+                            lights.push([nextX, nextY, this.getArtificalLight(nextX, nextY), isNatural]);
                             return;
                         }
                         deleteLightNoUpdateRound(startX, startY, nextX, nextY, n, isNatural);
                     }
-                };
+                }
                 if (n > 0
-                    && ((isNatural && shadowMap[x][y] % 1000 === n)
-                        || (!isNatural && Math.floor(shadowMap[x][y] / 1000) === n))) {
+                    && ((isNatural && this.getNaturalLight(x, y) === n)
+                        || (!isNatural && this.getArtificalLight(x, y) === n))) {
 
                     if(isNatural){
-                        shadowMap[x][y] = Math.floor(shadowMap[x][y] / 1000) * 1000;
+                        shadowMap[x][y] = this.getArtificalLight(x, y) * 1000;
                     }else{
-                        shadowMap[x][y] = shadowMap[x][y] % 1000;
+                        shadowMap[x][y] = this.getNaturalLight(x, y);
                     }
                     step(x + 1, y, n - 1);
                     step(x - 1, y, n - 1);
@@ -441,6 +457,20 @@ class GameArea{
         };
 
     }
+}
+
+// Вспомогательные функции
+const vectorLength = (x, y, x1, y1) => {
+    return (x1 - x) * (x1 - x) + (y1 - y) * (y1 - y);
+}
+
+const inRange = (n, start, length) => {
+    return n >= start && n < length - start;
+}
+
+// Округление до
+const roundTo = (x, fraction) => {
+    return Math.floor(x / fraction) * fraction;
 }
 
 // Константы уровня

@@ -405,7 +405,7 @@ class Render {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		
 		// отрисовка фона
-		const lightOfDay = 1;//Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
+		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90;
 		const z = 0.1 - far;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1 / scale);

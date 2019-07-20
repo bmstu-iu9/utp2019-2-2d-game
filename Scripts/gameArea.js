@@ -358,24 +358,7 @@ class GameArea{
 
     // Необходим для отслеживания изменений
     gameAreaMapSet (x, y, layout, id) {
-        const chunkX = Math.floor(x / chunkWidth), chunkY = Math.floor(y / chunkHeight);
-        const value = {
-            x: x % chunkWidth,
-            y: y % chunkHeight,
-            value: id
-        }
-    
-        chunkDifferList[chunkX + "x" + chunkY + "x" + layout] =
-            chunkDifferList[chunkX + "x" + chunkY + "x" + layout] === undefined
-            ? {
-                chunkX: chunkX,
-                chunkY: chunkY,
-                layout: layout,
-                list: [value]
-            }
-            : chunkDifferList[chunkX + "x" + chunkY + "x" + layout]
-                .list
-                .push(value);
+        chunkDifferList[Math.floor(x / chunkWidth) + "x" + Math.floor(y / chunkHeight)] = true;
     
         this.map[x][y][layout] = id;
     }

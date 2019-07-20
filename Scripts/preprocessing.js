@@ -23,7 +23,7 @@ image.onload = () => {
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
 			render.init(image, background, playerImage);
-			render.settings(blockSize, chunkWidth, chunkHeight);
+			render.settings(blockSize, chunkWidth, chunkHeight, 1, 0.5);
 
 			// Отправка образцов объектов
 			{
@@ -104,14 +104,17 @@ image.onload = () => {
 						layoutChunk;
 				}
 				// Строго 2 слоя
-				render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout],
-					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout],
-					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"]);
+				if (gameArea.chunkDifferList[xLocate + "x" + yLocate] !== undefined) {
+					render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
+				}
 			};
 			
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
+				gameArea.chunkDifferList = {};  // TODO : нормальную работу с полем chunkDifferList
 
 				eventTick();
         
@@ -137,6 +140,7 @@ image.onload = () => {
 						} else {
 							// Если чанк ближайший, то помечаем как отрисованный
 							neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true;
+							gameArea.chunkDifferList[arrOfChunks[chunk].x + "x" + arrOfChunks[chunk].y] = true;
 						}
 					}
 
@@ -144,15 +148,11 @@ image.onload = () => {
 						i++) {
 						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
-							if (!neigChunk[arrOfChunks[i + "x" + j + "xL"].x][arrOfChunks[i + "x" + j + "xL"].y]
-								|| chunkDifferList[i + "x" + j + "x" + layout] !== undefined) {
-									loadchunk(i, j);
-								}
+							loadchunk(i, j);
 						}
 					}
 				}
 				
-				// render.OLDrender(cameraX, cameraY, player.x, player.y, cameraScale, arrOfChunks);
 				render.render(cameraX, cameraY, player.x, player.y, cameraScale);
 				fpsUpdate();
 				requestAnimationFrame(update);

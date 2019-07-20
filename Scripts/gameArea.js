@@ -83,7 +83,7 @@ class GameArea{
         // Добавление источника света
         this.addLightRound = (startX, startY, x, y, n, isNatural, isForce) => {
             const step = (nextX, nextY, n) => {
-                if (n > 0 && vectorLength(x, y, startX, startY) < vectorLength(startX, startY, nextX, nextY)
+                if (n > 0 && vectorLengthSqr(x, y, startX, startY) < vectorLengthSqr(startX, startY, nextX, nextY)
                         && inRange(nextX, 0, width) && inRange(nextY, 0, height)
                         && (shadowMap[nextX][nextY] === undefined
                             //............................................. Натуральный свет меньше n
@@ -124,7 +124,7 @@ class GameArea{
 
             const deleteLightNoUpdateRound = (startX, startY, x, y, n, isNatural) => {
                 const step = (nextX, nextY, n) => {
-                    if(n > 0 && vectorLength(x, y, startX, startY) < vectorLength(startX, startY, nextX, nextY)
+                    if(n > 0 && vectorLengthSqr(x, y, startX, startY) < vectorLengthSqr(startX, startY, nextX, nextY)
                             && inRange(nextX, 0, width) && inRange(nextY, 0, height)) {
 
                         if(isNatural && this.getNaturalLight(nextX, nextY) > n) {
@@ -460,7 +460,8 @@ class GameArea{
 }
 
 // Вспомогательные функции
-const vectorLength = (x, y, x1, y1) => {
+// Квадрат расстояния между точками
+const vectorLengthSqr = (x, y, x1, y1) => {
     return (x1 - x) * (x1 - x) + (y1 - y) * (y1 - y);
 }
 

@@ -119,10 +119,10 @@ class Render {
 		this.gl.useProgram(this.program);
 		
 		// прозрачность
-		this.gl.enable(this.gl.BLEND);
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		this.gl.enable(this.gl.CULL_FACE);
 		this.gl.enable(this.gl.DEPTH_TEST);
+		this.gl.enable(this.gl.BLEND);
 		
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
@@ -334,8 +334,8 @@ class Render {
 				const yh = y / this.heightChunk;
 				const id0 = blocksOfFrontChunk[x][y];
 				const id1 = blocksOfBackChunk[x][y];
-				if (id0 === undefined) {
-					if (id1 !== undefined) {
+				if (id0 == undefined) {
+					if (id1 != undefined) {
 						const light = this.lightOfBackChunk * lightChunk[x][y];
 						if (light < 0.01) {
 							this.gl.uniform1f(this.lightUniformLocation, 0);
@@ -370,9 +370,10 @@ class Render {
 	}
 	
 	deleteChunk(x, y) {
-		this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].tex);
-		this.gl.deleteFramebuffer(this.arrayOfChunks[`${x}x${y}`].fb);
-		this.arrayOfChunks[`${x}x${y}`] = undefined;
+		if (this.arrayOfChunks[`${x}x${y}`] != undefined) {
+			this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].tex);
+			this.arrayOfChunks[`${x}x${y}`] = undefined;
+		}
 	}
 	
 	isExistChunk(x, y) {
@@ -404,7 +405,7 @@ class Render {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		
 		// отрисовка фона
-		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
+		const lightOfDay = 1;//Math.round((1 + gameArea.timeOfDay * 2) * 20) / 60;
 		const z = 0.1 - far;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1 / scale);
@@ -420,13 +421,13 @@ class Render {
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		this.gl.uniform1f(this.lightUniformLocation, 1); // стандартное освещение
-		//this.gl.disable(this.gl.DEPTH_TEST);
+		this.gl.disable(this.gl.DEPTH_TEST);
 		
 		for (let c in this.arrayOfChunks) {
 			if (this.arrayOfChunks[c] != undefined) {
 				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
-				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].t);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex);
 				this.gl.uniform3f(this.translateUniformLocation, xc, yc, -3);
 				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
 			}
@@ -440,72 +441,6 @@ class Render {
 		this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 		//this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.disable(this.gl.DEPTH_TEST);
-	}
-	
-	OLDrender(xc, yc, xp, yp, scale, arrayOfChunk) {
-		// отрисовка блоков в буфер кадров
-		const near = 0.01;
-		const far = 11;
-		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
-			2.0, 0.0, 0.0, 0.0,
-			0.0, 2.0, 0.0, 0.0,
-			0.0, 0.0, -2.0 / (far - near), 0.0,
-			-1.0, -1.0, (far + near) / (near - far), 1.0]);
-		const w = this.widthChunk * this.size;
-		const h = this.heightChunk * this.size;
-		this.gl.uniform1f(this.resolutionUniformLocation, h);
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
-		
-		for (let c in arrayOfChunk) {
-			if (arrayOfChunk[c].light != -100) {
-				if (this.arrayOfChunks[c] == undefined) {
-					// буфер кадров
-					const texture = this.gl.createTexture();
-					this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, w, h, 0, this.gl.RGBA,
-						this.gl.UNSIGNED_BYTE, null);
-					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
-					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
-					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-					this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
-						texture, 0);
-					
-					this.gl.viewport(0, 0, w, h); // указываем границы отрисовки
-					this.gl.clearColor(1.0, 1.0, 1.0, 0.0); // заливаем экран прозрачным цветом
-					this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-					this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
-					
-					for (let x in arrayOfChunk[c].chunk) {
-						const xh = x / this.widthChunk;
-						for (let y in arrayOfChunk[c].chunk[x]) {
-							const yh = y / this.heightChunk;
-							const id = arrayOfChunk[c].chunk[x][y];
-							if (id !== undefined) {
-								const light = arrayOfChunk[c].light * arrayOfChunk[c.slice(0, -1) + "L"].chunk[x][y];
-								if (light < 0.01) {
-									this.gl.uniform1f(this.lightUniformLocation, 0);
-									this.gl.uniform3f(this.translateUniformLocation,
-										xh, yh, -arrayOfChunk[c].slice);
-									this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
-								} else {
-									this.gl.uniform1f(this.lightUniformLocation, light);
-									this.gl.uniform3f(this.translateUniformLocation,
-										xh, yh, -arrayOfChunk[c].slice);
-									this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
-								}
-							}
-						}
-					}
-					this.arrayOfChunks[c] = {
-						x: arrayOfChunk[c].x,
-						y: arrayOfChunk[c].y,
-						t: texture
-					};
-				}
-			}
-        }
-		this.render(xc, yc, xp, yp, scale);
 	}
 	
 	createShader(type, source) {

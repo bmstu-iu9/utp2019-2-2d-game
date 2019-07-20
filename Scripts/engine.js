@@ -323,7 +323,7 @@ class Render {
 
 		//this.gl.flush(); // тест
 		
-		this.gl.viewport(0, 0, w, h);
+		this.gl.viewport(0, 0, width, height);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);

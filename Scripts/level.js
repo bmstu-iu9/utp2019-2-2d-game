@@ -248,43 +248,25 @@ const mouseControl = () => {
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
-    	if (len / scale / cameraScale <= Player.ACTION_RADIUS
-	    		&& targetX >= 0 && targetX < gameArea.width && targetY >= 0 && targetY < gameArea.height
-	    		&& gameArea.canDestroy(targetX, targetY, layout)) {
-    		for(let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale){
-    			const x = Math.floor(i * controller.mouse.direction.x / len + player.x);
-    			const y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
-
-    			if(gameArea.canDestroy(x, y, GameArea.MAIN_LAYOUT)) {
-    				if(layout !== GameArea.MAIN_LAYOUT) {
-    					break;
-    				} else {
-    					if(x !== targetX || y !== targetY) break; // Уперлись в другой блок
-    				}
+    	if(gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+    		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
+    			currentBlock = {
+    				x: targetX, y: targetY, layout: layout,
+    				type: items[gameArea.map[targetX][targetY][layout]].type,
+    				durability: items[gameArea.map[targetX][targetY][layout]].durability
     			}
-    			
-    			if (x === targetX && y === targetY) {
-    				if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
-    					currentBlock = {
-    						x: x, y: y, layout: layout,
-    						type: items[gameArea.map[x][y][layout]].type,
-    						durability: items[gameArea.map[x][y][layout]].durability
-    					}
-    					let effK = ((player.hand.item && player.hand.info.isTool
-    						&& currentBlock.type == player.hand.info.type))
-    					? player.hand.info.efficiency : 1;
-    					currentBlock.durability -= deltaTime * effK;
-    				} else if (currentBlock.durability > 0) {
-    					let effK = ((player.hand.item && player.hand.info.isTool
-    						&& currentBlock.type == player.hand.info.type))
-    					? player.hand.info.efficiency : 1;
-    					currentBlock.durability -= deltaTime * effK;
-    				} else {
-    					currentBlock = undefined;
-    					player.destroy(x, y, layout);
-    				}
-    				break;
-    			}
+    			let effK = ((player.hand.item && player.hand.info.isTool
+    				&& currentBlock.type == player.hand.info.type))
+    			? player.hand.info.efficiency : 1;
+    			currentBlock.durability -= deltaTime * effK;
+    		} else if (currentBlock.durability > 0) {
+    			let effK = ((player.hand.item && player.hand.info.isTool
+    				&& currentBlock.type == player.hand.info.type))
+    			? player.hand.info.efficiency : 1;
+    			currentBlock.durability -= deltaTime * effK;
+    		} else {
+    			currentBlock = undefined;
+    			player.destroy(targetX, targetY, layout);
     		}
     	}
     } else {
@@ -297,32 +279,14 @@ const mouseControl = () => {
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
-		if (gameArea.canPlace(targetX, targetY, layout)) {
-			if (len / scale / cameraScale <= Player.ACTION_RADIUS
-					&& targetX >= 0 && targetX < gameArea.width && targetY >= 0 && targetY < gameArea.height) {
-				let x = player.x;
-				let y = player.y;
-				let isAllowPlace = true; //.................................. Действительно ли выбрано допустимое место
-				for (let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale) {
-					x = Math.floor(i * controller.mouse.direction.x / len + player.x);
-					y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
-					if (i > Player.ACTION_RADIUS
-							|| (gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
-							&& items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
-						isAllowPlace = false;
-						break;
-					}
-				}
-		        if (isAllowPlace && //....................................... Есть блок рядом
-		        	(gameArea.canDestroy(x - 1, y, layout)
-		        	|| gameArea.canDestroy(x + 1, y, layout)
-		        	|| gameArea.canDestroy(x, y - 1, layout)
-		        	|| gameArea.canDestroy(x, y + 1, layout))) {
-
-		        	player.place(x, y, layout);
-		        	lastPlaceBlockTime = currentTime;
-		    	}
-			}
+		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //.................................. Есть блок рядом
+		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
+		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
+		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
+		       	player.place(targetX, targetY, layout);
+		       	lastPlaceBlockTime = currentTime;
+		    }
 		}
 	}
 

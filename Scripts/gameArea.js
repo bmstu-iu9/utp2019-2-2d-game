@@ -381,7 +381,7 @@ class GameArea{
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
                 let endY = Math.floor(player.y + Player.HEIGHT);
-                return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+                return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
                     && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
                     && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
                     || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
@@ -395,12 +395,13 @@ class GameArea{
         this.canDestroy = (x, y, layout) => {
             // Если не основной слой, можно ломать только с краёв
             if(layout != GameArea.MAIN_LAYOUT
-                && (!this.canPlace(x, y + 1, layout)
+                && (this.canDestroy(x, y, GameArea.MAIN_LAYOUT)
+                || !this.canPlace(x, y + 1, layout)
                 && !this.canPlace(x + 1, y, layout)
                 && !this.canPlace(x - 1, y, layout)
                 && !this.canPlace(x, y - 1, layout))) return false;
 
-            return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
+            return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
                 && this.map[x][y][layout] != undefined
                 && this.map[x][y][layout].type != "water";
         }
@@ -467,6 +468,10 @@ const inRange = (n, start, length) => {
     return n >= start && n < length - start;
 }
 
+const between = (n, a, b) => {
+    return n > Math.min(a, b) && n < Math.max(a, b);
+}
+
 const hypotenuse = (x, y) => {
     return Math.sqrt(x * x + y * y);
 }
@@ -477,6 +482,23 @@ const roundToFunc = (x, fraction, roundFunction) => {
 }
 const roundTo = (x, fraction) => {
     return roundToFunc(x, fraction, Math.floor);
+}
+
+// Меньший угол
+const angleMin = (a1, a2) => {
+    if(((Math.PI * 2 - a1) + a2) % (Math.PI * 2) < Math.PI) {
+        return a1;
+    } else {
+        return a2;
+    }
+}
+// Больший угол
+const angleMax = (a1, a2) => {
+    if(((Math.PI * 2 - a1) + a2) % (Math.PI * 2) > Math.PI) {
+        return a1;
+    } else {
+        return a2;
+    }
 }
 
 // Константы уровня

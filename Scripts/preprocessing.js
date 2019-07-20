@@ -42,9 +42,10 @@ image.onload = () => {
 								(i + 1) / blocksCountX - 1 / image.width,
 								(j + 1) / blocksCountY - 1 / image.height
 							],
-							'isSolid': items[j * blocksCountX + i + 1] !== undefined
+							'transparency': items[j * blocksCountX + i + 1] !== undefined
 								? !items[j * blocksCountX + i + 1].isSolid
-								: false});
+								: false
+							});
 					}
 				}
 				render.createObjects(objects);

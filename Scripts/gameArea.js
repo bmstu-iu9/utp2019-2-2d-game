@@ -46,6 +46,12 @@ class GameArea{
         this.width = width;
         this.height = height;
 
+        // Отслеживание изменений для engine.js
+        this.chunkDifferList = {};  // Хранит объекты вида {chunkX, chunkY, layout, list:[{x, y, value} ... { }] }
+        // Размеры чанка для engine.js.
+        //TODO: Откорректировать как нужно
+        this.chunkHeight = 1;
+        this.chunkWidth = 1;
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
             let grad = (y > this.elevationMap[x])
@@ -365,7 +371,7 @@ class GameArea{
         this.destroyBlock = (x, y, layout, player) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
-            this.map[x][y][layout] = this.makeAirBlock();
+            this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
             if(layout === GameArea.MAIN_LAYOUT) {
                 this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
                     items[lastBlock].isNaturalLight === true);
@@ -411,7 +417,7 @@ class GameArea{
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             if (!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
-                this.map[x][y][layout] = id;
+                this.gameAreaMapSet(x, y, layout, id);
                 if(layout === GameArea.MAIN_LAYOUT) {
                     if(lastBlock == undefined){
                         this.deleteLightRound(x, y, x, y, 9, true);
@@ -454,7 +460,29 @@ class GameArea{
                 player.addToInv(this.dropLoot(x, y, block));
             } else this.destroyBlock(x, y, layout, player);
         };
+        // Необходим для отслеживания изменений
+        this.gameAreaMapSet = (x, y, layout, id) => {
+            const chunkX = Math.floor(x / this.chunkWidth), chunkY = Math.floor(y / this.chunkHeight);
+            const value = {
+                x: x % this.chunkWidth,
+                y: y % this.chunkHeight,
+                value: id
+            };
 
+            this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] =
+                this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] === undefined
+                    ? {
+                        chunkX: chunkX,
+                        chunkY: chunkY,
+                        layout: layout,
+                        list: [value]
+                    }
+                    : this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout]
+                        .list
+                        .push(value);
+
+            this.map[x][y][layout] = id;
+        }
     }
 }
 

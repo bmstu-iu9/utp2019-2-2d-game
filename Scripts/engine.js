@@ -314,7 +314,7 @@ class Render {
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 		} else {
-			texture = arrayOfChunk[`${x}x${y}`].tex;
+			texture = arrayOfChunks[`${x}x${y}`].tex;
 		}
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
@@ -362,7 +362,7 @@ class Render {
 			}
 		}
 		
-		this.arrayOfChunk[`${x}x${y}`] = {
+		this.arrayOfChunks[`${x}x${y}`] = {
 			x: x,
 			y: y,
 			tex: texture
@@ -372,7 +372,7 @@ class Render {
 	deleteChunk(x, y) {
 		this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].tex);
 		this.gl.deleteFramebuffer(this.arrayOfChunks[`${x}x${y}`].fb);
-		this.arrayOfChunk[`${x}x${y}`] = undefined;
+		this.arrayOfChunks[`${x}x${y}`] = undefined;
 	}
 	
 	isExistChunk(x, y) {

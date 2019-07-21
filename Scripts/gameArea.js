@@ -451,7 +451,6 @@ class GameArea{
             }
         };
 
-
         // Функция разрушения блока со сбросом лута
         this.goodDestroy = (x, y, layout, player) => {
             let block = items[this.map[x][y][layout]];
@@ -460,29 +459,29 @@ class GameArea{
                 player.addToInv(this.dropLoot(x, y, block));
             } else this.destroyBlock(x, y, layout, player);
         };
+        
         // Необходим для отслеживания изменений
         this.gameAreaMapSet = (x, y, layout, id) => {
-            const chunkX = Math.floor(x / this.chunkWidth), chunkY = Math.floor(y / this.chunkHeight);
-            const value = {
-                x: x % this.chunkWidth,
-                y: y % this.chunkHeight,
-                value: id
-            };
-
-            this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] =
-                this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] === undefined
-                    ? {
-                        chunkX: chunkX,
-                        chunkY: chunkY,
-                        layout: layout,
-                        list: [value]
-                    }
-                    : this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout]
-                        .list
-                        .push(value);
+            let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+            if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+                this.chunkDifferList[chunkX + "x" + chunkY] = {};
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
+            } else {
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
+            }
 
             this.map[x][y][layout] = id;
-        }
+        };
     }
 }
 

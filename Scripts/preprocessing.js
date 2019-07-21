@@ -3,7 +3,7 @@
 let cameraScale = 1;  // Масштаб, 1 - стандарт
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
-const chunkWidth = 8, chunkHeight = 8;  // Размеры чанка
+const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
 const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
@@ -27,8 +27,8 @@ image.onload = () => {
 
 			// Отправка образцов объектов
 			{
-				const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY =
-					Math.floor(image.height / blockResolution);
+				const blocksCountX = Math.floor(image.width / blockResolution),
+					blocksCountY = Math.floor(image.height / blockResolution);
 				let objects = [];
 				for (let i = 0; i < blocksCountX; i++) {
 					for (let j = 0; j < blocksCountY; j++) {
@@ -51,6 +51,7 @@ image.onload = () => {
 				render.createObjects(objects);
 			}
 
+			let OnScreen = {};
 			let arrOfChunks = {};
 			let oldTime = 0;
 			const deletechunkById = (xLocate, yLocate) => {
@@ -59,6 +60,7 @@ image.onload = () => {
 						delete arrOfChunks[chunk];  // Удаляем все слои чанка
 					}
 				}
+				delete OnScreen[xLocate + "x" + yLocate];
 				render.deleteChunk(xLocate, yLocate);
 			};
 			const loadchunk = (xLocate, yLocate) => {
@@ -94,7 +96,7 @@ image.onload = () => {
 									layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 ) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 										layoutChunk.chunk[i - startX][j - startY] = 9;
 									else layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
@@ -108,20 +110,18 @@ image.onload = () => {
 						layoutChunk;
 				}
 				// Строго 2 слоя
-				if (gameArea.chunkDifferList[xLocate + "x" + yLocate] !== undefined) {
-					render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
-						arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
-						arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
-				}
-			};
-			
+				render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
+			}
+
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
 				gameArea.chunkDifferList = {};  // TODO : нормальную работу с полем chunkDifferList
 
 				eventTick();
-        
+
 				{  // Обновление чанков
 					const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
 					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] * cameraScale / (2 * chunkWidth)),
@@ -144,7 +144,6 @@ image.onload = () => {
 						} else {
 							// Если чанк ближайший, то помечаем как отрисованный
 							neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true;
-							gameArea.chunkDifferList[arrOfChunks[chunk].x + "x" + arrOfChunks[chunk].y] = true;
 						}
 					}
 
@@ -152,12 +151,19 @@ image.onload = () => {
 						i++) {
 						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
-							loadchunk(i, j);
+								if (gameArea.chunkDifferList[i + "x" + j] !== undefined
+									|| !OnScreen[i + "x" + j]) {
+
+									OnScreen[i + "x" + j] = true;
+									loadchunk(i, j);
+										}
 						}
 					}
 				}
-				
-				render.render(cameraX, cameraY, player.x, player.y, cameraScale);
+
+				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
+				const lightOfPlayer = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость игрока
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}
@@ -165,7 +171,7 @@ image.onload = () => {
 			if (loadExist()) {
 				let wait = async () => {
 					return new Promise (responce => {
-						load('world')
+						loadWorld('world')
 						.then(result => {
 							loadingResult = result;
 							responce();
@@ -186,7 +192,7 @@ image.onload = () => {
 				requestAnimationFrame(update);
 			}
 		}
-    }
+	}
 }
 
 const cameraSet = (x, y) => {

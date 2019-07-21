@@ -157,7 +157,9 @@ image.onload = () => {
 					}
 				}
 
-				render.render(cameraX, cameraY, player.x, player.y, cameraScale);
+				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
+				const lightOfPlayer = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость игрока
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}

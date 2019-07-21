@@ -308,7 +308,7 @@ class GameArea{
 
                             if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
 
-                                if (direction === 0) {
+								if (direction === 0) {
 									setTimeout(() => {
 										if (this.map[x][y][layout] === +block.id
 											&& this.map[x - 1][y][layout] === undefined) {
@@ -318,15 +318,15 @@ class GameArea{
 										}
 									}, 200);
 								} else {
-                                    setTimeout(() => {
-                                        if (this.map[x][y][layout] === +block.id
-                                            && this.map[x - 1][y][layout] === undefined) {
+									setTimeout(() => {
+										if (this.map[x][y][layout] === +block.id
+											&& this.map[x - 1][y][layout] === undefined) {
 
-                                            this.placeBlock(x - 1, y,
-                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15));
-                                        }
-                                    }, 200);
-                                }
+											this.placeBlock(x - 1, y,
+												layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15));
+										}
+									}, 200);
+								}
                             } else if (this.map[x + 1][y][layout] === undefined && direction !== 0) {
                                 if (direction === 1) {
                                     setTimeout(() => {

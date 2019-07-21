@@ -215,7 +215,7 @@ class GameArea{
                         for (let i = x - 1; i <= x + 1; i++) {
                             if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
                                 items[this.map[x][y - 1][layout]].type !== "wood")) {
-							} else {
+                            } else {
                                 return;
                             }
                         }
@@ -235,12 +235,12 @@ class GameArea{
                                         if (this.map[i][j][layout] === undefined ||
                                             items[this.map[i][j][layout]].type !== "leaf" &&
                                             items[this.map[i][j][layout]].type !== "wood") {
-										} else return;
+                                        } else return;
                                     } else if (this.map[i][j][layout] === undefined ||
                                         items[this.map[i][j][layout]].type !== "wood") {
-									} else return;
+                                    } else return;
                             }
-						}
+                        }
                     }
                     this.destroyBlock(x, y, layout);
                 }
@@ -304,19 +304,19 @@ class GameArea{
                         } else if (this.map[x][y - 1][layout] !== undefined
                             && items[this.map[x][y - 1][layout]].type !== "flowingWater"
                             && +block.id !== 1000 * LIQUID_TYPE + 23
-							&& direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
+                            && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
 
                             if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
 
                                 if (direction === 0) {
-                                	setTimeout(() => {
-                                		if (this.map[x][y][layout] === +block.id
-                                			&& this.map[x - 1][y][layout] === undefined) {
+                                    setTimeout(() => {
+                                        if (this.map[x][y][layout] === +block.id
+                                            && this.map[x - 1][y][layout] === undefined) {
 
-                                			this.placeBlock(x - 1, y,
-                                				layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                                		}
-                                	}, 200);
+                                            this.placeBlock(x - 1, y,
+                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+                                        }
+                                    }, 200);
                                 } else {
                                     setTimeout(() => {
                                         if (this.map[x][y][layout] === +block.id
@@ -466,16 +466,21 @@ class GameArea{
         // Необходим для отслеживания изменений
         this.gameAreaMapSet = (x, y, layout, id) => {
             let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
-            if(chunkDifferList[chunkX + "x" + chunkY] === undefined) {
-                chunkDifferList[chunkX + "x" + chunkY] = {};
-                chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+            if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+                this.chunkDifferList[chunkX + "x" + chunkY] = {};
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
                     x: x,
                     y: y,
                     layout: layout,
                     newValue: id
                 }
             } else {
-                chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout].newValue = id;
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
             }
 
             this.map[x][y][layout] = id;

@@ -75,19 +75,19 @@ class ButtonInput {
         this.active = this.down = false;
     }
 
-    getInput(down) {    
+    getInput(down) {
         if (this.down != down) this.active = down;
         this.down = down; 
     }
 }
 
 class MouseInput {
-	constructor() {
+    constructor() {
         this.active = false;
         this.click = undefined;
         this.x = this.y = 0;
         this.direction = {
             x: 0, y: 0
         }
-	}
+    }
 }

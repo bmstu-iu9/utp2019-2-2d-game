@@ -17,6 +17,7 @@ load(имя сохранения)    Возвращает объект с пол
 
 Внимение! Если сохранения перестали работать и мbр больше не загружается, попробуйсте вызвавть функцию deleteDatabase()
 */
+
 const DB_NAME = 'indexedDB';
 const DB_VERSION = 1;
 const DB_STORE_NAME = 'request';
@@ -39,7 +40,6 @@ const deleteDatabase = () => {
         console.error("Couldn't delete database: " + event);
     }
 }
-
 // deleteDatabase();
 const saveWorld = (worldName) => {
     if (!window.indexedDB) {
@@ -52,7 +52,7 @@ const saveWorld = (worldName) => {
         console.error("Couldn't open database: " + event);
         deleteDatabase();
     }
-    
+
     request.onupgradeneeded = (event) => {
         event
             .target
@@ -64,7 +64,7 @@ const saveWorld = (worldName) => {
         });
     }
 
-    request.onsuccess = (event) => {console.log(key)
+    request.onsuccess = (event) => {
         _db = event.target.result;
 
         let objectStore = _db
@@ -78,7 +78,8 @@ const saveWorld = (worldName) => {
             key: key,
             player: pCopy,
             gameArea: gCopy,
-            change: BlocksGlobalChange
+            change: BlocksGlobalChange,
+            currentTime: currentTime
         },
         worldName);
     
@@ -108,12 +109,13 @@ const loadWorld = (worldName) => {
             .objectStore(DB_STORE_NAME)
             .get(worldName);
 
-            req.onsuccess = () => {console.log(req.result.key)
+            req.onsuccess = () => {
                 resolve({
                     gameArea: req.result.gameArea,
                     key: req.result.key,
                     player: req.result.player,
-                    change: req.result.change
+                    change: req.result.change,
+                    currentTime: req.result.currentTime
                 });
             }
         }

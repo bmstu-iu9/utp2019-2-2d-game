@@ -1,6 +1,6 @@
 /*
 const cameraScale = 1;                  Масштаб, 1 - стандарт
-const scale = 16                        Масштаб камеры (пикселей в блоке при cameraScale = 1)
+const blockSize = 16                    Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;           Положение камеры
 const chankWidth = 8, chankHeight = 8   Размеры чанка
 const minLayout = 2, maxLayout = 3      Обрабатываемые слои
@@ -47,6 +47,7 @@ const beginPlay = () => {
 			gameArea.map[change.x][change.y][change.layout] = change.newValue;
 		}
 
+		currentTime = loadingResult.currentTime;
     	player = new Player();
     	playerCopy(player, loadingResult.player);
     } else {
@@ -54,7 +55,7 @@ const beginPlay = () => {
 
     	let px = gameArea.width / 2;
     	let py = 0;
-    	for(let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
+    	for (let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
     		py = Math.max(py, gameArea.elevationMap[i] + 1);
     	}
 
@@ -83,13 +84,13 @@ const eventTick = () => {
 // Установка текущего времени суток
 const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	currentTime = currentTime / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
-	if(currentTime < Math.PI){ //.................................................... День
+	if (currentTime < Math.PI) { //.................................................. День
 		gameArea.timeOfDay = 1;
-	}else if(currentTime < 2 * Math.PI){ //.......................................... День -> Ночь
+	} else if (currentTime < 2 * Math.PI) { //........................................ День -> Ночь
 		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
-	}else if(currentTime < 3 * Math.PI){ //.......................................... Ночь
+	} else if (currentTime < 3 * Math.PI) { //........................................ Ночь
 		gameArea.timeOfDay = 0;
-	}else{ //........................................................................ Ночь -> День
+	} else { //...................................................................... Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
 	}
 }
@@ -97,9 +98,9 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 // Управление интерфейсом
 const UI = () => {
 	// Кнопки 1..8
-	for(let i = 1; i <= 8; i++) {
-		if(controller.numbers[i].active) {
-			if(player.hand.index != i - 1){
+	for (let i = 1; i <= 8; i++) {
+		if (controller.numbers[i].active) {
+			if (player.hand.index != i - 1) {
 				player.setHand(i - 1);
 			}
 			break;
@@ -136,7 +137,7 @@ const playerMovement = () => {
 	let headY = Math.floor(player.y + Player.HEAD_Y);
 
 	// Урон от удушья 
-	if(gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
+	if (gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
 		&& (items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
 			|| items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
 		player.choke(deltaTime);
@@ -145,11 +146,11 @@ const playerMovement = () => {
 	}
 	let liquidK = player.getLiquidK();
 
-	if(liquidK == 0) { // Если игрок на суше
-		if(player.onGround()) { //....................................................... Если игрок на поверхности
+	if (liquidK == 0) { // Если игрок на суше
+		if (player.onGround()) { //....................................................... Если игрок на поверхности
 			player.vy = Math.max(player.vy, 0);
-			if(controller.up.active) {
-				if(controller.shift.active) {
+			if (controller.up.active) {
+				if (controller.shift.active) {
 					player.vy = Player.JUMP_SPEED * 2 / 3;
 				} else {
 					player.vy = Player.JUMP_SPEED;
@@ -246,7 +247,7 @@ const playerMovement = () => {
 			}
 		}
 
-		if(changedX && changedY){
+		if (changedX && changedY) {
 			break;
 		}
 	}
@@ -254,15 +255,15 @@ const playerMovement = () => {
 	player.fx = newX;
 	player.fy = newY;
 	
-	player.x = Math.round(newX * 16) / 16;
-	player.y = Math.round(newY * 16) / 16;
+	player.x = roundToFunc(newX, blockSize, Math.round);
+	player.y = roundToFunc(newY, blockSize, Math.round);
 
 	// Плавное движение камеры
 	if (Math.abs(cameraX - newX) > 0.3) {
-		cameraSet(cameraX + Math.round((1.5 * (player.x - cameraX) * deltaTime) * 16) / 16, cameraY);
+		cameraSet(cameraX + roundToFunc(1.5 * (player.x - cameraX) * deltaTime, blockSize, Math.round), cameraY);
 	}
 	if (Math.abs(cameraY - newY) > 0.3) {
-		cameraSet(cameraX, cameraY + Math.round(1.5 * ((player.y - cameraY) * deltaTime) * 16) / 16);
+		cameraSet(cameraX, cameraY + roundToFunc(1.5 * (player.y - cameraY) * deltaTime, blockSize, Math.round));
 	}
 	
 }
@@ -271,47 +272,28 @@ const mouseControl = () => {
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
     	let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
-    	const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
-    		controller.mouse.direction.y * controller.mouse.direction.y);
-    	let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
-    	let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
-    	if (len / scale / cameraScale <= Player.ACTION_RADIUS
-	    		&& targetX >= 0 && targetX < gameArea.width && targetY >= 0 && targetY < gameArea.height
-	    		&& gameArea.canDestroy(targetX, targetY, layout)) {
-    		for(let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale){
-    			const x = Math.floor(i * controller.mouse.direction.x / len + player.x);
-    			const y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
-
-    			if(gameArea.canDestroy(x, y, GameArea.MAIN_LAYOUT)) {
-    				if(layout !== GameArea.MAIN_LAYOUT) {
-    					break;
-    				} else {
-    					if(x !== targetX || y !== targetY) break; // Уперлись в другой блок
-    				}
+    	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
+    	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
+    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
+    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+    		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
+    			currentBlock = {
+    				x: targetX, y: targetY, layout: layout,
+    				type: items[gameArea.map[targetX][targetY][layout]].type,
+    				durability: items[gameArea.map[targetX][targetY][layout]].durability
     			}
-    			
-    			if (x === targetX && y === targetY) {
-    				if (currentBlock === undefined || currentBlock.x !== x || currentBlock.y !== y) {
-    					currentBlock = {
-    						x: x, y: y, layout: layout,
-    						type: items[gameArea.map[x][y][layout]].type,
-    						durability: items[gameArea.map[x][y][layout]].durability
-    					}
-    					let effK = ((player.hand.item && player.hand.info.isTool
-    						&& currentBlock.type == player.hand.info.type))
-    					? player.hand.info.efficiency : 1;
-    					currentBlock.durability -= deltaTime * effK;
-    				} else if (currentBlock.durability > 0) {
-    					let effK = ((player.hand.item && player.hand.info.isTool
-    						&& currentBlock.type == player.hand.info.type))
-    					? player.hand.info.efficiency : 1;
-    					currentBlock.durability -= deltaTime * effK;
-    				} else {
-    					currentBlock = undefined;
-    					player.destroy(x, y, layout);
-    				}
-    				break;
-    			}
+    			let effK = ((player.hand.item && player.hand.info.isTool
+    				&& currentBlock.type == player.hand.info.type))
+    			? player.hand.info.efficiency : 1;
+    			currentBlock.durability -= deltaTime * effK;
+    		} else if (currentBlock.durability > 0) {
+    			let effK = ((player.hand.item && player.hand.info.isTool
+    				&& currentBlock.type == player.hand.info.type))
+    			? player.hand.info.efficiency : 1;
+    			currentBlock.durability -= deltaTime * effK;
+    		} else {
+    			currentBlock = undefined;
+    			player.destroy(targetX, targetY, layout);
     		}
     	}
     } else {
@@ -321,36 +303,17 @@ const mouseControl = () => {
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
 		let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
-		const len = Math.sqrt(controller.mouse.direction.x * controller.mouse.direction.x +
-			controller.mouse.direction.y * controller.mouse.direction.y);
-		let targetX = Math.floor(controller.mouse.direction.x / scale / cameraScale + player.x);
-		let targetY = Math.floor(controller.mouse.direction.y / scale / cameraScale + player.y + Player.HEIGHT / 2);
-		if (gameArea.canPlace(targetX, targetY, layout)) {
-			if (len / scale / cameraScale <= Player.ACTION_RADIUS
-					&& targetX >= 0 && targetX < gameArea.width && targetY >= 0 && targetY < gameArea.height) {
-				let x = player.x;
-				let y = player.y;
-				let isAllowPlace = true; //.................................. Действительно ли выбрано допустимое место
-				for (let i = 0; i < len / scale / cameraScale; i += 1 / scale / cameraScale) {
-					x = Math.floor(i * controller.mouse.direction.x / len + player.x);
-					y = Math.floor(i * controller.mouse.direction.y / len + player.y + Player.HEIGHT / 2);
-					if (i > Player.ACTION_RADIUS
-							|| (gameArea.map[x][y][GameArea.MAIN_LAYOUT] != undefined
-							&& items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].isCollissed)) {
-						isAllowPlace = false;
-						break;
-					}
-				}
-		        if (isAllowPlace && //....................................... Есть блок рядом
-		        	(gameArea.canDestroy(x - 1, y, layout)
-		        	|| gameArea.canDestroy(x + 1, y, layout)
-		        	|| gameArea.canDestroy(x, y - 1, layout)
-		        	|| gameArea.canDestroy(x, y + 1, layout))) {
-
-		        	player.place(x, y, layout);
-		        	lastPlaceBlockTime = currentTime;
-		    	}
-			}
+		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
+		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
+		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
+		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //............................... Есть блок рядом
+		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
+		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
+		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
+		       	player.place(targetX, targetY, layout);
+		       	lastPlaceBlockTime = currentTime;
+		    }
 		}
 	}
 }

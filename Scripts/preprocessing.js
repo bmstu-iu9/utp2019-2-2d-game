@@ -1,14 +1,17 @@
 'use strict';
 
-const cameraScale = 1;  // Масштаб, 1 - стандарт
-const scale = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
+let cameraScale = 1;  // Масштаб, 1 - стандарт
+const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
-const chankWidth = 8, chankHeight = 8;  // Размеры чанка
+const chunkWidth = 8, chunkHeight = 8;  // Размеры чанка
 const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
+
 let loadingResult = undefined;
+
+const render = new Render();
 
 const image = new Image();
 image.src = 'Images/blocks.png';
@@ -19,26 +22,30 @@ image.onload = () => {
 		const playerImage = new Image();
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
-			const render = new Render(image, background, playerImage);
-			render.settings(scale, chankWidth, chankHeight);
+			render.init(image, background, playerImage);
+			render.settings(blockSize, chunkWidth, chunkHeight, 1, 0.5);
 
 			// Отправка образцов объектов
 			{
-				const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY =
-					Math.floor(image.height / blockResolution);
+				const blocksCountX = Math.floor(image.width / blockResolution),
+					blocksCountY = Math.floor(image.height / blockResolution);
 				let objects = [];
 				for (let i = 0; i < blocksCountX; i++) {
 					for (let j = 0; j < blocksCountY; j++) {
 						objects.push({
 							'id': j * blocksCountX + i + 1,
 							'a': [
-								i * 1 / blocksCountX + 1 / image.width,
-								j * 1 / blocksCountY + 1 / image.height
+								i / blocksCountX + 1 / image.width,
+								j / blocksCountY + 1 / image.height
 							],
 							'b': [
-								(i + 1) * 1 / blocksCountX - 1 / image.width,
-								(j + 1) * 1 / blocksCountY - 1 / image.height
-							]});
+								(i + 1) / blocksCountX - 1 / image.width,
+								(j + 1) / blocksCountY - 1 / image.height
+							],
+							'transparency': items[j * blocksCountX + i + 1] !== undefined
+								? !items[j * blocksCountX + i + 1].isSolid
+								: false
+							});
 					}
 				}
 				render.createObjects(objects);
@@ -46,18 +53,19 @@ image.onload = () => {
 
 			let arrOfChunks = {};
 			let oldTime = 0;
-			const deleteChankById = (xLocate, yLocate) => {
+			const deletechunkById = (xLocate, yLocate) => {
 				for (let chunk in arrOfChunks) {
 					if (arrOfChunks[chunk].x === xLocate && arrOfChunks[chunk].y === yLocate) {
 						delete arrOfChunks[chunk];  // Удаляем все слои чанка
 					}
 				}
+				render.deleteChunk(xLocate, yLocate);
 			};
-			const loadChank = (xLocate, yLocate) => {
-				const stopX = (xLocate + 1) * chankWidth;
-				const stopY = (yLocate + 1) * chankHeight;
-				const startX = xLocate * chankWidth;
-				const startY = yLocate * chankHeight;
+			const loadchunk = (xLocate, yLocate) => {
+				const stopX = (xLocate + 1) * chunkWidth;
+				const stopY = (yLocate + 1) * chunkHeight;
+				const startX = xLocate * chunkWidth;
+				const startY = yLocate * chunkHeight;
 
 				// + 1 слой света
 				for (let layout = minLayout; layout <= maxLayout + 1; layout++) {
@@ -86,8 +94,7 @@ image.onload = () => {
 									layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
-									// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 )
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 										layoutChunk.chunk[i - startX][j - startY] = 9;
 									else layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
@@ -100,23 +107,30 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] =
 						layoutChunk;
 				}
+				// Строго 2 слоя
+				if (gameArea.chunkDifferList[xLocate + "x" + yLocate] !== undefined) {
+					render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
+				}
 			};
 
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
+				gameArea.chunkDifferList = {};  // TODO : нормальную работу с полем chunkDifferList
 
 				eventTick();
-        
+
 				{  // Обновление чанков
-					const curChankX = Math.floor(cameraX / chankWidth), curChankY = Math.floor(cameraY / chankHeight);
-					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] / (2 * chankWidth)),
-						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] / (2 * chankHeight))
+					const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
+					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] * cameraScale / (2 * chunkWidth)),
+						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] * cameraScale / (2 * chunkHeight))
 					let neigChunk = {};
-					for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX;
+					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {
 						neigChunk[i] = {};
-						for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY;
+						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
 							neigChunk[i][j] = false;
 						}
@@ -126,27 +140,30 @@ image.onload = () => {
 						if (neigChunk[arrOfChunks[chunk].x] === undefined ||
 						neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] === undefined) {
 							// Если не ближайший чанк, то удаляем
-							deleteChankById(arrOfChunks[chunk].x, arrOfChunks[chunk].y);
+							deletechunkById(arrOfChunks[chunk].x, arrOfChunks[chunk].y);
 						} else {
 							// Если чанк ближайший, то помечаем как отрисованный
 							neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true;
+							gameArea.chunkDifferList[arrOfChunks[chunk].x + "x" + arrOfChunks[chunk].y] = true;
 						}
 					}
 
-					for (let i = curChankX - halfScreenChunkCapasityX; i <= curChankX + halfScreenChunkCapasityX;
+					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {
-						for (let j = curChankY - halfScreenChunkCapasityY; j <= curChankY + halfScreenChunkCapasityY;
+						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
-							loadChank(i, j);
+							loadchunk(i, j);
 						}
 					}
 				}
 
-				render.render(cameraX, cameraY, player.x, player.y, cameraScale, arrOfChunks);
+				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
+				const lightOfPlayer = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость игрока
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}
-
+			
 			if (loadExist()) {
 				let wait = async () => {
 					return new Promise (responce => {
@@ -155,15 +172,19 @@ image.onload = () => {
 							loadingResult = result;
 							responce();
 						});
-					})
+					});
 				}
 
 				wait().then(() => {
 					beginPlay();
+					const elem = document.getElementById("loading");
+					elem.parentNode.removeChild(elem);
 					requestAnimationFrame(update);
 				});
 			} else {
 				beginPlay();
+				const elem = document.getElementById("loading");
+				elem.parentNode.removeChild(elem);
 				requestAnimationFrame(update);
 			}
 		}

@@ -4,41 +4,13 @@
 </head>
 <body>
 	<canvas id="canvas" oncontextmenu="return false"></canvas>
+	<p id="loading" class="loading">
+		Идёт загрузка игры...<br>
+		<img src="Images/loading.gif" class="loading-img"></img>
+	</p>
 	<p id="fps" class="fps">  0 FPS</p>
-	<!-- GLSL -- Тут ничего не трограть, либо писать Надиму! -->
-	<script id="vertex-shader" type="none">
-		attribute vec2 a_position;
-		attribute vec2 a_texCoord;
-
-		uniform vec3 u_translate;
-		uniform mat4 u_projectionMatrix;
-		uniform float u_resolution;
-		uniform float u_light;
-
-		varying vec2 v_texCoord;
-		varying float v_light;
-
-		void main() {
-			v_texCoord = a_texCoord;
-			v_light = u_light;
-			vec4 pos = vec4(u_translate + vec3(a_position / u_resolution, 0.0), 1.0);
-			gl_Position = u_projectionMatrix * pos;
-		}
-	</script>
-	<script id="fragment-shader" type="none">
-		precision mediump float;
-
-		uniform sampler2D u_texture;
-
-		varying vec2 v_texCoord;
-		varying float v_light;
-
-		void main() {
-			vec4 tex = texture2D(u_texture, v_texCoord);
-			gl_FragColor = vec4(tex.rgb * v_light, tex.a);
-		}
-	</script>
 	<!-- JavaScript -- Сюда писать ваши скрипты -->
+	<script src="Scripts/shaders.js"></script>
 	<script src="Scripts/engine.js"></script>
 	<script src="Scripts/controller.js"></script>
 	<script src="Scripts/fps.js"></script>

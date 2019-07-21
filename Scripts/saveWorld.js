@@ -15,6 +15,7 @@ load(имя сохранения)    Возвращает объект с пол
                         (ВАЖНО! поле для корректной работы необходимо создать объекты
                         Player, gameArea и скопировать данные в них)
 */
+
 const DB_NAME = 'indexedDB';
 const DB_VERSION = 1;
 const DB_STORE_NAME = 'request';

@@ -6,17 +6,18 @@ class Controller {
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
         this.mouse 	= new MouseInput();
+        this.shift  = new ButtonInput();
 
         this.numbers = [];
-        for(let i = 0; i < 10; i++){
+        for (let i = 0; i < 10; i++) {
             this.numbers[i] = new ButtonInput();
         }
     }
 
     keyDownUp(event) {
         const down = event.type == "keydown";
-        if(event.keyCode >= 49 && event.keyCode <= 58) {
-            if(event.keyCode == 58){
+        if (event.keyCode >= 49 && event.keyCode <= 58) {
+            if (event.keyCode == 58) {
                 this.numbers[0].getInput(down);
             } else {
                 this.numbers[event.keyCode - 48].getInput(down);
@@ -34,17 +35,20 @@ class Controller {
             case 83:
                 this.down.getInput(down);
                 break;
+            case 16:
+                this.shift.getInput(down);
+                break;
         }
     }
     
     mouseMove(event) {
-        const playerPlixelLocateX = (player.x - cameraX) * scale * cameraScale,
-            playerPlixelLocateY = (player.y - cameraY) * scale * cameraScale;
+        const playerPlixelLocateX = (player.x - cameraX) * blockSize * cameraScale,
+            playerPlixelLocateY = (player.y - cameraY) * blockSize * cameraScale;
         this.mouse.x = event.pageX;
         this.mouse.y = event.pageY;
         this.mouse.direction.x = this.mouse.x - document.getElementById('canvas').width / 2 - playerPlixelLocateX;
         this.mouse.direction.y = document.getElementById('canvas').height / 2 - playerPlixelLocateY - this.mouse.y -
-            Player.HEIGHT * scale * cameraScale / 2;
+            Player.HEIGHT * blockSize * cameraScale / 2;
     }
 
     mouseDown(event) {
@@ -59,7 +63,6 @@ class Controller {
 }
 
 class ButtonInput {
-
     constructor() {
         this.active = this.down = false;
     }
@@ -71,7 +74,6 @@ class ButtonInput {
 }
 
 class MouseInput {
-
 	constructor() {
         this.active = false;
         this.click = undefined;

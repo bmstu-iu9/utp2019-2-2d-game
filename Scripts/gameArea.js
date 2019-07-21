@@ -47,7 +47,7 @@ class GameArea{
         this.height = height;
 
         // Отслеживание изменений для engine.js
-        this.chunkDifferList = {};  // Хранит объекты вида {chunkX, chunkY, layout, list:[{x, y, value} ... { }] }
+        this.chunkDifferList = {};  // Хранит объекты изменения чанков
         // Размеры чанка для engine.js.
         //TODO: Откорректировать как нужно
         this.chunkHeight = 1;
@@ -487,6 +487,23 @@ class GameArea{
             this.map[x][y][layout] = id;
         }
     }
+    // Необходим для отслеживания изменений
+    gameAreaMapSet (x, y, layout, id) {
+        let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+        if(chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+            chunkDifferList[chunkX + "x" + chunkY] = {};
+            chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                x: x,
+                y: y,
+                layout: layout,
+                newValue: id
+            }
+        } else {
+            chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout].newValue = id;
+        }
+
+        this.map[x][y][layout] = id;
+    }
 }
 
 // Вспомогательные функции
@@ -530,6 +547,12 @@ const angleMax = (a1, a2) => {
     } else {
         return a2;
     }
+}
+
+// Для копирования gameArea из indexedDB
+const gameAreaCopy = (gameArea, obj) => {
+    gameArea.width = obj.width;
+    gameArea.height = obj.height;
 }
 
 // Константы уровня

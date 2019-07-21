@@ -8,7 +8,6 @@ const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
-
 let loadingResult = undefined;
 
 const render = new Render();
@@ -161,11 +160,11 @@ image.onload = () => {
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}
-			
+
 			if (loadExist()) {
 				let wait = async () => {
 					return new Promise (responce => {
-						load('world')
+						loadWorld('world')
 						.then(result => {
 							loadingResult = result;
 							responce();

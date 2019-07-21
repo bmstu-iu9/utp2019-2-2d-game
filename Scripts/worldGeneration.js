@@ -342,7 +342,8 @@ const generate = (width, height, seed) => {
                 (forkY < worldArr[forkX].length && !worldArr[forkX][forkY])) && (forkY - startY < currentHeight)) {
 
                 if (x !== startX &&
-                    (currentBranchLength === 0 || !(x >= 0 && x < worldArr.length && y < worldArr[x].length && !worldArr[x][y] && !isTreeX[x]) ||
+                    (currentBranchLength === 0 || !(x >= 0 && x < worldArr.length && y < worldArr[x].length
+                        && !worldArr[x][y] && !isTreeX[x]) ||
                     (y - startY >= maxHeight))) {
                     if (lastBranchX !== startX) {
                         endOfBranchX.push(lastBranchX);

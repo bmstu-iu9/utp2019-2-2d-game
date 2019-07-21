@@ -12,10 +12,11 @@ cameraSet(x, y)                         Устанавливает ккорди�
 
 
 
-const key = Date.now(); 		// Ключ генерации
+let key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
+let BlocksGlobalChange = {};
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -37,12 +38,14 @@ const beginPlay = () => {
     });
 
     if (loadExist()) {
-    	gameArea = new GameArea(loadingResult.gameArea.map,
-    		loadingResult.gameArea.elevationMap,
-    		loadingResult.gameArea.shadowMap,
-    		loadingResult.gameArea.width,
-    		loadingResult.gameArea.height);
-    	gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
+		key = loadingResult.key;
+		gameArea = generate(loadingResult.gameArea.width,
+			loadingResult.gameArea.height,
+			key);
+		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
+		for (let change in loadingResult.change) {
+			gameArea.map[change.x][change.y][change.layout] = change.newValue;
+		}
 
     	player = new Player();
     	playerCopy(player, loadingResult.player);
@@ -73,6 +76,7 @@ const eventTick = () => {
 	playerMovement();
 	mouseControl();
 	UI();
+	worldChange();
 	playerActionButtons();
 }
 
@@ -101,6 +105,17 @@ const UI = () => {
 			break;
 		}
 	}
+}
+
+// Запись изменений блоков мира
+const worldChange = () => {
+	for (let chunk in gameArea.chunkDifferList) {
+		for (let change in chunk) {
+			BlocksGlobalChange[change.y + "x" + change.y + "x" + change.layout] = change.newValue;
+		}
+	}
+
+	gameArea.chunkDifferList = {};
 }
 
 // Действия при нажатии клавиш действия

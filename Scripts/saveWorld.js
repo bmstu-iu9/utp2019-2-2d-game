@@ -64,7 +64,7 @@ const saveWorld = (worldName) => {
         });
     }
 
-    request.onsuccess = (event) => {
+    request.onsuccess = (event) => {console.log(key)
         _db = event.target.result;
 
         let objectStore = _db
@@ -75,8 +75,10 @@ const saveWorld = (worldName) => {
         playerCopy(pCopy, player);
         gameAreaCopy(gCopy, gameArea);
         objectStore.put({
+            key: key,
             player: pCopy,
-            gameArea: gCopy
+            gameArea: gCopy,
+            change: BlocksGlobalChange
         },
         worldName);
     
@@ -106,10 +108,12 @@ const loadWorld = (worldName) => {
             .objectStore(DB_STORE_NAME)
             .get(worldName);
 
-            req.onsuccess = () => {
+            req.onsuccess = () => {console.log(req.result.key)
                 resolve({
                     gameArea: req.result.gameArea,
-                    player: req.result.player
+                    key: req.result.key,
+                    player: req.result.player,
+                    change: req.result.change
                 });
             }
         }

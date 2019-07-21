@@ -38,6 +38,7 @@ class GameArea{
         this.width = width;
         this.height = height;
 
+        this.chunkDifferList = {};
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
             let grad = (y > this.elevationMap[x])
@@ -437,14 +438,29 @@ class GameArea{
         };
 
     }
+
+    // Необходим для отслеживания изменений
+    gameAreaMapSet (x, y, layout, id) {
+        let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+        if(chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+            chunkDifferList[chunkX + "x" + chunkY] = {};
+            chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                x: x,
+                y: y,
+                layout: layout,
+                newValue: id
+            }
+        } else {
+            chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout].newValue = id;
+        }
+
+
+        this.map[x][y][layout] = id;
+    }
 }
 
 // Для копирования gameArea из indexedDB
 const gameAreaCopy = (gameArea, obj) => {
-    gameArea.map = obj.map;
-    gameArea.elevationMap = obj.elevationMap;
-    gameArea.shadowMap = obj.shadowMap;
-    gameArea.timeOfDay = obj.timeOfDay;
     gameArea.width = obj.width;
     gameArea.height = obj.height;
 }

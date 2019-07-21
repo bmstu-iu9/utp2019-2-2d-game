@@ -16,6 +16,7 @@ const key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
+let layoutSwitcher = false;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -105,14 +106,27 @@ const UI = () => {
 
 // Движение игрока
 const playerMovement = () => {
+
+	if(controller.down.active) {
+		 if(!layoutSwitcher) {
+		 	layoutSwitcher = true;
+		 	let layout = (player.layout === GameArea.MAIN_LAYOUT) ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
+		 	if(player.canStay(player.fx, player.fy, layout)) {
+		 		player.layout = layout;
+		 	}
+		 }
+	} else {
+		layoutSwitcher = false;
+	}
+
 	// Координаты блока, в котором голова
 	let headX = Math.floor(player.x + Player.HEAD_X);
 	let headY = Math.floor(player.y + Player.HEAD_Y);
 
 	// Урон от удушья 
-	if (gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
-		&& (items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
-			|| items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
+	if (gameArea.map[headX][headY][player.layout]
+		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
+			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {
 		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);

@@ -218,7 +218,7 @@ let items = {
         costOfMelting: '100',
         durability: 4,
         brightness: 0,
-        isCollissed: false,
+        isCollissed: true,
         isSolid: true
     },
 

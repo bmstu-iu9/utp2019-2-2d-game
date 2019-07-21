@@ -259,7 +259,7 @@ const generate = (width, height, seed) => {
     // Генерция деревьев
     const treeGen = (heights, worldArr, minHeight, maxHeight, maxCountOfTree) => {
 
-        const foliageGen = (worldArr, treeArr, treeX, treeY) => {
+        const foliageGen = (worldArr, treeArr, treeX, treeY, layout) => {
             let rand = random(), radius = 2;
             while (rand < 0.3) {
                 if (radius === 3) {
@@ -274,7 +274,11 @@ const generate = (width, height, seed) => {
                     if (i >= 0 && i < worldArr.length && j >= 0 && j < worldArr[i].length
 						&& radius * radius >= (i - treeX) * (i - treeX) + (j - treeY) * (j - treeY)
 						&& treeArr[i][j] < 1 && !worldArr[i][j]) {
-                        treeArr[i][j] = 2;
+                    	if(layout === GameArea.MAIN_LAYOUT) {
+                    		treeArr[i][j] = 2;
+                    	} else {
+                    		treeArr[i][j] = 4;
+                    	}
                     }
                 }
             }
@@ -298,6 +302,7 @@ const generate = (width, height, seed) => {
         let countTreeX = 0;
 
         while (countTreeX < worldArr.length && countTree < maxCountOfTree) {
+        	let layout = random() > 0.5 ? GameArea.MAIN_LAYOUT : GameArea.BACK_LAYOUT;
 
             let treeArrX = [], endOfBranchX = [];
             let treeArrY = [], endOfBranchY = [];
@@ -412,7 +417,11 @@ const generate = (width, height, seed) => {
             endOfBranchY.push(forkY);
 
             for (let i = 0; i < treeArrX.length; i++) {
-                treeArr[treeArrX[i]][treeArrY[i]] = 1;
+            	if(layout === GameArea.MAIN_LAYOUT) {
+	                treeArr[treeArrX[i]][treeArrY[i]] = 1;
+	            } else {
+	            	treeArr[treeArrX[i]][treeArrY[i]] = 3;
+	            }
             }
 
             for (let i = 0; i < endOfBranchX.length; i++) {
@@ -420,7 +429,7 @@ const generate = (width, height, seed) => {
                 if (endOfBranchX[i] < leftEdge) leftEdge = endOfBranchX[i];
                 if (endOfBranchX[i] > rightEdge) rightEdge = endOfBranchX[i];
 
-                foliageGen(worldArr, treeArr, endOfBranchX[i], endOfBranchY[i]);
+                foliageGen(worldArr, treeArr, endOfBranchX[i], endOfBranchY[i], layout);
             }
 
             for (let i = leftEdge - 7; i <= rightEdge + 7; i++) {
@@ -599,11 +608,20 @@ const generate = (width, height, seed) => {
     for (let i = 0; i < treeArr.length; i++) {
         for (let j = 0; j < treeArr[i].length; j++) {
             if (!treeArr[i][j] == 0) {
-                if (treeArr[i][j] === 1) {
-                    worldMap[i][j][GameArea.BACK_LAYOUT] = 17;
-                } else {
-					worldMap[i][j][GameArea.BACK_LAYOUT] = 18;
-				}
+            	switch(treeArr[i][j]){
+            		case 1:
+            			worldMap[i][j][GameArea.MAIN_LAYOUT] = 17;
+            			break;
+            		case 2:
+            			worldMap[i][j][GameArea.MAIN_LAYOUT] = 18;
+            			break;
+            		case 3: 
+            			worldMap[i][j][GameArea.BACK_LAYOUT] = 17;
+            			break;
+            		case 4:
+            			worldMap[i][j][GameArea.BACK_LAYOUT] = 18;
+            			break;
+            	}
             }
         }
     }

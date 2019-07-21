@@ -5,6 +5,7 @@ class Player {
         this.y = y;
         this.fx = x;
         this.fy = y;
+        this.layout = GameArea.MAIN_LAYOUT;
 
         // Очки жизни
         this.hp = 100;
@@ -384,7 +385,7 @@ class Player {
         this.isCollisionLeft = (newX, newY) => {
             let i = Math.floor(newX - Player.WIDTH / 2);
             for (let j = Math.floor(newY); j < Math.ceil(newY + Player.HEIGHT); j++) {
-                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
+                if (gameArea.hasCollision(i, j, this.layout)) {
                     return true;
                 }
             }
@@ -395,7 +396,7 @@ class Player {
         this.isCollisionRight = (newX, newY) => {
             let i = Math.floor(newX + Player.WIDTH / 2);
             for (let j = Math.floor(newY); j < Math.ceil(newY + Player.HEIGHT); j++) {
-                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
+                if (gameArea.hasCollision(i, j, this.layout)) {
                     return true;
                 }
             }
@@ -406,7 +407,7 @@ class Player {
         this.isCollisionUp = (newX, newY) => {
             let j = Math.floor(newY + Player.HEIGHT);
             for (let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
-                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
+                if (gameArea.hasCollision(i, j, this.layout)) {
                     return true;
                 }
             }
@@ -417,7 +418,7 @@ class Player {
         this.isCollisionDown = (newX, newY) => {
             let j = Math.floor(newY);
             for (let i = Math.floor(newX - Player.WIDTH / 2); i < Math.ceil(newX + Player.WIDTH / 2); i++) {
-                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
+                if (gameArea.hasCollision(i, j, this.layout)) {
                     return true;
                 }
             }
@@ -428,6 +429,20 @@ class Player {
         this.onGround = () => {
             if (this.y - 0.0001 < 0) return true;
             return this.isCollisionDown(this.fx, this.fy - 0.0001);
+        }
+
+        // Может ли вместиться игрок на x, y, layout
+        this.canStay = (x, y, layout) => {
+            let startX = Math.max(Math.floor(x - Player.WIDTH / 2), 0);
+            let endX = Math.min(Math.floor(x + Player.WIDTH / 2), gameArea.width - 1);
+            let startY = Math.max(Math.floor(y), 0);
+            let endY = Math.min(Math.floor(y + Player.HEIGHT), gameArea.height - 1);
+            for (let i = startX; i <= endX; i++) {
+                for (let j = startY; j <= endY; j++) {
+                    if(gameArea.hasCollision(i, j, layout)) return false;
+                }
+            }
+            return true;
         }
 
         /*  Коэффициент плотности жидкости, в которой игрок
@@ -441,9 +456,9 @@ class Player {
             let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
             for (let x = startX; x <= endX; x++) {
                 for (let y = startY; y <= endY; y++) {
-                    if (items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]]
-                            && items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density > k) {
-                        k = items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].density;
+                    if (items[gameArea.map[x][y][this.layout]]
+                            && items[gameArea.map[x][y][this.layout]].density > k) {
+                        k = items[gameArea.map[x][y][this.layout]].density;
                     }
                 }
             }

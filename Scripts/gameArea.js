@@ -47,11 +47,7 @@ class GameArea{
         this.height = height;
 
         // Отслеживание изменений для engine.js
-<<<<<<< HEAD
-        this.chunkDifferList = {};  // Хранит объекты вида {chunkX, chunkY, layout, list:[{x, y, value} ... { }] }
-=======
         this.chunkDifferList = {};  // Хранит объекты изменения чанков
->>>>>>> test
         // Размеры чанка для engine.js.
         //TODO: Откорректировать как нужно
         this.chunkHeight = 1;

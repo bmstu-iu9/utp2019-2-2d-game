@@ -78,7 +78,8 @@ const saveWorld = (worldName) => {
             key: key,
             player: pCopy,
             gameArea: gCopy,
-            change: BlocksGlobalChange
+            change: BlocksGlobalChange,
+            currentTime: currentTime
         },
         worldName);
     
@@ -113,7 +114,8 @@ const loadWorld = (worldName) => {
                     gameArea: req.result.gameArea,
                     key: req.result.key,
                     player: req.result.player,
-                    change: req.result.change
+                    change: req.result.change,
+                    currentTime: req.result.curr
                 });
             }
         }

@@ -454,7 +454,6 @@ class GameArea{
             }
         };
 
-
         // Функция разрушения блока со сбросом лута
         this.goodDestroy = (x, y, layout, player) => {
             let block = items[this.map[x][y][layout]];
@@ -463,6 +462,7 @@ class GameArea{
                 player.addToInv(this.dropLoot(x, y, block));
             } else this.destroyBlock(x, y, layout, player);
         };
+
         // Необходим для отслеживания изменений
         this.gameAreaMapSet = (x, y, layout, id) => {
             let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
@@ -484,7 +484,8 @@ class GameArea{
             }
 
             this.map[x][y][layout] = id;
-        }
+        };
+
     }
 }
 

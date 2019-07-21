@@ -47,6 +47,7 @@ const beginPlay = () => {
 			gameArea.map[change.x][change.y][change.layout] = change.newValue;
 		}
 
+		currentTime = loadingResult.currentTime;
     	player = new Player();
     	playerCopy(player, loadingResult.player);
     } else {

@@ -41,7 +41,7 @@ const deleteDatabase = () => {
 }
 
 // deleteDatabase();
-const save = (worldName) => {console.log(1)
+const saveWorld = (worldName) => {
     if (!window.indexedDB) {
         window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
     }
@@ -49,23 +49,32 @@ const save = (worldName) => {console.log(1)
     let request = window.indexedDB.open(DB_NAME, 1);
 
     request.onerror = (event) => {
-        console.error("Couldn't create database: " + event);
+        console.error("Couldn't open database: " + event);
         deleteDatabase();
     }
     
-    request.onupgradeneeded = (event) => {console.log(2)
-        _db = event.target.result;
-    
-        let objectStore = _db.createObjectStore(DB_STORE_NAME, {
-            ketPath: "worldName",
-            autoIncrement : true,
-            unique: true
+    request.onupgradeneeded = (event) => {
+        event
+            .target
+            .result
+            .createObjectStore(DB_STORE_NAME, {
+                ketPath: "worldName",
+                autoIncrement : true,
+                unique: true
         });
-    
+    }
+
+    request.onsuccess = (event) => {
+        _db = event.target.result;
+
+        let objectStore = _db
+            .transaction([DB_STORE_NAME], "readwrite")
+            .objectStore(DB_STORE_NAME);
+
         let pCopy = {}, gCopy = {};
         playerCopy(pCopy, player);
         gameAreaCopy(gCopy, gameArea);
-        objectStore.add({
+        objectStore.put({
             player: pCopy,
             gameArea: gCopy
         },
@@ -75,12 +84,16 @@ const save = (worldName) => {console.log(1)
     }
 }
 
-const load = (worldName) => {
+const loadWorld = (worldName) => {
+    if (!window.indexedDB) {
+        window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
+    }
+
     return new Promise((resolve, reject) => {
         let request = window.indexedDB.open(DB_NAME, 1);
 
         request.onerror = (event) => {
-            console.error("Couldn't load database: " + event);
+            console.error("Couldn't open database: " + event);
             deleteDatabase();
             reject(event);
         }
@@ -101,4 +114,31 @@ const load = (worldName) => {
             }
         }
     });
+}
+
+const deleteWorld = (worldName) => {
+    if (!window.indexedDB) {
+        window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
+    }
+
+    let request = window.indexedDB.open(DB_NAME, 1);
+
+    request.onerror = (event) => {
+        console.error("Couldn't open database: " + event);
+        deleteDatabase();
+    }
+
+    request.onupgradeneeded = (event) => {
+        console.error("Database does not exist");
+        deleteDatabase();
+    }
+
+    request.onsuccess = (event) => {
+        localStorage[worldName] = undefined;
+        _db = event.target.result;
+
+        let transaction = _db.transaction([DB_STORE_NAME], "readwrite");
+
+        // TODO : добавить метод удаления object store
+    }
 }

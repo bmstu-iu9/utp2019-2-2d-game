@@ -47,7 +47,11 @@ class GameArea{
         this.height = height;
 
         // Отслеживание изменений для engine.js
+<<<<<<< HEAD
         this.chunkDifferList = {};  // Хранит объекты вида {chunkX, chunkY, layout, list:[{x, y, value} ... { }] }
+=======
+        this.chunkDifferList = {};  // Хранит объекты изменения чанков
+>>>>>>> test
         // Размеры чанка для engine.js.
         //TODO: Откорректировать как нужно
         this.chunkHeight = 1;
@@ -465,24 +469,18 @@ class GameArea{
         };
         // Необходим для отслеживания изменений
         this.gameAreaMapSet = (x, y, layout, id) => {
-            const chunkX = Math.floor(x / this.chunkWidth), chunkY = Math.floor(y / this.chunkHeight);
-            const value = {
-                x: x % this.chunkWidth,
-                y: y % this.chunkHeight,
-                value: id
-            };
-
-            this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] =
-                this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] === undefined
-                    ? {
-                        chunkX: chunkX,
-                        chunkY: chunkY,
-                        layout: layout,
-                        list: [value]
-                    }
-                    : this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout]
-                        .list
-                        .push(value);
+            let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+            if(chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+                chunkDifferList[chunkX + "x" + chunkY] = {};
+                chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
+            } else {
+                chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout].newValue = id;
+            }
 
             this.map[x][y][layout] = id;
         }
@@ -511,6 +509,7 @@ const hypotenuse = (x, y) => {
 const roundToFunc = (x, fraction, roundFunction) => {
     return roundFunction(x * fraction) / fraction;
 }
+
 const roundTo = (x, fraction) => {
     return roundToFunc(x, fraction, Math.floor);
 }
@@ -530,6 +529,12 @@ const angleMax = (a1, a2) => {
     } else {
         return a2;
     }
+}
+
+// Для копирования gameArea из indexedDB
+const gameAreaCopy = (gameArea, obj) => {
+    gameArea.width = obj.width;
+    gameArea.height = obj.height;
 }
 
 // Константы уровня

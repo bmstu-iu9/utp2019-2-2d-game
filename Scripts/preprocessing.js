@@ -165,7 +165,7 @@ image.onload = () => {
 			if (loadExist()) {
 				let wait = async () => {
 					return new Promise (responce => {
-						load('world')
+						loadWorld('world')
 						.then(result => {
 							loadingResult = result;
 							responce();

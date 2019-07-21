@@ -1,12 +1,19 @@
 class Controller {
 
     constructor() {
+        this.mouse  = new MouseInput();
         this.down   = new ButtonInput();
         this.left   = new ButtonInput();
         this.right  = new ButtonInput();
         this.up     = new ButtonInput();
+<<<<<<< HEAD
         this.mouse 	= new MouseInput();
         this.shift  = new ButtonInput();
+=======
+        this.shift  = new ButtonInput();
+        this.f      = new ButtonInput();
+        this.g      = new ButtonInput();
+>>>>>>> test
 
         this.numbers = [];
         for (let i = 0; i < 10; i++) {
@@ -38,6 +45,15 @@ class Controller {
             case 16:
                 this.shift.getInput(down);
                 break;
+<<<<<<< HEAD
+=======
+            case 70:
+                this.f.getInput(down);
+                break;
+            case 71:
+                this.g.getInput(down);
+                break;
+>>>>>>> test
         }
     }
     
@@ -47,8 +63,13 @@ class Controller {
         this.mouse.x = event.pageX;
         this.mouse.y = event.pageY;
         this.mouse.direction.x = this.mouse.x - document.getElementById('canvas').width / 2 - playerPlixelLocateX;
+<<<<<<< HEAD
         this.mouse.direction.y = document.getElementById('canvas').height / 2 - playerPlixelLocateY - this.mouse.y -
             Player.HEIGHT * blockSize * cameraScale / 2;
+=======
+        this.mouse.direction.y = document.getElementById('canvas').height / 2 - playerPlixelLocateY - this.mouse.y
+            - Player.HEIGHT * blockSize * cameraScale / 2;
+>>>>>>> test
     }
 
     mouseDown(event) {

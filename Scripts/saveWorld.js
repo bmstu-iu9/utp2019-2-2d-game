@@ -52,7 +52,7 @@ const saveWorld = (worldName) => {
         console.error("Couldn't open database: " + event);
         deleteDatabase();
     }
-    
+
     request.onupgradeneeded = (event) => {
         event
             .target

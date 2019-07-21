@@ -110,7 +110,7 @@ const playerMovement = () => {
 	if(controller.down.active) {
 		 if(!layoutSwitcher) {
 		 	layoutSwitcher = true;
-		 	let layout = (player.layout === GameArea.MAIN_LAYOUT) ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
+		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
 		 	if(player.canStay(player.fx, player.fy, layout)) {
 		 		player.layout = layout;
 		 	}
@@ -258,11 +258,18 @@ const playerMovement = () => {
 const mouseControl = () => {
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
-    	let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
+    	let layout = player.layout;
+    	if(controller.shift.active) {
+    		if(player.layout === GameArea.FIRST_LAYOUT) {
+    			layout = GameArea.SECOND_LAYOUT;
+    		} else {
+    			layout = GameArea.BACK_LAYOUT;
+    		}
+    	}
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, layout)) {
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
     				x: targetX, y: targetY, layout: layout,
@@ -289,11 +296,18 @@ const mouseControl = () => {
 
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
-		let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
+		let layout = player.layout;
+    	if(controller.shift.active) {
+    		if(player.layout === GameArea.FIRST_LAYOUT) {
+    			layout = GameArea.SECOND_LAYOUT;
+    		} else {
+    			layout = GameArea.BACK_LAYOUT;
+    		}
+    	}
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, layout)) {
 		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //............................... Есть блок рядом
 		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
 		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)

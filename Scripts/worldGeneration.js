@@ -274,7 +274,7 @@ const generate = (width, height, seed) => {
                     if (i >= 0 && i < worldArr.length && j >= 0 && j < worldArr[i].length
 						&& radius * radius >= (i - treeX) * (i - treeX) + (j - treeY) * (j - treeY)
 						&& treeArr[i][j] < 1 && !worldArr[i][j]) {
-                    	if(layout === GameArea.MAIN_LAYOUT) {
+                    	if(layout === GameArea.FIRST_LAYOUT) {
                     		treeArr[i][j] = 2;
                     	} else {
                     		treeArr[i][j] = 4;
@@ -302,7 +302,7 @@ const generate = (width, height, seed) => {
         let countTreeX = 0;
 
         while (countTreeX < worldArr.length && countTree < maxCountOfTree) {
-        	let layout = random() > 0.5 ? GameArea.MAIN_LAYOUT : GameArea.BACK_LAYOUT;
+        	let layout = random() > 0.5 ? GameArea.FIRST_LAYOUT : GameArea.SECOND_LAYOUT;
 
             let treeArrX = [], endOfBranchX = [];
             let treeArrY = [], endOfBranchY = [];
@@ -417,7 +417,7 @@ const generate = (width, height, seed) => {
             endOfBranchY.push(forkY);
 
             for (let i = 0; i < treeArrX.length; i++) {
-            	if(layout === GameArea.MAIN_LAYOUT) {
+            	if(layout === GameArea.FIRST_LAYOUT) {
 	                treeArr[treeArrX[i]][treeArrY[i]] = 1;
 	            } else {
 	            	treeArr[treeArrX[i]][treeArrY[i]] = 3;
@@ -565,33 +565,44 @@ const generate = (width, height, seed) => {
         for (let y = height - 1; y >= 0; y--) {
             worldMap[x][y] = new Array();
             if (lakeArr[x][y] != undefined) {
-                worldMap[x][y][GameArea.MAIN_LAYOUT] = lakeArr[x][y];
+                worldMap[x][y][GameArea.FIRST_LAYOUT] = lakeArr[x][y];
+                worldMap[x][y][GameArea.SECOND_LAYOUT] = 12; // ID песка
                 worldMap[x][y][GameArea.BACK_LAYOUT] = 12; // ID песка
                 dirtDepth = --grassDepth;
             } else if (lakeArr[x][y + 1] == 12) {
+                worldMap[x][y][GameArea.SECOND_LAYOUT] = 3; // ID грязи
+                worldMap[x][y][GameArea.FIRST_LAYOUT] = 3; // ID грязи
                 worldMap[x][y][GameArea.BACK_LAYOUT] = 3; // ID грязи
-                worldMap[x][y][GameArea.MAIN_LAYOUT] = 3; // ID грязи
             } else if (landMatrix[x][y]) {
                 if (grassDepth > 0 && oreArr[x][y] != 10) { // id лавы
                     if (grassDepth > dirtDepth) {
+                        worldMap[x][y][GameArea.SECOND_LAYOUT] = 2; // ID травы
                         worldMap[x][y][GameArea.BACK_LAYOUT] = 2; // ID травы
                         if (withCavesMatrix[x][y]) {
-                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 2; // ID травы
+                            worldMap[x][y][GameArea.FIRST_LAYOUT] = 2; // ID травы
                         }
                     } else {
-                        worldMap[x][y][GameArea.BACK_LAYOUT] = 3; // ID грязи
+                    	worldMap[x][y][GameArea.BACK_LAYOUT] = 3; // ID грязи
+                        worldMap[x][y][GameArea.SECOND_LAYOUT] = 3; // ID грязи
                         if (withCavesMatrix[x][y]) {
-                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 3; // ID грязи
+                            worldMap[x][y][GameArea.FIRST_LAYOUT] = 3; // ID грязи
                         }
                     }
                     grassDepth--;
                 } else {
-                    worldMap[x][y][GameArea.BACK_LAYOUT] = 1 // ID камня
+                    worldMap[x][y][GameArea.BACK_LAYOUT] = 1; // ID камня
+                    worldMap[x][y][GameArea.SECOND_LAYOUT] = 1; // ID камня
                     if (withCavesMatrix[x][y]) {
                         if (oreArr[x][y] != undefined) {
-                            worldMap[x][y][GameArea.MAIN_LAYOUT] = oreArr[x][y];
+                            worldMap[x][y][GameArea.FIRST_LAYOUT] = oreArr[x][y];
+                            if(random() > 0.5) {
+                            	 worldMap[x][y][GameArea.SECOND_LAYOUT] = oreArr[x][y];
+                            } else {
+                            	worldMap[x][y][GameArea.SECOND_LAYOUT] = 1; // ID камня
+                            }
                         } else {
-                            worldMap[x][y][GameArea.MAIN_LAYOUT] = 1 // ID камня
+                            worldMap[x][y][GameArea.FIRST_LAYOUT] = 1; // ID камня
+                            worldMap[x][y][GameArea.SECOND_LAYOUT] = 1; // ID камня
                         }
                     }
                 }
@@ -599,7 +610,9 @@ const generate = (width, height, seed) => {
         }
         let bedrockHeight = Math.floor(random() * 3) + 1
         for (let y = 0; y < bedrockHeight; y++) {
-            worldMap[x][y][GameArea.MAIN_LAYOUT] = 7 // ID бедрока
+            worldMap[x][y][GameArea.FIRST_LAYOUT] = 7; // ID бедрока
+            worldMap[x][y][GameArea.SECOND_LAYOUT] = 7; // ID бедрока
+            worldMap[x][y][GameArea.BACK_LAYOUT] = 7; // ID бедрока
         }
     }
 
@@ -610,16 +623,16 @@ const generate = (width, height, seed) => {
             if (!treeArr[i][j] == 0) {
             	switch(treeArr[i][j]){
             		case 1:
-            			worldMap[i][j][GameArea.MAIN_LAYOUT] = 17;
+            			worldMap[i][j][GameArea.FIRST_LAYOUT] = 17;
             			break;
             		case 2:
-            			worldMap[i][j][GameArea.MAIN_LAYOUT] = 18;
+            			worldMap[i][j][GameArea.FIRST_LAYOUT] = 18;
             			break;
             		case 3: 
-            			worldMap[i][j][GameArea.BACK_LAYOUT] = 17;
+            			worldMap[i][j][GameArea.SECOND_LAYOUT] = 17;
             			break;
             		case 4:
-            			worldMap[i][j][GameArea.BACK_LAYOUT] = 18;
+            			worldMap[i][j][GameArea.SECOND_LAYOUT] = 18;
             			break;
             	}
             }
@@ -670,12 +683,12 @@ const generate = (width, height, seed) => {
         for (let x = 0; x < width; x++) {
             for (let y = 0; y < height; y++) {
 				if (shadowMap[x][y] == undefined) shadowMap[x][y] = 0;
-                if (worldMap[x][y][GameArea.MAIN_LAYOUT] == undefined || worldMap[x][y][GameArea.MAIN_LAYOUT] == 0) {
+                if (worldMap[x][y][GameArea.FIRST_LAYOUT] == undefined || worldMap[x][y][GameArea.FIRST_LAYOUT] == 0) {
                     shadowRound(x, y, x, y, maxLight, true);
-                } else if (items[worldMap[x][y][GameArea.MAIN_LAYOUT]] != undefined
-					&& items[worldMap[x][y][GameArea.MAIN_LAYOUT]].brightness > 0) {
-                    shadowRound(x, y, x, y, items[worldMap[x][y][GameArea.MAIN_LAYOUT]].brightness,
-						items[worldMap[x][y][GameArea.MAIN_LAYOUT]].isNaturalLight === true);
+                } else if (items[worldMap[x][y][GameArea.FIRST_LAYOUT]] != undefined
+					&& items[worldMap[x][y][GameArea.FIRST_LAYOUT]].brightness > 0) {
+                    shadowRound(x, y, x, y, items[worldMap[x][y][GameArea.FIRST_LAYOUT]].brightness,
+						items[worldMap[x][y][GameArea.FIRST_LAYOUT]].isNaturalLight === true);
                 }
             }
         }
@@ -692,7 +705,7 @@ const visualisator = (gameArea) => {
     let str = "";
     for (let i = 0; i < gameArea.width; i++) {
         for (let j = 0; j < gameArea.height; j++) {
-            let block = gameArea.map[i][j][GameArea.MAIN_LAYOUT];
+            let block = gameArea.map[i][j][GameArea.FIRST_LAYOUT];
             if (block != undefined) {
                 if (block == 17) {
                     str += "#";

@@ -75,7 +75,7 @@ image.onload = () => {
 
 					if (layout !== maxLayout + 1) {  //............ Если не слой света
 						layoutChunk.slice = layout;
-						if (layout === GameArea.MAIN_LAYOUT) {
+						if (layout === GameArea.FIRST_LAYOUT) {
 							layoutChunk.light = 1;
 						} else {
 							layoutChunk.light = 0.5;

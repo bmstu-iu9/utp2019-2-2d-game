@@ -5,7 +5,7 @@ class Player {
         this.y = y;
         this.fx = x;
         this.fy = y;
-        this.layout = GameArea.MAIN_LAYOUT;
+        this.layout = GameArea.FIRST_LAYOUT;
 
         // Очки жизни
         this.hp = 100;
@@ -75,21 +75,22 @@ class Player {
 
         // Если можно взаимодействовать - сделать это
         this.interact = (x, y, layout) => {
-            if (this.blockAvailable(x, y)) {
+            if (this.blockAvailable(x, y, layout)) {
                 gameArea.interactWithBlock(x, y, layout);
             }
         }
 
         // Можно взаимодействовать через этот блок
-        this.canInteractThrough = (x, y) => {
+        this.canInteractThrough = (x, y, layout) => {
             x = Math.floor(x);
             y = Math.floor(y);
-            return gameArea.map[x][y][GameArea.MAIN_LAYOUT] === undefined
-                    || items[gameArea.map[x][y][GameArea.MAIN_LAYOUT]].type === "water";
+            return gameArea.map[x][y][layout] === undefined
+                    || items[gameArea.map[x][y][layout]].type === "water";
         }
 
         // Может дотянуться до блока
-        this.blockAvailable = (x, y) => {
+        this.blockAvailable = (x, y, layout) => {
+        	layout = Math.max(layout, this.layout);
             x = Math.floor(x);
             y = Math.floor(y);
             if (!inRange(x, 0, gameArea.width) || !inRange(y, 0, gameArea.height)
@@ -118,7 +119,7 @@ class Player {
                 blockX = Math.floor(blockX);
                 blockY = Math.floor(blockY);
                 if (!inRange(blockX, 0, gameArea.width) || !inRange(blockY, 0, gameArea.height)) return false;
-                if (!this.canInteractThrough(blockX, blockY)) {
+                if (!this.canInteractThrough(blockX, blockY, layout)) {
                     if (!isVisited(blockX, blockY)) {
                         let angles = this.anglesToBlock(blockX, blockY);
                         let newAngle = angleMax(angles.maxAngle, targetAngles.minAngle);

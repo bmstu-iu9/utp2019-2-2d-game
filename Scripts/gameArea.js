@@ -211,7 +211,7 @@ class GameArea{
                     // крайние нижние блоки - это не блоки дерева, то оно рушится
                 {
 
-                    if (y - 1 >= 0 && this.map[x][y - 1][GameArea.MAIN_LAYOUT] === undefined) {
+                    if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
                         for (let i = x - 1; i <= x + 1; i++) {
                             if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
                                 items[this.map[x][y - 1][layout]].type !== "wood")) {
@@ -364,7 +364,7 @@ class GameArea{
                 for (let j = y - 1; j <= y + 1; j++) {
                     if (i !== x || y !== j) {
                         this.updateBlock(i, j, layout, player);
-                        if (layout === GameArea.MAIN_LAYOUT) this.updateBlock(i, j, GameArea.BACK_LAYOUT, player);
+                        if (layout === GameArea.FIRST_LAYOUT) this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player);
                     }
                 }
             }
@@ -375,36 +375,36 @@ class GameArea{
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
-            if (layout === GameArea.MAIN_LAYOUT) {
+            if (layout === GameArea.FIRST_LAYOUT) {
                 this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
                     items[lastBlock].isNaturalLight === true);
+                this.addLightRound(x, y, x, y, 9, true, false);
             }
-            this.addLightRound(x, y, x, y, 9, true, false);
             this.updateRadius(x, y, layout, player);
         };
 
         // Можно ставить блок на (x, y, layout)
         this.canPlace = (x, y, layout) => {
-            if (layout === GameArea.MAIN_LAYOUT) {
+            if (layout < GameArea.BACK_LAYOUT) {
                 let startX = Math.floor(player.x - Player.WIDTH / 2);
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
                 let endY = Math.floor(player.y + Player.HEIGHT);
                 return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
                     && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
-                    && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
-                    || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+                    && (this.map[x][y][layout] === undefined
+                    || this.map[x][y][layout].type === "water");
             } else {
-                return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
-                    && this.map[x][y][layout] == undefined;
+                return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
+                    && this.map[x][y][layout] === undefined;
             }
         }
 
         // Можно ли ломать блок на (x, y, layout)
         this.canDestroy = (x, y, layout) => {
-            // Если не основной слой, можно ломать только с краёв
-            if (layout != GameArea.MAIN_LAYOUT
-                && (this.canDestroy(x, y, GameArea.MAIN_LAYOUT)
+            // Если задний слой, то можно ломать только с краёв
+            if (layout === GameArea.BACK_LAYOUT
+                && (this.canDestroy(x, y, GameArea.SECOND_LAYOUT)
                 || !this.canPlace(x, y + 1, layout)
                 && !this.canPlace(x + 1, y, layout)
                 && !this.canPlace(x - 1, y, layout)
@@ -417,11 +417,11 @@ class GameArea{
 
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
-            if (!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
+            if(!inRange(x, 0 ,this.width) || !inRange(y, 0, this.height)) return; // проверка на выход из карты
+            if(!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
                 this.gameAreaMapSet(x, y, layout, id);
-                if (layout === GameArea.MAIN_LAYOUT) {
+                if (layout === GameArea.FIRST_LAYOUT) {
                     if (lastBlock == undefined) {
                         this.deleteLightRound(x, y, x, y, 9, true);
                     } else {
@@ -437,10 +437,10 @@ class GameArea{
 
         // Функция взаимодействия с блоком
         this.interactWithBlock = (x, y, layout) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
+            if(!inRange(x, 0 ,this.width) || !inRange(y, 0, this.height)) return; // проверка на выход из карты
             console.log("Interaction with block on coordinates : [${x} ${y} ${layout}]");
             let block = items[this.map[x][y][layout]];
-            if (block.isClickable) {
+            if(block.isClickable) {
                 block.interactFunction();
             }
         };
@@ -534,8 +534,9 @@ const angleMax = (a1, a2) => {
 
 // Константы уровня
 GameArea.FORWARD_LAYOUT = 1;
-GameArea.MAIN_LAYOUT = 2;
-GameArea.BACK_LAYOUT = 3;
+GameArea.FIRST_LAYOUT = 2;
+GameArea.SECOND_LAYOUT = 3;
+GameArea.BACK_LAYOUT = 4;
 
 // Константы поведения игрового пространства
 

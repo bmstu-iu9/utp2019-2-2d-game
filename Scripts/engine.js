@@ -380,7 +380,7 @@ class Render {
 		return this.arrayOfChunks[`${x}x${y}`] != undefined;
 	}
 	
-	render(xc, yc, xp, yp, scale) {
+	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer) {
 		this.resizeCanvas(this.gl.canvas); // подгоняем канвас под экран
 		
 		// "вырезаем" кусок экрана для отображения
@@ -405,7 +405,6 @@ class Render {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		
 		// отрисовка фона
-		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90;
 		const z = 0.1 - far;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.gl.uniform1f(this.resolutionUniformLocation, 1 / scale);
@@ -435,7 +434,7 @@ class Render {
 		
 		// отрисовка игрока
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
-		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
+		this.gl.uniform1f(this.lightUniformLocation, lightOfPlayer);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
 		this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);

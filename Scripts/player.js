@@ -22,7 +22,7 @@ class Player {
 
         // Содержит индекс предмета в инвентаре
         this.fastInv = [];
-        for(let i = 0; i < Player.FAST_INVENTORY_SIZE; i++){
+        for (let i = 0; i < Player.FAST_INVENTORY_SIZE; i++) {
             this.fastInv[i] = i;
         }
 
@@ -50,13 +50,13 @@ class Player {
                 //Вставляет лут в инвентарь - пока что сразу
                gameArea.goodDestroy(x, y, layout, this);
                 this.hand.item.durability--;
-                if(this.hand.item.durability < 1){ // Инструмент сломался
+                if (this.hand.item.durability < 1) { // Инструмент сломался
                     this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
                     this.hand.item = undefined;
                     this.hand.info = undefined;
                 }
             } else {
-                if(items[gameArea.map[x][y][layout]].isAlwaysGoodDestroy){
+                if (items[gameArea.map[x][y][layout]].isAlwaysGoodDestroy) {
                     gameArea.goodDestroy(x, y, layout, this);
                 } else {
                     gameArea.destroyBlock(x, y, layout);
@@ -66,7 +66,7 @@ class Player {
 
         // Разместить блок из руки на (x, y, layout)
         this.place = (x, y, layout) => {
-            if(this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)) {
+            if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)) {
                 gameArea.placeBlock(x, y, layout, this.hand.item);
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
             }
@@ -91,7 +91,7 @@ class Player {
         this.blockAvailable = (x, y) => {
             x = Math.floor(x);
             y = Math.floor(y);
-            if(!inRange(x, 0, gameArea.width) || !inRange(y, 0, gameArea.height)
+            if (!inRange(x, 0, gameArea.width) || !inRange(y, 0, gameArea.height)
                     || hypotenuse(x + 0.5 - this.x, y + 0.5 - this.y) > Player.ACTION_RADIUS) {
                 return false;
             }
@@ -105,8 +105,8 @@ class Player {
             visitedY.push(y);
 
             const isVisited = (x, y) => {
-                for(let i = 0; i < visitedX.length; i++) {
-                    if(visitedX[i] === x && visitedY[i] === y) {
+                for (let i = 0; i < visitedX.length; i++) {
+                    if (visitedX[i] === x && visitedY[i] === y) {
                         return true;
                     }
                 }
@@ -116,12 +116,12 @@ class Player {
             const meetBlock = (blockX, blockY) => {
                 blockX = Math.floor(blockX);
                 blockY = Math.floor(blockY);
-                if(!inRange(blockX, 0, gameArea.width) || !inRange(blockY, 0, gameArea.height)) return false;
-                if(!this.canInteractThrough(blockX, blockY)) {
-                    if(!isVisited(blockX, blockY)) {
+                if (!inRange(blockX, 0, gameArea.width) || !inRange(blockY, 0, gameArea.height)) return false;
+                if (!this.canInteractThrough(blockX, blockY)) {
+                    if (!isVisited(blockX, blockY)) {
                         let angles = this.anglesToBlock(blockX, blockY);
                         let newAngle = angleMax(angles.maxAngle, targetAngles.minAngle);
-                        if(targetAngles.minAngle != newAngle) {
+                        if (targetAngles.minAngle != newAngle) {
                             targetAngles.minAngle = roundTo(newAngle, 360) + Math.PI / 180;
                         }
                         visitedX.push(blockX);
@@ -133,19 +133,19 @@ class Player {
             }
 
             let ansReady = false;
-            while(!ansReady) {
+            while (!ansReady) {
                 ansReady = true;
-                for(let lineX = Math.floor(this.x - Player.ACTION_RADIUS);
+                for (let lineX = Math.floor(this.x - Player.ACTION_RADIUS);
                         lineX <= Math.floor(this.x + Player.ACTION_RADIUS); lineX++) {
-                    if(between(lineX, this.x, x + 0.5)) {
+                    if (between(lineX, this.x, x + 0.5)) {
                         let pX = [ lineX + 0.5, lineX - 0.5 ];
                         let pY = [ (lineX - this.x) * Math.tan(targetAngles.minAngle)
                                         + this.y + Player.HEIGHT / 2,
                                     (lineX - this.x) * Math.tan(targetAngles.minAngle)
                                         + this.y + Player.HEIGHT / 2 ];
 
-                        if(meetBlock(pX[0], pY[0]) || meetBlock(pX[1], pY[1])) {
-                            if(targetAngles.minAngle === angleMax(targetAngles.minAngle, targetAngles.maxAngle)) {
+                        if (meetBlock(pX[0], pY[0]) || meetBlock(pX[1], pY[1])) {
+                            if (targetAngles.minAngle === angleMax(targetAngles.minAngle, targetAngles.maxAngle)) {
                                 return false;
                             } else {
                                 ansReady = false;
@@ -189,7 +189,7 @@ class Player {
             let angles = [ this.angle(x, y), this.angle(x + 1, y), this.angle(x, y + 1), this.angle(x + 1, y + 1) ];
             let minAngle = angles[0];
             let maxAngle = angles[0];
-            for(let i = 1; i < angles.length; i++) {
+            for (let i = 1; i < angles.length; i++) {
                 minAngle = angleMin(minAngle, angles[i]);
                 maxAngle = angleMax(maxAngle, angles[i]);
             }
@@ -247,9 +247,9 @@ class Player {
                     }
                 }
             } else { //.................................................................... Не стакается
-                if(items[item.id].weight + this.inv.weight <= this.inv.capacity) {
-                    for(let i = 0; i <= this.inv.items.length; i++) {
-                        if(this.inv.items[i] == undefined) {
+                if (items[item.id].weight + this.inv.weight <= this.inv.capacity) {
+                    for (let i = 0; i <= this.inv.items.length; i++) {
+                        if (this.inv.items[i] == undefined) {
                             this.inv.items[i] = item;
                             this.inv.count[i] = undefined;
                             this.inv.weight += items[item.id].weight;
@@ -274,8 +274,8 @@ class Player {
                     "item" : this.inv.items[index],
                     "count" : count
                 }
-                if(this.inv.count[index] == undefined || this.inv.count[index] == count){
-                    if(this.inv.count[index] == undefined){
+                if (this.inv.count[index] == undefined || this.inv.count[index] == count) {
+                    if (this.inv.count[index] == undefined) {
                         this.inv.weight -= items[this.inv.items[index].id].weight * count;
                     } else {
                         this.inv.weight -= items[this.inv.items[index]].weight * count;
@@ -305,17 +305,17 @@ class Player {
         this.setHand = (index) => {
             this.hand.index = index;
             this.hand.item = this.inv.items[this.fastInv[index]];
-            if(this.hand.item == undefined) {
+            if (this.hand.item == undefined) {
                 this.hand.info = undefined;
             } else {
-                if(this.hand.item.id == undefined) {
+                if (this.hand.item.id == undefined) {
                     this.hand.info = items[this.hand.item];
                 } else {
                     this.hand.info = items[this.hand.item.id];
                 }
             }
 
-            if(this.hand.item){
+            if (this.hand.item) {
                 console.log(this.hand.info.name);
             } else {
                 console.log("Empty hand");
@@ -340,10 +340,10 @@ class Player {
 
         // Получение урона
         this.getDamage = (count) => {
-            if(count > 0) {
+            if (count > 0) {
                 console.log("Damage - " + count);
                 this.hp = Math.max(this.hp - count, 0);
-                if(this.hp == 0) {
+                if (this.hp == 0) {
                     this.die();
                 }
                 console.log("Now you have " + this.hp + " hp");
@@ -362,7 +362,7 @@ class Player {
 
         // Урон от удушья
         this.choke = (deltaTime) => {
-            if(this.bp > 0) {
+            if (this.bp > 0) {
                 this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime, 0);
             } else {
                 this.getDamage(Player.CHOKE_SPEED * deltaTime);
@@ -383,8 +383,8 @@ class Player {
         // Задевает ли левая грань игрока блоки с коллизией
         this.isCollisionLeft = (newX, newY) => {
             let i = Math.floor(newX - Player.WIDTH / 2);
-            for(let j = Math.floor(newY); j < Math.ceil(newY + Player.HEIGHT); j++) {
-                if(gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)){
+            for (let j = Math.floor(newY); j < Math.ceil(newY + Player.HEIGHT); j++) {
+                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
                     return true;
                 }
             }
@@ -394,8 +394,8 @@ class Player {
         // Задевает ли правая грань игрока блоки с коллизией
         this.isCollisionRight = (newX, newY) => {
             let i = Math.floor(newX + Player.WIDTH / 2);
-            for(let j = Math.floor(newY); j < Math.ceil(newY + Player.HEIGHT); j++) {
-                if(gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)){
+            for (let j = Math.floor(newY); j < Math.ceil(newY + Player.HEIGHT); j++) {
+                if (gameArea.hasCollision(i, j, GameArea.MAIN_LAYOUT)) {
                     return true;
                 }
             }

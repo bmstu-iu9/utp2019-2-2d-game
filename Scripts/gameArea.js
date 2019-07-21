@@ -35,7 +35,7 @@
 
 // Игровое пространство
 class GameArea{
-    constructor(map, elevationMap, shadowMap, width, height){
+    constructor(map, elevationMap, shadowMap, width, height) {
         // map  - двумерная карта, состоящая из id блоков
         this.map = map;
         this.elevationMap = elevationMap;
@@ -62,7 +62,7 @@ class GameArea{
             let k = Math.min(1 / 3 + this.timeOfDay * 3 / 2, grad);
 
             // Берем наибольший свет из естественный и искусственного
-            if(this.getArtificalLight(x, y) > this.getNaturalLight(x, y) * k){
+            if (this.getArtificalLight(x, y) > this.getNaturalLight(x, y) * k) {
                 return this.getArtificalLight(x, y) / 9;
             } else {
                 // Естественный свет с шагом в 5 (чтобы не изменялся каждый кадр)
@@ -72,7 +72,7 @@ class GameArea{
 
         // Естественный свет в точке (без времени суток и высоты)
         this.getNaturalLight = (x, y) => {
-            if(shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
+            if (shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
                 return undefined;
             }
             return shadowMap[x][y] % 1000;
@@ -80,7 +80,7 @@ class GameArea{
 
         // Искусственный свет в точке
         this.getArtificalLight = (x, y) => {
-            if(shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
+            if (shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
                 return undefined;
             }
             return Math.floor(shadowMap[x][y] / 1000);
@@ -102,14 +102,14 @@ class GameArea{
                     || (isNatural && this.getNaturalLight(x, y) < n)
                     || (!isNatural && this.getArtificalLight(x, y) < n)))) {
 
-                if(isNatural){
-                    if(shadowMap[x][y] === undefined){
+                if (isNatural) {
+                    if (shadowMap[x][y] === undefined) {
                         shadowMap[x][y] = n;
                     } else {
                         shadowMap[x][y] = this.getArtificalLight(x, y) * 1000 + n;
                     }
-                } else{
-                    if(shadowMap[x][y] === undefined){
+                } else {
+                    if (shadowMap[x][y] === undefined) {
                         shadowMap[x][y] = n * 1000;
                     } else {
                         shadowMap[x][y] = n * 1000 + this.getNaturalLight(x, y);
@@ -128,13 +128,13 @@ class GameArea{
 
             const deleteLightNoUpdateRound = (startX, startY, x, y, n, isNatural) => {
                 const step = (nextX, nextY, n) => {
-                    if(n > 0 && vectorLengthSqr(x, y, startX, startY) < vectorLengthSqr(startX, startY, nextX, nextY)
+                    if (n > 0 && vectorLengthSqr(x, y, startX, startY) < vectorLengthSqr(startX, startY, nextX, nextY)
                             && inRange(nextX, 0, width) && inRange(nextY, 0, height)) {
 
-                        if(isNatural && this.getNaturalLight(nextX, nextY) > n) {
+                        if (isNatural && this.getNaturalLight(nextX, nextY) > n) {
                             lights.push([nextX, nextY, this.getNaturalLight(nextX, nextY), isNatural]);
                             return;
-                        } else if(!isNatural && this.getArtificalLight(nextX, nextY) > n) {
+                        } else if (!isNatural && this.getArtificalLight(nextX, nextY) > n) {
                             lights.push([nextX, nextY, this.getArtificalLight(nextX, nextY), isNatural]);
                             return;
                         }
@@ -145,9 +145,9 @@ class GameArea{
                     && ((isNatural && this.getNaturalLight(x, y) === n)
                         || (!isNatural && this.getArtificalLight(x, y) === n))) {
 
-                    if(isNatural){
+                    if (isNatural) {
                         shadowMap[x][y] = this.getArtificalLight(x, y) * 1000;
-                    }else{
+                    } else {
                         shadowMap[x][y] = this.getNaturalLight(x, y);
                     }
                     step(x + 1, y, n - 1);
@@ -157,7 +157,7 @@ class GameArea{
                 }
             };
             deleteLightNoUpdateRound(startX, startY, x, y, n, isNatural);
-            for(let i = 0; i < lights.length; i++){
+            for (let i = 0; i < lights.length; i++) {
                 this.addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3],
                     true);
             }
@@ -180,11 +180,11 @@ class GameArea{
 
         // Есть ли коллизия с этим блоком
         this.hasCollision = (x, y, layout) => {
-            if(x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
+            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
             let block = this.map[x][y][layout];
 
             // Если это не блок воздуха и если он имеет коллизию или не найден в таблице => есть коллизия
-            if(block != undefined && (items[block] === undefined || items[block].isCollissed)) {
+            if (block != undefined && (items[block] === undefined || items[block].isCollissed)) {
                 return true;
             }
             return false;
@@ -198,7 +198,7 @@ class GameArea{
 
             if (block.hasGravity) {
                 // Если нет блока снизу
-                if ((y - 1) >=0 && items[this.map[x][y - 1][layout]] === undefined) {
+                if ((y - 1) >= 0 && items[this.map[x][y - 1][layout]] === undefined) {
                     let block_id = this.map[x][y][layout];
                     this.destroyBlock(x, y, layout);
                     this.placeBlock(x, y - 1, layout, block_id);
@@ -213,9 +213,9 @@ class GameArea{
 
                     if (y - 1 >= 0 && this.map[x][y - 1][GameArea.MAIN_LAYOUT] === undefined) {
                         for (let i = x - 1; i <= x + 1; i++) {
-                            if (i >=0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
-                                items[this.map[x][y - 1][layout]].type !== "wood")) {}
-                            else {
+                            if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
+                                items[this.map[x][y - 1][layout]].type !== "wood")) {
+							} else {
                                 return;
                             }
                         }
@@ -228,18 +228,19 @@ class GameArea{
                     // дерева или листвы или же в левом или правом, в виде дерева, то он рушится
                 {
                     for (let i = x - 1; i <= x + 1; i++) {
-                        if (i >=0 && i < this.width)
+                        if (i >= 0 && i < this.width) {
                             for (let j = y - 1; j <= y; j++) {
                                 if (i !== x && j !== y)
-                                    if (y - 1 >= 0 && j === y - 1)
+                                    if (y - 1 >= 0 && j === y - 1) {
                                         if (this.map[i][j][layout] === undefined ||
                                             items[this.map[i][j][layout]].type !== "leaf" &&
-                                            items[this.map[i][j][layout]].type !== "wood"){}
-                                        else return;
-                                    else if (this.map[i][j][layout] === undefined ||
-                                        items[this.map[i][j][layout]].type !== "wood") {}
-                                    else return;
+                                            items[this.map[i][j][layout]].type !== "wood") {
+										} else return;
+                                    } else if (this.map[i][j][layout] === undefined ||
+                                        items[this.map[i][j][layout]].type !== "wood") {
+									} else return;
                             }
+						}
                     }
                     this.destroyBlock(x, y, layout);
                 }
@@ -302,19 +303,21 @@ class GameArea{
                             }, 50);
                         } else if (this.map[x][y - 1][layout] !== undefined
                             && items[this.map[x][y - 1][layout]].type !== "flowingWater"
-                            && +block.id !== 1000 * LIQUID_TYPE + 23 && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
+                            && +block.id !== 1000 * LIQUID_TYPE + 23
+							&& direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
 
                             if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
 
-                                if (direction === 0) setTimeout(() => {
-                                    if (this.map[x][y][layout] === +block.id
-                                        && this.map[x - 1][y][layout] === undefined) {
+                                if (direction === 0) {
+									setTimeout(() => {
+										if (this.map[x][y][layout] === +block.id
+											&& this.map[x - 1][y][layout] === undefined) {
 
-                                        this.placeBlock(x - 1, y,
-                                            layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                                    }
-                                }, 200);
-                                else {
+											this.placeBlock(x - 1, y,
+												layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+										}
+									}, 200);
+								} else {
                                     setTimeout(() => {
                                         if (this.map[x][y][layout] === +block.id
                                             && this.map[x - 1][y][layout] === undefined) {
@@ -372,7 +375,7 @@ class GameArea{
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
-            if(layout === GameArea.MAIN_LAYOUT) {
+            if (layout === GameArea.MAIN_LAYOUT) {
                 this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
                     items[lastBlock].isNaturalLight === true);
             }
@@ -382,7 +385,7 @@ class GameArea{
 
         // Можно ставить блок на (x, y, layout)
         this.canPlace = (x, y, layout) => {
-            if(layout === GameArea.MAIN_LAYOUT) {
+            if (layout === GameArea.MAIN_LAYOUT) {
                 let startX = Math.floor(player.x - Player.WIDTH / 2);
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
@@ -400,7 +403,7 @@ class GameArea{
         // Можно ли ломать блок на (x, y, layout)
         this.canDestroy = (x, y, layout) => {
             // Если не основной слой, можно ломать только с краёв
-            if(layout != GameArea.MAIN_LAYOUT
+            if (layout != GameArea.MAIN_LAYOUT
                 && (this.canDestroy(x, y, GameArea.MAIN_LAYOUT)
                 || !this.canPlace(x, y + 1, layout)
                 && !this.canPlace(x + 1, y, layout)
@@ -418,8 +421,8 @@ class GameArea{
             if (!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
                 this.gameAreaMapSet(x, y, layout, id);
-                if(layout === GameArea.MAIN_LAYOUT) {
-                    if(lastBlock == undefined){
+                if (layout === GameArea.MAIN_LAYOUT) {
+                    if (lastBlock == undefined) {
                         this.deleteLightRound(x, y, x, y, 9, true);
                     } else {
                         this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
@@ -514,7 +517,7 @@ const roundTo = (x, fraction) => {
 
 // Меньший угол
 const angleMin = (a1, a2) => {
-    if(((Math.PI * 2 - a1) + a2) % (Math.PI * 2) < Math.PI) {
+    if (((Math.PI * 2 - a1) + a2) % (Math.PI * 2) < Math.PI) {
         return a1;
     } else {
         return a2;
@@ -522,7 +525,7 @@ const angleMin = (a1, a2) => {
 }
 // Больший угол
 const angleMax = (a1, a2) => {
-    if(((Math.PI * 2 - a1) + a2) % (Math.PI * 2) > Math.PI) {
+    if (((Math.PI * 2 - a1) + a2) % (Math.PI * 2) > Math.PI) {
         return a1;
     } else {
         return a2;

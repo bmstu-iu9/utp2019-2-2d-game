@@ -463,7 +463,7 @@ class Render {
 		throw new Error();
 	}
 	
-	createProgram(vertexShader, fragmentShader){
+	createProgram(vertexShader, fragmentShader) {
 		// создание программы из шейдеров
 		const program = this.gl.createProgram();
 		this.gl.attachShader(program, vertexShader);

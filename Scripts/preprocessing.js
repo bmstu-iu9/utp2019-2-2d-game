@@ -27,8 +27,8 @@ image.onload = () => {
 
 			// Отправка образцов объектов
 			{
-				const blocksCountX = Math.floor(image.width / blockResolution), blocksCountY =
-					Math.floor(image.height / blockResolution);
+				const blocksCountX = Math.floor(image.width / blockResolution),
+					blocksCountY = Math.floor(image.height / blockResolution);
 				let objects = [];
 				for (let i = 0; i < blocksCountX; i++) {
 					for (let j = 0; j < blocksCountY; j++) {
@@ -94,7 +94,7 @@ image.onload = () => {
 									layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1 ) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 										layoutChunk.chunk[i - startX][j - startY] = 9;
 									else layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
@@ -156,7 +156,7 @@ image.onload = () => {
 						}
 					}
 				}
-				
+
 				render.render(cameraX, cameraY, player.x, player.y, cameraScale);
 				fpsUpdate();
 				requestAnimationFrame(update);

@@ -9,15 +9,15 @@ class Controller {
         this.shift  = new ButtonInput();
 
         this.numbers = [];
-        for(let i = 0; i < 10; i++){
+        for (let i = 0; i < 10; i++) {
             this.numbers[i] = new ButtonInput();
         }
     }
 
     keyDownUp(event) {
         const down = event.type == "keydown";
-        if(event.keyCode >= 49 && event.keyCode <= 58) {
-            if(event.keyCode == 58){
+        if (event.keyCode >= 49 && event.keyCode <= 58) {
+            if (event.keyCode == 58) {
                 this.numbers[0].getInput(down);
             } else {
                 this.numbers[event.keyCode - 48].getInput(down);

@@ -47,7 +47,7 @@ class GameArea{
         this.height = height;
 
         // Отслеживание изменений для engine.js
-        this.chunkDifferList = {};  // Хранит объекты вида {chunkX, chunkY, layout, list:[{x, y, value} ... { }] }
+        this.chunkDifferList = {};  // Хранит объекты изменения чанков
         // Размеры чанка для engine.js.
         //TODO: Откорректировать как нужно
         this.chunkHeight = 1;
@@ -215,7 +215,7 @@ class GameArea{
                         for (let i = x - 1; i <= x + 1; i++) {
                             if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
                                 items[this.map[x][y - 1][layout]].type !== "wood")) {
-							} else {
+                            } else {
                                 return;
                             }
                         }
@@ -235,12 +235,12 @@ class GameArea{
                                         if (this.map[i][j][layout] === undefined ||
                                             items[this.map[i][j][layout]].type !== "leaf" &&
                                             items[this.map[i][j][layout]].type !== "wood") {
-										} else return;
+                                        } else return;
                                     } else if (this.map[i][j][layout] === undefined ||
                                         items[this.map[i][j][layout]].type !== "wood") {
-									} else return;
+                                    } else return;
                             }
-						}
+                        }
                     }
                     this.destroyBlock(x, y, layout);
                 }
@@ -304,19 +304,19 @@ class GameArea{
                         } else if (this.map[x][y - 1][layout] !== undefined
                             && items[this.map[x][y - 1][layout]].type !== "flowingWater"
                             && +block.id !== 1000 * LIQUID_TYPE + 23
-							&& direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
+                            && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
 
                             if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
 
                                 if (direction === 0) {
-                                	setTimeout(() => {
-                                		if (this.map[x][y][layout] === +block.id
-                                			&& this.map[x - 1][y][layout] === undefined) {
+                                    setTimeout(() => {
+                                        if (this.map[x][y][layout] === +block.id
+                                            && this.map[x - 1][y][layout] === undefined) {
 
-                                			this.placeBlock(x - 1, y,
-                                				layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                                		}
-                                	}, 200);
+                                            this.placeBlock(x - 1, y,
+                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+                                        }
+                                    }, 200);
                                 } else {
                                     setTimeout(() => {
                                         if (this.map[x][y][layout] === +block.id
@@ -454,7 +454,6 @@ class GameArea{
             }
         };
 
-
         // Функция разрушения блока со сбросом лута
         this.goodDestroy = (x, y, layout, player) => {
             let block = items[this.map[x][y][layout]];
@@ -463,29 +462,30 @@ class GameArea{
                 player.addToInv(this.dropLoot(x, y, block));
             } else this.destroyBlock(x, y, layout, player);
         };
+
         // Необходим для отслеживания изменений
         this.gameAreaMapSet = (x, y, layout, id) => {
-            const chunkX = Math.floor(x / this.chunkWidth), chunkY = Math.floor(y / this.chunkHeight);
-            const value = {
-                x: x % this.chunkWidth,
-                y: y % this.chunkHeight,
-                value: id
-            };
-
-            this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] =
-                this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout] === undefined
-                    ? {
-                        chunkX: chunkX,
-                        chunkY: chunkY,
-                        layout: layout,
-                        list: [value]
-                    }
-                    : this.chunkDifferList[chunkX + "x" + chunkY + "x" + layout]
-                        .list
-                        .push(value);
+            let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+            if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+                this.chunkDifferList[chunkX + "x" + chunkY] = {};
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
+            } else {
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
+            }
 
             this.map[x][y][layout] = id;
-        }
+        };
+
     }
 }
 
@@ -511,6 +511,7 @@ const hypotenuse = (x, y) => {
 const roundToFunc = (x, fraction, roundFunction) => {
     return roundFunction(x * fraction) / fraction;
 }
+
 const roundTo = (x, fraction) => {
     return roundToFunc(x, fraction, Math.floor);
 }
@@ -530,6 +531,12 @@ const angleMax = (a1, a2) => {
     } else {
         return a2;
     }
+}
+
+// Для копирования gameArea из indexedDB
+const gameAreaCopy = (gameArea, obj) => {
+    gameArea.width = obj.width;
+    gameArea.height = obj.height;
 }
 
 // Константы уровня

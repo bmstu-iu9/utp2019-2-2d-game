@@ -114,14 +114,14 @@ image.onload = () => {
 						arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
 				}
 			};
-			
+
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
 				gameArea.chunkDifferList = {};  // TODO : нормальную работу с полем chunkDifferList
 
 				eventTick();
-        
+
 				{  // Обновление чанков
 					const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
 					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] * cameraScale / (2 * chunkWidth)),
@@ -165,7 +165,7 @@ image.onload = () => {
 			if (loadExist()) {
 				let wait = async () => {
 					return new Promise (responce => {
-						load('world')
+						loadWorld('world')
 						.then(result => {
 							loadingResult = result;
 							responce();

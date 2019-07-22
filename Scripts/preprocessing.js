@@ -3,7 +3,7 @@
 let cameraScale = 1;  // Масштаб, 1 - стандарт
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
-const chunkWidth = 8, chunkHeight = 8;  // Размеры чанка
+const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
 const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
@@ -51,6 +51,7 @@ image.onload = () => {
 				render.createObjects(objects);
 			}
 
+			let OnScreen = {};
 			let arrOfChunks = {};
 			let oldTime = 0;
 			const deletechunkById = (xLocate, yLocate) => {
@@ -59,6 +60,7 @@ image.onload = () => {
 						delete arrOfChunks[chunk];  // Удаляем все слои чанка
 					}
 				}
+				delete OnScreen[xLocate + "x" + yLocate];
 				render.deleteChunk(xLocate, yLocate);
 			};
 			const loadchunk = (xLocate, yLocate) => {
@@ -107,13 +109,14 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] =
 						layoutChunk;
 				}
-				// Строго 2 слоя
-				if (gameArea.chunkDifferList[xLocate + "x" + yLocate] !== undefined) {
-					render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
-						arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
-						arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
-				}
-			};
+				
+				// Строго 3 слоя
+				render.drawChunk(xLocate, yLocate,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
+			}
 
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
@@ -144,7 +147,6 @@ image.onload = () => {
 						} else {
 							// Если чанк ближайший, то помечаем как отрисованный
 							neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true;
-							gameArea.chunkDifferList[arrOfChunks[chunk].x + "x" + arrOfChunks[chunk].y] = true;
 						}
 					}
 
@@ -152,7 +154,12 @@ image.onload = () => {
 						i++) {
 						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
-							loadchunk(i, j);
+								if (gameArea.chunkDifferList[i + "x" + j] !== undefined
+									|| !OnScreen[i + "x" + j]) {
+
+									OnScreen[i + "x" + j] = true;
+									loadchunk(i, j);
+										}
 						}
 					}
 				}
@@ -188,7 +195,7 @@ image.onload = () => {
 				requestAnimationFrame(update);
 			}
 		}
-    }
+	}
 }
 
 const cameraSet = (x, y) => {

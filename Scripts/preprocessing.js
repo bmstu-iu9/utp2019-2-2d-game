@@ -155,7 +155,8 @@ image.onload = () => {
 						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
 								if (gameArea.chunkDifferList[i + "x" + j] !== undefined
-									|| !OnScreen[i + "x" + j]) {
+									|| !OnScreen[i + "x" + j]
+									|| !(gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0)) {
 
 									OnScreen[i + "x" + j] = true;
 									loadchunk(i, j);

@@ -106,7 +106,7 @@ class GameArea{
                     if (shadowMap[x][y] === undefined) {
                         this.gameAreaShadowMapSet(x, y, n);
                     } else {
-                        shadowMap[x][y] = this.getArtificalLight(x, y) * 1000 + n;
+                        this.gameAreaShadowMapSet(x, y, this.getArtificalLight(x, y) * 1000 + n);
                     }
                 } else {
                     if (shadowMap[x][y] === undefined) {

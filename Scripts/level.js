@@ -116,8 +116,6 @@ const worldChange = () => {
 			BlocksGlobalChange[change.y + "x" + change.y + "x" + change.layout] = change.newValue;
 		}
 	}
-
-	gameArea.chunkDifferList = {};
 }
 
 // Действия при нажатии клавиш действия

@@ -138,6 +138,7 @@ const playerMovement = () => {
 		 if(!layoutSwitcher) {
 		 	layoutSwitcher = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
+		 	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 2 : 1;
 		 	if(player.canStay(player.fx, player.fy, layout)) {
 		 		player.layout = layout;
 		 	}

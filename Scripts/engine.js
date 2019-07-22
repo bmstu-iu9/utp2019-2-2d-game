@@ -159,12 +159,11 @@ class Render {
 		}
 	}
 	
-	settings(size, widthChunk, heightChunk, lightOfFrontChunk, lightOfBackChunk) {
+	settings(size, widthChunk, heightChunk, lightOfChunks) {
 		this.size = size;
 		this.widthChunk = widthChunk;
 		this.heightChunk = heightChunk;
-		this.lightOfFrontChunk = lightOfFrontChunk;
-		this.lightOfBackChunk = lightOfBackChunk;
+		this.lightOfChunks = lightOfChunks;
 	}
 	
 	getFieldSize() {
@@ -301,7 +300,7 @@ class Render {
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 	}
 	
-	drawChunk(x, y, blocksOfChunk0, blocksOfChunk1, blocksOfChunk2, lightChunk) {
+	drawChunk(x, y, blocksOfChunk, lightChunk) {
 		const width = this.widthChunk * this.size;
 		const height = this.heightChunk * this.size;
 		
@@ -344,11 +343,11 @@ class Render {
 			const xh = x / this.widthChunk;
 			for (let y = 0; y < this.heightChunk; y++) {
 				const yh = y / this.heightChunk;
-				const id1 = blocksOfChunk1[x][y];
-				const id2 = blocksOfChunk2[x][y];
+				const id1 = blocksOfChunk[1][x][y];
+				const id2 = blocksOfChunk[2][x][y];
 				if (id1 == undefined) {
 					if (id2 != undefined) {
-						const light = this.lightOfBackChunk * lightChunk[x][y];
+						const light = this.lightOfChunks[2] * lightChunk[x][y];
 						if (light < 0.01) {
 							this.gl.uniform1f(this.lightUniformLocation, 0);
 							this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
@@ -360,7 +359,7 @@ class Render {
 						}
 					}
 				} else {
-					const light = this.lightOfBackChunk * lightChunk[x][y];
+					const light = this.lightOfChunks[1] * lightChunk[x][y];
 					if (light < 0.01) {
 						this.gl.uniform1f(this.lightUniformLocation, 0);
 						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
@@ -384,9 +383,9 @@ class Render {
 			const xh = x / this.widthChunk;
 			for (let y = 0; y < this.heightChunk; y++) {
 				const yh = y / this.heightChunk;
-				const id0 = blocksOfChunk0[x][y];
+				const id0 = blocksOfChunk[0][x][y];
 				if (id0 != undefined) {
-					const light = this.lightOfFrontChunk * lightChunk[x][y];
+					const light = this.lightOfChunks[0] * lightChunk[x][y];
 					if (light < 0.01) {
 						this.gl.uniform1f(this.lightUniformLocation, 0);
 						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);

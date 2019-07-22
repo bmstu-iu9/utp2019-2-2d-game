@@ -4,7 +4,7 @@ let cameraScale = 1;  // Масштаб, 1 - стандарт
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
-const minLayout = 2, maxLayout = 3;  // Обрабатываемые слои
+const minLayout = 2, maxLayout = 4;  // Обрабатываемые слои
 const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
@@ -24,7 +24,7 @@ image.onload = () => {
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
 			render.init(image, background, playerImage);
-			render.settings(blockSize, chunkWidth, chunkHeight, 1, 0.5);
+			render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.75, 0.5]);
 
 			// Отправка образцов объектов
 			{
@@ -113,9 +113,11 @@ image.onload = () => {
 				
 				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,
-					arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
-					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
-					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
+					[
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk
+					],
 					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
 			}
 

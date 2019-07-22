@@ -109,8 +109,10 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] =
 						layoutChunk;
 				}
-				// Строго 2 слоя
-				render.drawChunk(xLocate, yLocate, arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
+				// Строго 3 слоя
+				render.drawChunk(xLocate, yLocate,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + minLayout].chunk,
+					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
 					arrOfChunks[xLocate + "x" + yLocate + "x" + maxLayout].chunk,
 					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
 			}

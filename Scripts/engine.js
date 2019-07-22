@@ -291,7 +291,7 @@ class Render {
 		this.frameBufferTextures = {};
 	}
 	
-	drawChunk(x, y, blocksOfFrontChunk, blocksOfBackChunk, lightChunk) {
+	drawChunk(x, y, blocksOfChunk0, blocksOfChunk1, blocksOfChunk2, lightChunk) {
 		const width = this.widthChunk * this.size;
 		const height = this.heightChunk * this.size;
 		const near = 0.01;
@@ -332,10 +332,10 @@ class Render {
 			const xh = x / this.widthChunk;
 			for (let y = 0; y < this.heightChunk; y++) {
 				const yh = y / this.heightChunk;
-				const id0 = blocksOfFrontChunk[x][y];
-				const id1 = blocksOfBackChunk[x][y];
-				if (id0 == undefined) {
-					if (id1 != undefined) {
+				const id1 = blocksOfChunk1[x][y];
+				const id2 = blocksOfChunk2[x][y];
+				if (id1 == undefined) {
+					if (id2 != undefined) {
 						const light = this.lightOfBackChunk * lightChunk[x][y];
 						if (light < 0.01) {
 							this.gl.uniform1f(this.lightUniformLocation, 0);
@@ -344,10 +344,54 @@ class Render {
 						} else {
 							this.gl.uniform1f(this.lightUniformLocation, light);
 							this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
-							this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id1] * 6, 6);
+							this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id2] * 6, 6);
 						}
 					}
 				} else {
+					const light = this.lightOfBackChunk * lightChunk[x][y];
+					if (light < 0.01) {
+						this.gl.uniform1f(this.lightUniformLocation, 0);
+						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
+					} else {
+						this.gl.uniform1f(this.lightUniformLocation, light);
+						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id1] * 6, 6);
+					}
+				}
+			}
+		}
+		
+		/////////
+		
+		// буфер кадров
+		let texFront;
+		if (this.arrayOfChunks[`${x}x${y}`] == undefined) {
+			texFront = this.gl.createTexture();
+			this.gl.bindTexture(this.gl.TEXTURE_2D, texFront);
+			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA,
+				this.gl.UNSIGNED_BYTE, null);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+		} else {
+			texFront = this.arrayOfChunks[`${x}x${y}`].tex;
+		}
+		
+		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texFront, 0);
+		
+		this.gl.viewport(0, 0, width, height);
+		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
+		
+		for (let x = 0; x < this.widthChunk; x++) {
+			const xh = x / this.widthChunk;
+			for (let y = 0; y < this.heightChunk; y++) {
+				const yh = y / this.heightChunk;
+				const id0 = blocksOfChunk0[x][y];
+				if (id0 != undefined) {
 					const light = this.lightOfFrontChunk * lightChunk[x][y];
 					if (light < 0.01) {
 						this.gl.uniform1f(this.lightUniformLocation, 0);
@@ -362,10 +406,12 @@ class Render {
 			}
 		}
 		
+		
 		this.arrayOfChunks[`${x}x${y}`] = {
 			x: x,
 			y: y,
-			tex: texture
+			tex: texture,
+			tf: texFront
 		};
 	}
 	
@@ -429,6 +475,9 @@ class Render {
 				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex);
 				this.gl.uniform3f(this.translateUniformLocation, xc, yc, -3);
+				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tf);
+				this.gl.uniform3f(this.translateUniformLocation, xc, yc, -2);
 				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
 			}
 		}

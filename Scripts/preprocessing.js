@@ -122,7 +122,6 @@ image.onload = () => {
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
-				gameArea.chunkDifferList = {};  // TODO : нормальную работу с полем chunkDifferList
 
 				eventTick();
 
@@ -160,11 +159,12 @@ image.onload = () => {
 
 									OnScreen[i + "x" + j] = true;
 									loadchunk(i, j);
-										}
+								}
 						}
 					}
 				}
 
+				gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
 				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 				const lightOfPlayer = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость игрока
 				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer);

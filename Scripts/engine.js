@@ -100,7 +100,7 @@ image.onload = () => {
 class Render {
 	constructor() {
 		const canvas = document.getElementById('canvas'); // получаем канвас
-		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
+		this.gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: false }); // получаем доступ к webgl
 		if (!this.gl) {
 			const ErrorMsg = 'Browser is very old';
 			stop();
@@ -119,16 +119,18 @@ class Render {
 		this.gl.useProgram(this.program);
 		
 		// прозрачность
-		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		this.gl.enable(this.gl.CULL_FACE);
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
+		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
 		this.translateUniformLocation = this.gl.getUniformLocation(this.program, 'u_translate');
 		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
 		this.lightUniformLocation = this.gl.getUniformLocation(this.program, 'u_light');
+		this.alphaUniformLocation = this.gl.getUniformLocation(this.program, 'u_alpha');
+		this.gl.uniform1f(this.alphaUniformLocation, 1);
 		
 		// буфер чанков
 		this.arrayOfChunks = {};
@@ -289,11 +291,7 @@ class Render {
 		this.gl.enableVertexAttribArray(texCoordAttributeLocation);
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		this.frameBufferTextures = {};
-	}
-	
-	drawChunk(x, y, blocksOfChunk0, blocksOfChunk1, blocksOfChunk2, lightChunk) {
-		const width = this.widthChunk * this.size;
-		const height = this.heightChunk * this.size;
+		
 		const near = 0.01;
 		const far = 11;
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
@@ -301,6 +299,11 @@ class Render {
 			0.0, 2.0, 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
+	}
+	
+	drawChunk(x, y, blocksOfChunk0, blocksOfChunk1, blocksOfChunk2, lightChunk) {
+		const width = this.widthChunk * this.size;
+		const height = this.heightChunk * this.size;
 		
 		// буфер кадров
 		let texture;
@@ -427,7 +430,7 @@ class Render {
 		return this.arrayOfChunks[`${x}x${y}`] != undefined;
 	}
 	
-	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer) {
+	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer) {
 		this.resizeCanvas(this.gl.canvas); // подгоняем канвас под экран
 		
 		// "вырезаем" кусок экрана для отображения
@@ -464,7 +467,6 @@ class Render {
 		}
 		
 		// отрисовка чанков
-		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
 		this.gl.uniform1f(this.lightUniformLocation, 1); // стандартное освещение
 		this.gl.disable(this.gl.DEPTH_TEST);
@@ -476,20 +478,45 @@ class Render {
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex);
 				this.gl.uniform3f(this.translateUniformLocation, xc, yc, -3);
 				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+			}
+		}
+		
+		if (slicePlayer == 2) {			
+			// отрисовка игрока
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
+			this.gl.uniform1f(this.lightUniformLocation, lightOfPlayer);
+			this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+			this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
+			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+			
+			this.gl.uniform1f(this.alphaUniformLocation, 0.75); 
+		}
+		
+		for (let c in this.arrayOfChunks) {
+			if (this.arrayOfChunks[c] != undefined) {
+				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
+				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tf);
 				this.gl.uniform3f(this.translateUniformLocation, xc, yc, -2);
 				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
 			}
 		}
+		this.gl.uniform1f(this.alphaUniformLocation, 1); 
 		
-		// отрисовка игрока
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
-		this.gl.uniform1f(this.lightUniformLocation, lightOfPlayer);
-		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-		this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
-		this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
-		//this.gl.enable(this.gl.DEPTH_TEST);
-		this.gl.disable(this.gl.DEPTH_TEST);
+		if (slicePlayer == 1) {
+			// отрисовка игрока
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
+			this.gl.uniform1f(this.lightUniformLocation, lightOfPlayer);
+			this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
+			this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
+			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+		}
+		
+		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
+			2.0, 0.0, 0.0, 0.0,
+			0.0, 2.0, 0.0, 0.0,
+			0.0, 0.0, -2.0 / (far - near), 0.0,
+			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 	}
 	
 	createShader(type, source) {

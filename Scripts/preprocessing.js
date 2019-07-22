@@ -166,7 +166,8 @@ image.onload = () => {
 
 				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 				const lightOfPlayer = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость игрока
-				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer);
+				const slicePlayer = 2; // 1 - игрок на переднем слое, 2 - за передним слоем
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}

@@ -104,15 +104,15 @@ class GameArea{
 
                 if (isNatural) {
                     if (shadowMap[x][y] === undefined) {
-                        shadowMap[x][y] = n;
+                        this.gameAreaShadowMapSet(x, y, n);
                     } else {
                         shadowMap[x][y] = this.getArtificalLight(x, y) * 1000 + n;
                     }
                 } else {
                     if (shadowMap[x][y] === undefined) {
-                        shadowMap[x][y] = n * 1000;
+                        this.gameAreaShadowMapSet(x, y, n * 1000)
                     } else {
-                        shadowMap[x][y] = n * 1000 + this.getNaturalLight(x, y);
+                        this.gameAreaShadowMapSet(x, y, n * 1000 + this.getNaturalLight(x, y));
                     }
                 }
                 step(x + 1, y, n - 1);
@@ -146,9 +146,9 @@ class GameArea{
                         || (!isNatural && this.getArtificalLight(x, y) === n))) {
 
                     if (isNatural) {
-                        shadowMap[x][y] = this.getArtificalLight(x, y) * 1000;
+                        this.gameAreaShadowMapSet(x, y, this.getArtificalLight(x, y) * 1000);
                     } else {
-                        shadowMap[x][y] = this.getNaturalLight(x, y);
+                        this.gameAreaShadowMapSet(x, y, this.getNaturalLight(x, y));
                     }
                     step(x + 1, y, n - 1);
                     step(x - 1, y, n - 1);
@@ -484,7 +484,14 @@ class GameArea{
             }
 
             this.map[x][y][layout] = id;
-        };
+        }
+
+        // Отслеживание изменений света
+        this.gameAreaShadowMapSet = (x, y, n) => {
+
+        	this.shadowMap[x][y] = n;
+        }
+
 
     }
 }

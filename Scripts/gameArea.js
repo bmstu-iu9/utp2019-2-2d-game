@@ -488,10 +488,11 @@ class GameArea{
 
         // Отслеживание изменений света
         this.gameAreaShadowMapSet = (x, y, n) => {
-            if (this.chunkDifferList === undefined) {
-                this.chunkDifferList = {};
+            let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+            if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+                this.chunkDifferList[chunkX + "x" + chunkY] = {};
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + "L"] = true;
             }
-
 
             this.shadowMap[x][y] = n;
         }

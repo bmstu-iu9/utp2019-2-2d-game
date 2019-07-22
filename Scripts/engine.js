@@ -479,7 +479,7 @@ class Render {
 			this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
 			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			
-			this.gl.uniform1f(this.alphaUniformLocation, 0.75);
+			this.gl.uniform1f(this.alphaUniformLocation, 0.5);
 			this.gl.uniform1f(this.lightUniformLocation, 1);
 		}
 		

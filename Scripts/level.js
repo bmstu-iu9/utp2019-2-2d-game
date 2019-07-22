@@ -292,6 +292,7 @@ const mouseControl = () => {
     			layout = GameArea.BACK_LAYOUT;
     		}
     	}
+    	console.log(layout);
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);

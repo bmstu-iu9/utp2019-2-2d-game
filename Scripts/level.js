@@ -74,7 +74,7 @@ const beginPlay = () => {
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
-	setTimeOfDay(currentTime, 30);
+	setTimeOfDay(currentTime, 600);
 	playerMovement();
 	mouseControl();
 	UI();

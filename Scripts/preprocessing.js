@@ -24,7 +24,7 @@ image.onload = () => {
 		playerImage.src = 'Images/player.png';
 		playerImage.onload = () => {
 			render.init(image, background, playerImage);
-			render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.75, 0.5]);
+			render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
 
 			// Отправка образцов объектов
 			{

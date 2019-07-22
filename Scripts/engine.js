@@ -325,7 +325,7 @@ class Render {
 		
 		this.gl.viewport(0, 0, width, height);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		
 		for (let x = 0; x < this.widthChunk; x++) {
@@ -376,14 +376,14 @@ class Render {
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 		} else {
-			texFront = this.arrayOfChunks[`${x}x${y}`].tex;
+			texFront = this.arrayOfChunks[`${x}x${y}`].tf;
 		}
 		
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texFront, 0);
 		
 		this.gl.viewport(0, 0, width, height);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
 		
 		for (let x = 0; x < this.widthChunk; x++) {
@@ -418,7 +418,8 @@ class Render {
 	deleteChunk(x, y) {
 		if (this.arrayOfChunks[`${x}x${y}`] != undefined) {
 			this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].tex);
-			this.arrayOfChunks[`${x}x${y}`] = undefined;
+			this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].tf);
+			delete this.arrayOfChunks[`${x}x${y}`];
 		}
 	}
 	

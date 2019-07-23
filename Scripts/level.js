@@ -71,15 +71,31 @@ const beginPlay = () => {
 	cameraSet(player.x, player.y);
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(1000, 100, 30);  // В покое обновляется каждую 1 сек, при изменении - 1\10
+	callSetTimeOfDay(300);
 }
 
-const callSetTimeOfDay = (maxmsInterval, minmsInterval, lengthOfDay) => {
-	setTimeOfDay(currentTime, lengthOfDay);
+const callSetTimeOfDay = (lengthOfDay) => {
+	setTimeOfDay(currentTime, lengthOfDay);console.log(1)
 	if (gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0) {
-		setTimeout(callSetTimeOfDay, maxmsInterval, maxmsInterval, minmsInterval, lengthOfDay);
+		// Вызываем через 1\4 суток (перед вечером)
+		setTimeout(callSetTimeOfDay, 250 * lengthOfDay, lengthOfDay);
 	} else {
-		setTimeout(callSetTimeOfDay, minmsInterval, maxmsInterval, minmsInterval, lengthOfDay);
+		// На смену суток 125 состояний света (вызов через каждые 1\500 суток)
+		setTimeout(callSetTimeOfDay, 2 * lengthOfDay, lengthOfDay);
+	}
+}
+
+// Установка текущего времени суток. При изменении не забудь заглянуть в callSetTimeOfDay
+const setTimeOfDay = (currentTime, lenghtOfDay) => {
+	currentTime = currentTime / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
+	if (currentTime < Math.PI) { //................................................... День
+		gameArea.timeOfDay = 1;
+	} else if (currentTime < 2 * Math.PI) { //........................................ День -> Ночь
+		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
+	} else if (currentTime < 3 * Math.PI) { //........................................ Ночь
+		gameArea.timeOfDay = 0;
+	} else { //....................................................................... Ночь -> День
+		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
 	}
 }
 
@@ -91,20 +107,6 @@ const eventTick = () => {
 	UI();
 	worldChange();
 	playerActionButtons();
-}
-
-// Установка текущего времени суток
-const setTimeOfDay = (currentTime, lenghtOfDay) => {
-	currentTime = currentTime / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
-	if (currentTime < Math.PI) { //.................................................. День
-		gameArea.timeOfDay = 1;
-	} else if (currentTime < 2 * Math.PI) { //........................................ День -> Ночь
-		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
-	} else if (currentTime < 3 * Math.PI) { //........................................ Ночь
-		gameArea.timeOfDay = 0;
-	} else { //...................................................................... Ночь -> День
-		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
-	}
 }
 
 // Управление интерфейсом

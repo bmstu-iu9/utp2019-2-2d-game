@@ -100,13 +100,24 @@ image.onload = () => {
 class Render {
 	constructor() {
 		const canvas = document.getElementById('canvas'); // получаем канвас
-		this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
+		let webglver = '2';
+		this.gl = canvas.getContext('webgl2'); // получаем доступ к webgl2
 		if (!this.gl) {
-			const ErrorMsg = 'Browser is very old';
-			stop();
-			alert(ErrorMsg);
-			throw new Error(ErrorMsg);
+			let webglver = '1';
+			this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
+			if (!this.gl) {
+				let webglver = 'exp'
+				this.gl = canvas.getContext('experimental-webgl'); // получаем доступ к experimental-webgl
+				if (!this.gl) {
+					const ErrorMsg = 'Browser is very old';
+					stop();
+					alert(ErrorMsg);
+					throw new Error(ErrorMsg);
+				}
+			}
 		}
+		
+		this.resizeCanvas(canvas);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		
@@ -123,6 +134,21 @@ class Render {
 		this.gl.enable(this.gl.CULL_FACE);
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
+		
+		//stat
+		_params += 'webgl=' + encodeURIComponent(webglver);
+		_params += '&context=' + encodeURIComponent(JSON.stringify(this.gl.getContextAttributes()));
+		_params += '&p01=' + encodeURIComponent(this.gl.getParameter(this.gl.CULL_FACE));
+		_params += '&p02=' + encodeURIComponent(this.gl.getParameter(this.gl.DEPTH_TEST));
+		_params += '&p03=' + encodeURIComponent(this.gl.getParameter(this.gl.BLEND));
+		_params += '&p04=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
+		_params += '&p05=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE));
+		_params += '&p06=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_IMAGE_UNITS));
+		_params += '&p07=' + encodeURIComponent(canvas.clientWidth + 'x' + canvas.clientHeight);
+		_params += '&p08=' + encodeURIComponent(canvas.width + 'x' + canvas.height);
+		_params += '&p09=' + encodeURIComponent(this.gl.getParameter(this.gl.VERSION));
+		_params += '&p10=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_RENDERBUFFER_SIZE));
+		_xhrSend(_xhr, _params);
 		
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');

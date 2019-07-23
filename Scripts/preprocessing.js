@@ -55,6 +55,7 @@ image.onload = () => {
 			let OnScreen = {};
 			let arrOfChunks = {};
 			let oldTime = 0;
+			let oldTimeOfDay = 0;
 			const deletechunkById = (xLocate, yLocate) => {
 				for (let chunk in arrOfChunks) {
 					if (arrOfChunks[chunk].x === xLocate && arrOfChunks[chunk].y === yLocate) {
@@ -152,19 +153,20 @@ image.onload = () => {
 						}
 					}
 
+					let changeTimeOfDay = oldTimeOfDay !== gameArea.timeOfDay;
 					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {
 						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
 								if (gameArea.chunkDifferList[i + "x" + j] !== undefined
-									|| !OnScreen[i + "x" + j]
-									|| !(gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0)) {
+									|| !OnScreen[i + "x" + j] || changeTimeOfDay) {console.log('load')
 
 									OnScreen[i + "x" + j] = true;
 									loadchunk(i, j);
 								}
 						}
 					}
+					oldTimeOfDay = gameArea.timeOfDay;
 				}
 
 				gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
@@ -203,6 +205,6 @@ image.onload = () => {
 }
 
 const cameraSet = (x, y) => {
-    cameraX = x;
-    cameraY = y;
+	cameraX = x;
+	cameraY = y;
 }

@@ -68,13 +68,24 @@ const beginPlay = () => {
     	});
     }
 
-    cameraSet(player.x, player.y);
+	cameraSet(player.x, player.y);
+	
+	// Блок функций, которые не зависят от обновления кадров
+	callSetTimeOfDay(1000, 100, 30);  // В покое обновляется каждую 1 сек, при изменении - 1\10
+}
+
+const callSetTimeOfDay = (maxmsInterval, minmsInterval, lengthOfDay) => {
+	setTimeOfDay(currentTime, lengthOfDay);
+	if (gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0) {
+		setTimeout(callSetTimeOfDay, maxmsInterval, maxmsInterval, minmsInterval, lengthOfDay);
+	} else {
+		setTimeout(callSetTimeOfDay, minmsInterval, maxmsInterval, minmsInterval, lengthOfDay);
+	}
 }
 
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
-	setTimeOfDay(currentTime, 600);
 	playerMovement();
 	mouseControl();
 	UI();

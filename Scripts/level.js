@@ -75,7 +75,7 @@ const beginPlay = () => {
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {
-	setTimeOfDay(currentTime, lengthOfDay);console.log(1)
+	setTimeOfDay(currentTime, lengthOfDay);
 	if (gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0) {
 		// Вызываем через 1\4 суток (перед вечером)
 		setTimeout(callSetTimeOfDay, 250 * lengthOfDay, lengthOfDay);

@@ -103,10 +103,10 @@ class Render {
 		let webglver = '2';
 		this.gl = canvas.getContext('webgl2'); // получаем доступ к webgl2
 		if (!this.gl) {
-			let webglver = '1';
+			webglver = '1';
 			this.gl = canvas.getContext('webgl'); // получаем доступ к webgl
 			if (!this.gl) {
-				let webglver = 'exp'
+				webglver = 'exp'
 				this.gl = canvas.getContext('experimental-webgl'); // получаем доступ к experimental-webgl
 				if (!this.gl) {
 					const ErrorMsg = 'Browser is very old';

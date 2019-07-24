@@ -476,7 +476,7 @@ class Player {
             for (let x = startX; x <= endX; x++) {
                 for (let y = startY; y <= endY; y++) {
                     n++;
-                    light += gameArea.getLight(this.x, this.y);
+                    light += gameArea.getLight(x, y);
                 }
             }
             return light / n;

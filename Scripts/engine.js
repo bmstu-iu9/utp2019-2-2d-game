@@ -111,12 +111,15 @@ class Render {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		
 		// сборка и компиляция шейдерной программы
-		const vertexShader = this.createShader(this.gl.VERTEX_SHADER, _vertexShader);
-		const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader);
-		this.program = this.createProgram(vertexShader, fragmentShader);
+		this.program = [];
+		for (let i in _vertexShader) {
+			const vertexShader = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[i]);
+			const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[i]);
+			this.program[i] = this.createProgram(vertexShader, fragmentShader);
+		}
 		
 		// используем шейдерную программу
-		this.gl.useProgram(this.program);
+		this.gl.useProgram(this.program[0]);
 		
 		// прозрачность
 		this.gl.enable(this.gl.CULL_FACE);
@@ -124,13 +127,20 @@ class Render {
 		this.gl.enable(this.gl.BLEND);
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		
+		// PROGRAM 0
 		// получение uniform-переменных из шейдеров
-		this.projectionMatrixUniformLocation = this.gl.getUniformLocation(this.program, 'u_projectionMatrix');
-		this.translateUniformLocation = this.gl.getUniformLocation(this.program, 'u_translate');
-		this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
-		this.lightUniformLocation = this.gl.getUniformLocation(this.program, 'u_light');
-		this.alphaUniformLocation = this.gl.getUniformLocation(this.program, 'u_alpha');
-		this.gl.uniform1f(this.alphaUniformLocation, 1);
+		this.projectionMatrixUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_projectionMatrix');
+		this.translateUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_translate');
+		this.resolutionUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_resolution');
+		this.lightUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_light');
+		
+		// PROGRAM 1
+		// получение uniform-переменных из шейдеров
+		this.projectionMatrixUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_projectionMatrix');
+		this.translateUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_translate');
+		this.resolutionUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_resolution');
+		this.lightUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_light');
+		this.centerUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_center');
 		
 		// буфер чанков
 		this.arrayOfChunks = {};
@@ -221,6 +231,7 @@ class Render {
 			l, h * this.heightChunk,
 			h * this.widthChunk, l,
 			h * this.widthChunk, h * this.heightChunk];
+		
 		let arrayOfTexCoord = [
 			0, 1, // ID: 0
 			1, 1,
@@ -256,6 +267,7 @@ class Render {
 			0, 1,
 			1, 0,
 			1, 1];
+		
 		arrayOfObjects.forEach((obj) => {
 			arrayOfPosition = arrayOfPosition.concat([
 				l, l,
@@ -275,7 +287,7 @@ class Render {
 		});
 		
 		// создание буфера и атрибута координат позиций
-		const positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
+		const positionAttributeLocation = this.gl.getAttribLocation(this.program[0], 'a_position');
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
@@ -283,17 +295,17 @@ class Render {
 		this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
-		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
+		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program[0], 'a_texCoord');
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
 		this.gl.enableVertexAttribArray(texCoordAttributeLocation);
 		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.frameBufferTextures = {};
 		
+		this.frameBufferTextures = {};
 		const near = 0.01;
 		const far = 11;
-		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
+		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation0, false, [
 			2.0, 0.0, 0.0, 0.0,
 			0.0, 2.0, 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
@@ -330,7 +342,7 @@ class Render {
 		}
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
-		this.gl.uniform1f(this.resolutionUniformLocation, height);
+		this.gl.uniform1f(this.resolutionUniformLocation0, height);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture, 0);
 		//this.gl.flush(); // тест
 		
@@ -349,24 +361,24 @@ class Render {
 					if (id2 != undefined) {
 						const light = this.lightOfChunks[2] * lightChunk[x][y];
 						if (light < 0.01) {
-							this.gl.uniform1f(this.lightUniformLocation, 0);
-							this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+							this.gl.uniform1f(this.lightUniformLocation0, 0);
+							this.gl.uniform3f(this.translateUniformLocation0, xh, yh, -1);
 							this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
 						} else {
-							this.gl.uniform1f(this.lightUniformLocation, light);
-							this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+							this.gl.uniform1f(this.lightUniformLocation0, light);
+							this.gl.uniform3f(this.translateUniformLocation0, xh, yh, -1);
 							this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id2] * 6, 6);
 						}
 					}
 				} else {
 					const light = this.lightOfChunks[1] * lightChunk[x][y];
 					if (light < 0.01) {
-						this.gl.uniform1f(this.lightUniformLocation, 0);
-						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.uniform1f(this.lightUniformLocation0, 0);
+						this.gl.uniform3f(this.translateUniformLocation0, xh, yh, -1);
 						this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
 					} else {
-						this.gl.uniform1f(this.lightUniformLocation, light);
-						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.uniform1f(this.lightUniformLocation0, light);
+						this.gl.uniform3f(this.translateUniformLocation0, xh, yh, -1);
 						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id1] * 6, 6);
 					}
 				}
@@ -387,12 +399,12 @@ class Render {
 				if (id0 != undefined) {
 					const light = this.lightOfChunks[0] * lightChunk[x][y];
 					if (light < 0.01) {
-						this.gl.uniform1f(this.lightUniformLocation, 0);
-						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.uniform1f(this.lightUniformLocation0, 0);
+						this.gl.uniform3f(this.translateUniformLocation0, xh, yh, -1);
 						this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
 					} else {
-						this.gl.uniform1f(this.lightUniformLocation, light);
-						this.gl.uniform3f(this.translateUniformLocation, xh, yh, -1);
+						this.gl.uniform1f(this.lightUniformLocation0, light);
+						this.gl.uniform3f(this.translateUniformLocation0, xh, yh, -1);
 						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id0] * 6, 6);
 					}
 				}
@@ -432,12 +444,12 @@ class Render {
 		const top = yc * ch + scale / 2;
 		const near = 0.01;
 		const far = 11;
-		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
+		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation0, false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
 			0.0, 2.0 / (top - bottom), 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
-			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]); 
-
+			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
@@ -446,18 +458,18 @@ class Render {
 		// отрисовка фона
 		const z = 0.1 - far;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
-		this.gl.uniform1f(this.resolutionUniformLocation, 1 / scale);
-		this.gl.uniform1f(this.lightUniformLocation, lightOfDay);
+		this.gl.uniform1f(this.resolutionUniformLocation0, 1 / scale);
+		this.gl.uniform1f(this.lightUniformLocation0, lightOfDay);
 		
 		for (let i = 0; i <= asp * scale + 1; i++) {
-			this.gl.uniform3f(this.translateUniformLocation,
+			this.gl.uniform3f(this.translateUniformLocation0,
 				xc * ch + i - asp * scale / 2, yc * ch - scale / 2, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		
 		// отрисовка чанков
-		this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-		this.gl.uniform1f(this.lightUniformLocation, 1); // стандартное освещение
+		this.gl.uniform1f(this.resolutionUniformLocation0, this.gl.canvas.height);
+		this.gl.uniform1f(this.lightUniformLocation0, 1); // стандартное освещение
 		this.gl.disable(this.gl.DEPTH_TEST);
 		
 		for (let c in this.arrayOfChunks) {
@@ -465,7 +477,7 @@ class Render {
 				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex);
-				this.gl.uniform3f(this.translateUniformLocation, xc, yc, -3);
+				this.gl.uniform3f(this.translateUniformLocation0, xc, yc, -3);
 				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
 			}
 		}
@@ -473,36 +485,56 @@ class Render {
 		if (slicePlayer == 2) {			
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
-			this.gl.uniform1f(this.lightUniformLocation, lightOfPlayer);
-			this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-			this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
+			this.gl.uniform1f(this.lightUniformLocation0, lightOfPlayer);
+			this.gl.uniform1f(this.resolutionUniformLocation0, this.gl.canvas.height);
+			this.gl.uniform3f(this.translateUniformLocation0, xp * ch, yp * ch, -1);
 			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			
-			this.gl.uniform1f(this.alphaUniformLocation, 0.5);
-			this.gl.uniform1f(this.lightUniformLocation, 1);
-		}
+			this.gl.useProgram(this.program[1]);
+			const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
+			const deltaY = (yp - yc) * this.size + this.gl.canvas.height / 2;
+			this.gl.uniform2f(this.centerUniformLocation1, deltaX, deltaY);
+			this.gl.uniform1f(this.lightUniformLocation1, 1);
+			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation1, false, [
+				2.0 / (right - left), 0.0, 0.0, 0.0,
+				0.0, 2.0 / (top - bottom), 0.0, 0.0,
+				0.0, 0.0, -2.0 / (far - near), 0.0,
+				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+			this.gl.uniform1f(this.resolutionUniformLocation1, this.gl.canvas.height);
+			
+			for (let c in this.arrayOfChunks) {
+				if (this.arrayOfChunks[c] != undefined) {
+					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
+					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tf);
+					this.gl.uniform3f(this.translateUniformLocation1, xc, yc, -2);
+					this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				}
+			}
+			this.gl.useProgram(this.program[0]);
+		} else {
 		
-		for (let c in this.arrayOfChunks) {
-			if (this.arrayOfChunks[c] != undefined) {
-				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
-				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
-				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tf);
-				this.gl.uniform3f(this.translateUniformLocation, xc, yc, -2);
-				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+			for (let c in this.arrayOfChunks) {
+				if (this.arrayOfChunks[c] != undefined) {
+					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
+					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tf);
+					this.gl.uniform3f(this.translateUniformLocation0, xc, yc, -2);
+					this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				}
 			}
 		}
-		this.gl.uniform1f(this.alphaUniformLocation, 1); 
 		
 		if (slicePlayer == 1) {
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
-			this.gl.uniform1f(this.lightUniformLocation, lightOfPlayer);
-			this.gl.uniform1f(this.resolutionUniformLocation, this.gl.canvas.height);
-			this.gl.uniform3f(this.translateUniformLocation, xp * ch, yp * ch, -1);
+			this.gl.uniform1f(this.lightUniformLocation0, lightOfPlayer);
+			this.gl.uniform1f(this.resolutionUniformLocation0, this.gl.canvas.height);
+			this.gl.uniform3f(this.translateUniformLocation0, xp * ch, yp * ch, -1);
 			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 		}
 		
-		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation, false, [
+		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation0, false, [
 			2.0, 0.0, 0.0, 0.0,
 			0.0, 2.0, 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,

@@ -149,7 +149,6 @@ const worldChange = () => {
 // Действия при нажатии клавиш действия
 const playerActionButtons = () => {
 	if (controller.f.active) {  // Сохранение
-		// setTimeout(saveWorld, 100, 'world');
 		saveWorld('world');
 	}
 	if (controller.g.active) { // Удалить сохранение

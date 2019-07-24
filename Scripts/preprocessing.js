@@ -42,10 +42,7 @@ image.onload = () => {
 							'b': [
 								(i + 1) / blocksCountX - 1 / image.width,
 								(j + 1) / blocksCountY - 1 / image.height
-							],
-							'transparency': items[j * blocksCountX + i + 1] !== undefined
-								? !items[j * blocksCountX + i + 1].isSolid
-								: false
+							]
 							});
 					}
 				}
@@ -71,55 +68,57 @@ image.onload = () => {
 				const startX = xLocate * chunkWidth;
 				const startY = yLocate * chunkHeight;
 
-				// + 1 слой света
-				for (let layout = minLayout; layout <= maxLayout + 1; layout++) {
-					let layoutChunk = {
-						chunk: [], x: xLocate, y: yLocate
-					};
-
-					if (layout !== maxLayout + 1) {  //............ Если не слой света
-						layoutChunk.slice = layout;
-						if (layout === GameArea.FIRST_LAYOUT) {
-							layoutChunk.light = 1;
-						} else {
-							layoutChunk.light = 0.5;
-						}
-					} else {  //................................... У слоя света нет поля slice
-						layoutChunk.light = -100;  //.............. Слой света имеет light = -100
-					}
+				for (let layout = minLayout; layout <= maxLayout; layout++) {
+					let layoutChunk = [];
 
 					for (let i = startX; i < stopX; i++) {
-						layoutChunk.chunk[i - startX] = [];
+						layoutChunk[i - startX] = [];
 						for (let j = startY; j < stopY; j++) {
 							if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
 
 								// Элементы слоя света - уровень освещенности блока
 								if (layout === maxLayout + 1) {
-									layoutChunk.chunk[i - startX][j - startY] =
+									layoutChunk[i - startX][j - startY] =
 										gameArea.getLight(Math.floor(i), Math.floor(j));
 								} else {
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) // TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
-										layoutChunk.chunk[i - startX][j - startY] = 9;
-									else layoutChunk.chunk[i - startX][j - startY] =
+									// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1)
+										layoutChunk[i - startX][j - startY] = 9;
+									else layoutChunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
 								}
 							} else {
-								layoutChunk.chunk[i - startX][j - startY] = undefined;
+								layoutChunk[i - startX][j - startY] = undefined;
 							}
 						}
 					}
-					arrOfChunks[xLocate + "x" + yLocate + "x" + (layout === maxLayout + 1 ? "L" : layout)] =
+
+					arrOfChunks[xLocate + "x" + yLocate + "x" + layout] =
 						layoutChunk;
 				}
-				
+
+				arrOfChunks[xLocate + "x" + yLocate + "xL"] = [];
+				for (let i = startX - 1; i <= stopX; i++) {
+					for (let j = startY - 1; j <= stopY; j++) {
+						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(gameArea
+							.getLight(
+								Math.floor(i < 0
+									? 0 : (i >= gameArea.width
+										? gameArea.width - 1: i),
+								Math.floor(j < 0
+									? 0 : (j >=gameArea.height
+										? gameArea.height - 1 : j)))));
+					}
+				}
+
 				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,
 					[
-						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT].chunk,
-						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT].chunk,
-						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT],
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT],
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT]
 					],
-					arrOfChunks[xLocate + "x" + yLocate + "x" + "L"].chunk);
+					arrOfChunks[xLocate + "x" + yLocate + "xL"]);
 			}
 
 			const update = (newTime) => {

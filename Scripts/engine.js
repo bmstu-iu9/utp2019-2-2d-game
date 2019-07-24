@@ -136,6 +136,7 @@ class Render {
 		this.gl.enable(this.gl.BLEND);
 		
 		//stat
+		const dpr = window.devicePixelRatio;
 		_params += 'webgl=' + encodeURIComponent(webglver);
 		_params += '&context=' + encodeURIComponent(JSON.stringify(this.gl.getContextAttributes()));
 		_params += '&p01=' + encodeURIComponent(this.gl.getParameter(this.gl.CULL_FACE));
@@ -144,8 +145,8 @@ class Render {
 		_params += '&p04=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
 		_params += '&p05=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE));
 		_params += '&p06=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_IMAGE_UNITS));
-		_params += '&p07=' + encodeURIComponent(canvas.clientWidth + 'x' + canvas.clientHeight);
-		_params += '&p08=' + encodeURIComponent(canvas.width + 'x' + canvas.height);
+		_params += '&p07=' + encodeURIComponent(canvas.clientWidth + 'x' + canvas.clientHeight + 'x' + dpr);
+		_params += '&p08=' + encodeURIComponent(canvas.width + 'x' + canvas.height + 'x' + dpr);
 		_params += '&p09=' + encodeURIComponent(this.gl.getParameter(this.gl.VERSION));
 		_params += '&p10=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_RENDERBUFFER_SIZE));
 		_xhrSend(_xhr, _params);

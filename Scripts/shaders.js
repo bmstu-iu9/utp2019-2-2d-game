@@ -68,8 +68,8 @@ _fragmentShader[1] = `
 
 	void main() {
 		vec4 tex = texture2D(u_texture, v_texCoord);
-		float radius = 200.0;
+		float radius = 250.0;
 		vec2 delta = v_center - gl_FragCoord.xy;
-		float alpha = clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * 0.5 / radius + 0.4, 0.4, 1.0);
+		float alpha = clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * 0.9 / radius + 0.1, 0.1, 1.0);
 		gl_FragColor = vec4(tex.rgb * v_light, tex.a * alpha);
 	}`;

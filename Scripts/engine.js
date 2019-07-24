@@ -531,8 +531,8 @@ class Render {
 	resizeCanvas(canvas, multiplier) {
 		// подгоняем канвас под экран
 		multiplier = multiplier || 1;
-		const width = canvas.clientWidth * multiplier | 0;
-		const height = canvas.clientHeight * multiplier | 0;
+		const width = Math.floor(canvas.clientWidth * window.devicePixelRatio * multiplier);
+		const height = Math.floor(canvas.clientHeight * window.devicePixelRatio * multiplier);
 		if (canvas.width !== width || canvas.height !== height) {
 			canvas.width = width;
 			canvas.height = height;

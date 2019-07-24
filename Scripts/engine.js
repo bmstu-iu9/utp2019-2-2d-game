@@ -463,18 +463,40 @@ class Render {
 		this.gl.uniform1f(this.lightUniformLocation0, 1); // стандартное освещение
 		this.gl.disable(this.gl.DEPTH_TEST);
 		
+		this.gl.useProgram(this.program[2]);
+		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
+		const deltaY = (yp + 1 - yc) * this.size + this.gl.canvas.height / 2;
+		
+		this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 50.0, 1.0);
+		this.gl.uniform1f(this.lightUniformLocation2, 1);
+		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation2, false, [
+			2.0 / (right - left), 0.0, 0.0, 0.0,
+			0.0, 2.0 / (top - bottom), 0.0, 0.0,
+			0.0, 0.0, -2.0 / (far - near), 0.0,
+			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+		this.gl.uniform1f(this.resolutionUniformLocation2, this.gl.canvas.height);
+		let ls = 0.65;
+		if (slicePlayer == 2) {
+			ls = 0.9;
+		}
 		for (let c in this.arrayOfChunks) {
 			if (this.arrayOfChunks[c] != undefined) {
 				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+				this.gl.activeTexture(this.gl.TEXTURE1);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
+				this.gl.activeTexture(this.gl.TEXTURE0);
+				this.gl.uniform1f(this.lightUniformLocation2, ls / 2);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[2]);
-				this.gl.uniform3f(this.translateUniformLocation0, xc, yc, -3);
+				this.gl.uniform3f(this.translateUniformLocation2, xc, yc, -3);
 				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				this.gl.uniform1f(this.lightUniformLocation2, ls);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
-				this.gl.uniform3f(this.translateUniformLocation0, xc, yc, -3);
+				this.gl.uniform3f(this.translateUniformLocation2, xc, yc, -3);
 				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
 			}
 		}
+		this.gl.useProgram(this.program[0]);
 		
 		if (slicePlayer == 2) {			
 			// отрисовка игрока
@@ -486,7 +508,7 @@ class Render {
 			
 			this.gl.useProgram(this.program[1]);
 			const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-			const deltaY = (yp + 1 - yc) * this.size + this.gl.canvas.height / 2;
+			const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 			this.gl.uniform2f(this.centerUniformLocation1, deltaX, deltaY);
 			this.gl.uniform1f(this.lightUniformLocation1, 1);
 			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation1, false, [
@@ -512,9 +534,9 @@ class Render {
 		} else {
 			this.gl.useProgram(this.program[2]);
 			const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-			const deltaY = (yp + 1 - yc) * this.size + this.gl.canvas.height / 2;
+			const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 			
-			this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 50.0, 1.0);
+			this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 100.0, 0.1);
 			this.gl.uniform1f(this.lightUniformLocation2, 1);
 			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation2, false, [
 				2.0 / (right - left), 0.0, 0.0, 0.0,

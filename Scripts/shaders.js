@@ -102,7 +102,6 @@ _vertexShader[2] = `
 		gl_Position = u_projectionMatrix * pos;
 	}`;
 
-//v_light
 _fragmentShader[2] = `
 	precision mediump float;
 
@@ -120,5 +119,5 @@ _fragmentShader[2] = `
 		float maxLight = v_dynamicLight.a;
 		vec2 delta = v_dynamicLight.xy - gl_FragCoord.xy;
 		float light = clamp(maxLight - sqrt(delta.x * delta.x + delta.y * delta.y) / radius, 0.0, maxLight);
-		gl_FragColor = vec4(tex.rgb * max(lightTex.x, light), tex.a);
+		gl_FragColor = vec4(tex.rgb * max(lightTex.x, light) * v_light, tex.a);
 	}`;

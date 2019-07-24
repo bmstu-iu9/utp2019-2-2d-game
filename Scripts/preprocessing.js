@@ -164,6 +164,7 @@ image.onload = () => {
 						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(0);
 					}
 				}
+				
 				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,
 					[

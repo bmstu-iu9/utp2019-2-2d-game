@@ -104,12 +104,12 @@ image.onload = () => {
 							.getLight(
 								Math.floor(i < 0
 									? 0 : (i >= gameArea.width
-										? gameArea.width - 1: i),
+										? gameArea.width - 1: i)),
 								Math.floor(j < 0
 									? 0 : (j >=gameArea.height
-										? gameArea.height - 1 : j)))));
+										? gameArea.height - 1 : j))));
 					}
-				}
+				}console.log(arrOfChunks[xLocate + "x" + yLocate + "xL"])
 
 				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,

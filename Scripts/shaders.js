@@ -62,7 +62,8 @@ _vertexShader[1] = `
 _fragmentShader[1] = `
 	precision mediump float;
 
-	uniform sampler2D u_texture;
+	uniform sampler2D u_texture0;
+	uniform sampler2D u_texture1;
 
 	varying vec2 v_texCoord;
 	varying float v_light;
@@ -71,11 +72,12 @@ _fragmentShader[1] = `
 	void main() {
 		float radius = 250.0;
 		float minAlpha = 0.2;
-		vec4 tex = texture2D(u_texture, v_texCoord);
+		vec4 tex = texture2D(u_texture0, v_texCoord);
+		vec4 lightTex = texture2D(u_texture1, vec2(v_texCoord.x / 2.0 + 1.0 / 36.0, v_texCoord.y / 2.0 + 1.0 / 36.0));
 		vec2 delta = v_center - gl_FragCoord.xy;
 		float alpha = clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha) / radius + minAlpha,
 			minAlpha, 1.0);
-		gl_FragColor = vec4(tex.rgb * v_light, tex.a * alpha);
+		gl_FragColor = vec4(tex.rgb * lightTex.x, tex.a * alpha);
 	}`;
 
 _vertexShader[2] = `

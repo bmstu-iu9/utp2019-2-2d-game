@@ -140,6 +140,11 @@ class Render {
 		this.resolutionUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_resolution');
 		this.lightUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_light');
 		this.centerUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_center');
+		this.texture0UniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_texture0');
+		this.texture1UniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_texture1');
+		
+		this.gl.uniform1i(this.texture0UniformLocation1, 0);
+		this.gl.uniform1i(this.texture1UniformLocation1, 1);
 		
 		// SHADER PROGRAM 2
 		this.gl.useProgram(this.program[2]);
@@ -370,9 +375,6 @@ class Render {
 					return a * 255;
 				})));
 		}
-		console.log(new Uint8Array(lightChunk.map((a) => {
-					return a * 255;
-				})));
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.uniform1f(this.resolutionUniformLocation0, height);
@@ -498,6 +500,9 @@ class Render {
 				if (this.arrayOfChunks[c] != undefined) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+					this.gl.activeTexture(this.gl.TEXTURE1);
+					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
+					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
 					this.gl.uniform3f(this.translateUniformLocation1, xc, yc, -2);
 					this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);

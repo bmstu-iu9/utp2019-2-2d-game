@@ -7,6 +7,27 @@ class Player {
         this.fy = y;
         this.layout = GameArea.FIRST_LAYOUT;
 
+        this.animation = {
+            head : {
+                name : "idle",
+                startTick : 0
+            },
+            body : {
+                name : "idle",
+                startTick : 0
+            },
+            legs : {
+                name : "idle",
+                startTick : 0
+            },
+        }
+
+        this.animationStates = {
+            head : 0,
+            body : 0,
+            legs : 0
+        }
+
         // Очки жизни
         this.hp = 100;
 
@@ -480,6 +501,25 @@ class Player {
                 }
             }
             return light / n;
+        }
+
+        this.setAnimation = (part, animation) => {
+            if (this.animation[part].name !== animation) {
+                this.animation[part].name = animation;
+                this.animation[part].startTick = animationsTickCount;
+            }
+        }
+
+        this.animate = () => {
+            this.animationStates.head =
+                animations.player.head[this.animation.head.name][(animationsTickCount - this.animation.head.startTick)
+                                                            % animations.player.head[this.animation.head.name].length];
+            this.animationStates.body =
+                animations.player.body[this.animation.body.name][(animationsTickCount - this.animation.body.startTick)
+                                                            % animations.player.body[this.animation.body.name].length];
+            this.animationStates.legs =
+                animations.player.legs[this.animation.legs.name][(animationsTickCount - this.animation.legs.startTick)
+                                                            % animations.player.legs[this.animation.legs.name].length];
         }
     }
 }

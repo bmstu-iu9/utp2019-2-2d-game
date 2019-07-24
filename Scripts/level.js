@@ -108,9 +108,14 @@ const eventTick = () => {
 	mouseControl();
 	UI();
 	playerActionButtons();
-	
-	// Запись изменений после всех
+
+	// В последнюю очередь
+	// Анимации
+	animationsTickCount++;
+	player.animate();
+	// Запись изменений
 	worldChange();
+
 }
 
 // Управление интерфейсом
@@ -288,8 +293,21 @@ const playerMovement = () => {
 		}
 	}
 
+	// Анимация
+	if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime / 3) {
+		player.setAnimation("legs", "run");
+	} else {
+		player.setAnimation("legs", "idle");
+	}
+
+	// Присваиваем фактические координаты
 	player.fx = newX;
 	player.fy = newY;
+
+	// Анимация падения
+	if (!player.onGround()) {
+		player.setAnimation("legs", "jump");
+	}
 	
 	player.x = roundToFunc(newX, blockSize, Math.round);
 	player.y = roundToFunc(newY, blockSize, Math.round);
@@ -319,6 +337,10 @@ const mouseControl = () => {
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
+    		// Анимация
+    		player.setAnimation("body", "kick");
+
+    		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
     				x: targetX, y: targetY, layout: layout,
@@ -361,6 +383,10 @@ const mouseControl = () => {
 		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
 		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
 		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
+		       	// Анимация
+    			player.setAnimation("body", "kick");
+
+    			// Установка блока
 		       	player.place(targetX, targetY, layout);
 		       	lastPlaceBlockTime = currentTime;
 		    }

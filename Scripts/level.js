@@ -44,9 +44,11 @@ const beginPlay = () => {
 			loadingResult.gameArea.height,
 			key);
 		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
-		for (let change in loadingResult.change) {
-			gameArea.map[change.x][change.y][change.layout] = change.newValue;
+		for (let i in loadingResult.change) {
+			gameArea.map[loadingResult.change[i].x][loadingResult.change[i].y][loadingResult.change[i].layout]
+				= loadingResult.change[i].newValue;
 		}
+		BlocksGlobalChange = loadingResult.change;
 
 		currentTime = loadingResult.currentTime;
     	player = new Player();
@@ -105,8 +107,10 @@ const eventTick = () => {
 	playerMovement();
 	mouseControl();
 	UI();
-	worldChange();
 	playerActionButtons();
+	
+	// Запись изменений после всех
+	worldChange();
 }
 
 // Управление интерфейсом
@@ -125,8 +129,14 @@ const UI = () => {
 // Запись изменений блоков мира
 const worldChange = () => {
 	for (let chunk in gameArea.chunkDifferList) {
-		for (let change in chunk) {
-			BlocksGlobalChange[change.y + "x" + change.y + "x" + change.layout] = change.newValue;
+		for (let change in gameArea.chunkDifferList[chunk]) {
+			const obj = gameArea.chunkDifferList[chunk][change];
+			BlocksGlobalChange[obj.x + "x" + obj.y + "x" + obj.layout] = {
+				x: obj.x,
+				y: obj.y,
+				layout: obj.layout,
+				newValue: obj.newValue
+			}
 		}
 	}
 }

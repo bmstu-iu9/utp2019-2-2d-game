@@ -115,7 +115,7 @@ const loadWorld = (worldName) => {
                     key: req.result.key,
                     player: req.result.player,
                     change: req.result.change,
-                    currentTime: req.result.curr
+                    currentTime: req.result.currentTime
                 });
             }
         }

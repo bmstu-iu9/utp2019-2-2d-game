@@ -153,6 +153,7 @@ class Render {
 		this.translateUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_translate');
 		this.resolutionUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_resolution');
 		this.lightUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_light');
+		this.sizeBlockUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_sizeBlock');
 		this.dynamicLightUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_dynamicLight');
 		this.texture0UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture0');
 		this.texture1UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture1');
@@ -360,8 +361,8 @@ class Render {
 				})));
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 			this.arrayOfChunks[c] = {
 				x: x,
 				y: y,
@@ -465,10 +466,10 @@ class Render {
 		
 		this.gl.useProgram(this.program[2]);
 		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-		const deltaY = (yp + 1 - yc) * this.size + this.gl.canvas.height / 2;
+		const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 		
-		this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 50.0, 1.0);
-		this.gl.uniform1f(this.lightUniformLocation2, 1);
+		this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 10 * this.size, 0.4);
+		this.gl.uniform1f(this.sizeBlockUniformLocation2, this.size);
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation2, false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
 			0.0, 2.0 / (top - bottom), 0.0, 0.0,
@@ -477,7 +478,7 @@ class Render {
 		this.gl.uniform1f(this.resolutionUniformLocation2, this.gl.canvas.height);
 		let ls = 0.65;
 		if (slicePlayer == 2) {
-			ls = 0.9;
+			ls = 0.75;
 		}
 		for (let c in this.arrayOfChunks) {
 			if (this.arrayOfChunks[c] != undefined) {
@@ -507,8 +508,6 @@ class Render {
 			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			
 			this.gl.useProgram(this.program[1]);
-			const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-			const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 			this.gl.uniform2f(this.centerUniformLocation1, deltaX, deltaY);
 			this.gl.uniform1f(this.lightUniformLocation1, 1);
 			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation1, false, [
@@ -533,10 +532,7 @@ class Render {
 			this.gl.useProgram(this.program[0]);
 		} else {
 			this.gl.useProgram(this.program[2]);
-			const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-			const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 			
-			this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 100.0, 0.1);
 			this.gl.uniform1f(this.lightUniformLocation2, 1);
 			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation2, false, [
 				2.0 / (right - left), 0.0, 0.0, 0.0,

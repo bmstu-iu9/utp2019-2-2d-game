@@ -144,8 +144,8 @@ image.onload = () => {
 				}
 
 				arrOfChunks[xLocate + "x" + yLocate + "xL"] = [];
-				for (let i = startX - 1; i <= stopX; i++) {
-					for (let j = startY - 1; j <= stopY; j++) {
+				for (let j = startY - 1; j <= stopY; j++) {
+					for (let i = startX - 1; i <= stopX; i++) {
 						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(gameArea
 							.getLight(
 								Math.floor(i < 0
@@ -155,8 +155,15 @@ image.onload = () => {
 									? 0 : (j >= gameArea.height
 										? gameArea.height - 1 : j))));
 					}
+					for (let i = 0; i < chunkWidth - 2; i++) {
+						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(0);
+					}
 				}
-
+				for (let i = 0; i < chunkWidth * 2; i++) {
+					for (let j = 0; j < chunkHeight - 2; j++) {
+						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(0);
+					}
+				}
 				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,
 					[

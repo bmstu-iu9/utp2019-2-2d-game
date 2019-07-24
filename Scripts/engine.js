@@ -118,29 +118,45 @@ class Render {
 			this.program[i] = this.createProgram(vertexShader, fragmentShader);
 		}
 		
-		// используем шейдерную программу
-		this.gl.useProgram(this.program[0]);
-		
 		// прозрачность
 		this.gl.enable(this.gl.CULL_FACE);
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		
-		// PROGRAM 0
+		// SHADER PROGRAM 0
+		this.gl.useProgram(this.program[0]);
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_projectionMatrix');
 		this.translateUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_translate');
 		this.resolutionUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_resolution');
 		this.lightUniformLocation0 = this.gl.getUniformLocation(this.program[0], 'u_light');
 		
-		// PROGRAM 1
+		// SHADER PROGRAM 1
+		this.gl.useProgram(this.program[1]);
 		// получение uniform-переменных из шейдеров
 		this.projectionMatrixUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_projectionMatrix');
 		this.translateUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_translate');
 		this.resolutionUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_resolution');
 		this.lightUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_light');
 		this.centerUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_center');
+		
+		// SHADER PROGRAM 2
+		this.gl.useProgram(this.program[2]);
+		// получение uniform-переменных из шейдеров
+		this.projectionMatrixUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_projectionMatrix');
+		this.translateUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_translate');
+		this.resolutionUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_resolution');
+		this.lightUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_light');
+		this.dynamicLightUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_dynamicLight');
+		this.texture0UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture0');
+		this.texture1UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture1');
+		
+		this.gl.uniform1i(this.texture0UniformLocation2, 0);
+		this.gl.uniform1i(this.texture1UniformLocation2, 1);
+		
+		// используем шейдерную программу
+		this.gl.useProgram(this.program[0]);
 		
 		// буфер чанков
 		this.arrayOfChunks = {};
@@ -330,12 +346,33 @@ class Render {
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 			}
+			
+			let light = this.gl.createTexture();
+			this.gl.bindTexture(this.gl.TEXTURE_2D, light);
+			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
+				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
+					return a * 255;
+				})));
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 			this.arrayOfChunks[c] = {
 				x: x,
 				y: y,
-				tex: texture
+				tex: texture,
+				light: light
 			};
+		} else {
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[`${x}x${y}`].light);
+			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
+				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
+					return a * 255;
+				})));
 		}
+		console.log(new Uint8Array(lightChunk.map((a) => {
+					return a * 255;
+				})));
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.uniform1f(this.resolutionUniformLocation0, height);
@@ -373,6 +410,8 @@ class Render {
 				this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].tex[i]);
 				delete this.arrayOfChunks[`${x}x${y}`].tex[i];
 			}
+			this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].light);
+			delete this.arrayOfChunks[`${x}x${y}`].light;
 			delete this.arrayOfChunks[`${x}x${y}`];
 		}
 	}
@@ -445,7 +484,7 @@ class Render {
 			
 			this.gl.useProgram(this.program[1]);
 			const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-			const deltaY = (yp - yc) * this.size + this.gl.canvas.height / 2;
+			const deltaY = (yp + 1 - yc) * this.size + this.gl.canvas.height / 2;
 			this.gl.uniform2f(this.centerUniformLocation1, deltaX, deltaY);
 			this.gl.uniform1f(this.lightUniformLocation1, 1);
 			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation1, false, [
@@ -466,16 +505,32 @@ class Render {
 			}
 			this.gl.useProgram(this.program[0]);
 		} else {
-		
+			this.gl.useProgram(this.program[2]);
+			const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
+			const deltaY = (yp + 1 - yc) * this.size + this.gl.canvas.height / 2;
+			
+			this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 50.0, 1.0);
+			this.gl.uniform1f(this.lightUniformLocation2, 1);
+			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation2, false, [
+				2.0 / (right - left), 0.0, 0.0, 0.0,
+				0.0, 2.0 / (top - bottom), 0.0, 0.0,
+				0.0, 0.0, -2.0 / (far - near), 0.0,
+				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+			this.gl.uniform1f(this.resolutionUniformLocation2, this.gl.canvas.height);
+			
 			for (let c in this.arrayOfChunks) {
 				if (this.arrayOfChunks[c] != undefined) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+					this.gl.activeTexture(this.gl.TEXTURE1);
+					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
+					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
-					this.gl.uniform3f(this.translateUniformLocation0, xc, yc, -2);
+					this.gl.uniform3f(this.translateUniformLocation2, xc, yc, -2);
 					this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
 				}
 			}
+			this.gl.useProgram(this.program[0]);
 		}
 		
 		if (slicePlayer == 1) {
@@ -502,16 +557,17 @@ class Render {
 		if (this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
 			return shader;
 		}
+		let error = '\n';
 		if (type === this.gl.VERTEX_SHADER) {
-			console.log('VERTEX SHADER ERROR:');
+			error += 'VERTEX SHADER ERROR:\n';
 		} else if (type === this.gl.FRAGMENT_SHADER) {
-			console.log('FRAGMENT SHADER ERROR:');
+			error += 'FRAGMENT SHADER ERROR:\n';
 		} else {
-			console.log('SHADER ERROR:');
+			error += 'SHADER ERROR:\n';
 		}
-		console.log(this.gl.getShaderInfoLog(shader));
+		error += this.gl.getShaderInfoLog(shader);
 		this.gl.deleteShader(shader);
-		throw new Error();
+		throw new Error(error);
 	}
 	
 	createProgram(vertexShader, fragmentShader) {
@@ -523,9 +579,9 @@ class Render {
 		if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
 			return program;
 		}
-		console.log('GLSL PROGRAM CREATE ERROR:\n', this.gl.getProgramInfoLog(program));
+		const error = '\nGLSL PROGRAM CREATE ERROR:\n' + this.gl.getProgramInfoLog(program);
 		this.gl.deleteProgram(program);
-		throw new Error();
+		throw new Error(error);
 	}
 	
 	resizeCanvas(canvas, multiplier) {

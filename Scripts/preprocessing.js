@@ -9,6 +9,7 @@ const blockResolution = 32;  // Разрешение текстуры блока
 let deltaTime = 0;  // Изменение времени между кадрами в секундах
 let gameArea;  // Игровой мир (объект GameArea)
 let slicePlayer = 1; // 1 - игрок на переднем слое, 2 - за передним слоем
+const playerResolutionX = 48, playerResolutionY = 96;
 
 let loadingResult = undefined;
 
@@ -43,10 +44,55 @@ image.onload = () => {
 								(i + 1) / blocksCountX - 1 / image.width,
 								(j + 1) / blocksCountY - 1 / image.height
 							]
-							});
+						});
 					}
 				}
 				render.createObjects(objects);
+				
+				// TODO : добавить поддержку в engine.js
+				/*
+				const playerAnimsCountX = Math.floor(playerImage.width / playerResolutionX),
+					playerAnimsCountY = Math.floor(playerImage.height / playerResolutionY);
+				let playerAnims = [];
+				for (let i = 0; i < playerAnimsCountX; i++) {
+					for (let j = 0; j < playerAnimsCountY; i++) {
+						playerAnims.push({
+							'id': j * playerAnimsCountX + i + 1,
+							'head': [
+								[
+									i * playerAnimsCountX,
+									j * playerAnumsCountY
+								],
+								[
+									(i + 1) * playerAnimsCountX,
+									j * playerAnumsCountY + 30  // Конец головы по у, 30 прикселей - длинна головы
+								]
+							],
+							'body': [
+								[
+									i * playerAnimsCountX,
+									j * playerAnumsCountY + 31
+								],
+								[
+									(i + 1) * playerAnimsCountX,
+									j * playerAnumsCountY + 30 + 28  // Конец тела по у, 28 прикселей - длинна тела
+								]
+							],
+							'legs': [
+								[
+									i * playerAnimsCountX,
+									j * playerAnumsCountY + 59
+								],
+								[
+									(i + 1) * playerAnimsCountX,
+									j * playerAnumsCountY + 58 + 38  // Конец ног по у, 38 прикселей - длинна ног
+								]
+							]
+						});
+					}
+				}
+				render.createAnimations(playerAnims);
+				*/
 			}
 
 			let OnScreen = {};
@@ -106,7 +152,7 @@ image.onload = () => {
 									? 0 : (i >= gameArea.width
 										? gameArea.width - 1: i)),
 								Math.floor(j < 0
-									? 0 : (j >=gameArea.height
+									? 0 : (j >= gameArea.height
 										? gameArea.height - 1 : j))));
 					}
 				}

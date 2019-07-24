@@ -79,8 +79,8 @@ const beginPlay = () => {
 const callSetTimeOfDay = (lengthOfDay) => {
 	setTimeOfDay(currentTime, lengthOfDay);
 	if (gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0) {
-		// Вызываем через 1\4 суток (перед вечером)
-		setTimeout(callSetTimeOfDay, 250 * lengthOfDay, lengthOfDay);
+		// Вызываем через 1\4 + 1\1000 суток (перед вечером)
+		setTimeout(callSetTimeOfDay, 251 * lengthOfDay, lengthOfDay);
 	} else {
 		// На смену суток 125 состояний света (вызов через каждые 1\500 суток)
 		setTimeout(callSetTimeOfDay, 2 * lengthOfDay, lengthOfDay);
@@ -108,6 +108,14 @@ const eventTick = () => {
 	mouseControl();
 	UI();
 	playerActionButtons();
+
+	//TODO : Добавить поддержку в engine.js
+	/*
+	render.getPlayerParts(
+		player.animationStates.head,
+		player.animationStates.body,
+		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
+	*/
 
 	// В последнюю очередь
 	// Анимации

@@ -465,6 +465,22 @@ class Player {
             }
             return k;
         }
+
+        this.getLight = () => {
+            let light = 0;
+            let n = 0;
+            let startX = Math.max(Math.floor(this.x - Player.WIDTH / 2), 0);
+            let endX = Math.min(Math.floor(this.x + Player.WIDTH / 2), gameArea.width - 1);
+            let startY = Math.max(Math.floor(this.y), 0);
+            let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
+            for (let x = startX; x <= endX; x++) {
+                for (let y = startY; y <= endY; y++) {
+                    n++;
+                    light += gameArea[this.x][this.y][this.layout];
+                }
+            }
+            return light / n;
+        }
     }
 }
 

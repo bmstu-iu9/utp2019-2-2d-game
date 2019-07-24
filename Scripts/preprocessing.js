@@ -109,7 +109,7 @@ image.onload = () => {
 									? 0 : (j >=gameArea.height
 										? gameArea.height - 1 : j))));
 					}
-				}console.log(arrOfChunks[xLocate + "x" + yLocate + "xL"])
+				}
 
 				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,

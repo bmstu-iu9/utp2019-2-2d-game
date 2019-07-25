@@ -59,6 +59,7 @@ _fragmentShader[1] = `
 
 	uniform sampler2D u_texture0;
 	uniform sampler2D u_texture1;
+	uniform sampler2D u_texture2;
 	uniform float u_light;
 	uniform float u_sizeBlock;
 	uniform vec2 u_center;
@@ -69,11 +70,12 @@ _fragmentShader[1] = `
 		float radius = 250.0;
 		float minAlpha = 0.2;
 		vec4 tex = texture2D(u_texture0, v_texCoord);
+		float tex2alpha = (texture2D(u_texture2, v_texCoord)).a;
 		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
 		vec2 delta = u_center - gl_FragCoord.xy;
-		float alpha = mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0 ? 1.0 :
+		float alpha = tex2alpha == 0.0 ? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0 ? 1.0 :
 		clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha) / radius + minAlpha,
-			minAlpha, 1.0);
+			minAlpha, 1.0)) : 1.0;
 		gl_FragColor = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
 	}`;
 

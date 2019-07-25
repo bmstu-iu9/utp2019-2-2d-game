@@ -9,6 +9,7 @@ class Controller {
         this.shift  = new ButtonInput();
         this.f      = new ButtonInput();
         this.g      = new ButtonInput();
+        this.interact      = new ButtonInput();
 
         this.numbers = [];
         for (let i = 0; i < 10; i++) {
@@ -45,6 +46,9 @@ class Controller {
                 break;
             case 71:
                 this.g.getInput(down);
+                break;
+            case 69:
+                this.interact.getInput(down);
                 break;
         }
     }

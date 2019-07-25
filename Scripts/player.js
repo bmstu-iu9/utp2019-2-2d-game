@@ -110,6 +110,39 @@ class Player {
             }
         }
 
+        // Взаимодействовать с ближайшим интерактивным блоком
+        this.interactWithNearest = (layout) => {
+            let interactArr = [];
+            for (let x = Math.floor(this.x - Player.ACTION_RADIUS);
+                    x <= Math.floor(this.x + Player.ACTION_RADIUS); x++) {
+                for (let y = Math.floor(this.y + Player.HEIGHT / 2 - Player.ACTION_RADIUS);
+                        y <= Math.floor(this.y + Player.HEIGHT / 2 + Player.ACTION_RADIUS); y++) {
+                    if (inRange(x, 0, gameArea.width) && inRange(y, 0, gameArea.height)
+                            && gameArea.map[x][y][layout] !== undefined
+                            && items[gameArea.map[x][y][layout]].isClickable) {
+                        interactArr.push({
+                            id: items[gameArea.map[x][y][layout]].id,
+                            x: x,
+                            y: y
+                        })
+                    }
+                }
+            }
+
+            interactArr.sort((a, b) => {
+                return hypotenuse(a.x - this.x, a.y - this.y - Player.HEIGHT / 2)
+                        - hypotenuse(b.x - this.x, b.y - this.y - Player.HEIGHT / 2);
+            });
+
+            for(let i = 0; i < interactArr.length; i++) {
+                let block = interactArr[i]; 
+                if (this.blockAvailable(block.x, block.y, layout)) {
+                    this.interact(block.x, block.y, layout);
+                    break;
+                }
+            }
+        }
+
         // Можно взаимодействовать через этот блок
         this.canInteractThrough = (x, y, layout) => {
             x = Math.floor(x);

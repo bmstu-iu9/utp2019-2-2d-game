@@ -341,16 +341,17 @@ const playerMovement = () => {
 const mouseControl = () => {
 	if(!controller.mouse.active) player.setAnimation("body", "idle");
 
+	let layout = player.layout;
+    if(controller.shift.active) {
+    	if(player.layout === GameArea.FIRST_LAYOUT) {
+    		layout = GameArea.SECOND_LAYOUT;
+    	} else {
+    		layout = GameArea.BACK_LAYOUT;
+    	}
+    }
+
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
-    	let layout = player.layout;
-    	if(controller.shift.active) {
-    		if(player.layout === GameArea.FIRST_LAYOUT) {
-    			layout = GameArea.SECOND_LAYOUT;
-    		} else {
-    			layout = GameArea.BACK_LAYOUT;
-    		}
-    	}
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
@@ -382,14 +383,6 @@ const mouseControl = () => {
 
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
-		let layout = player.layout;
-    	if(controller.shift.active) {
-    		if(player.layout === GameArea.FIRST_LAYOUT) {
-    			layout = GameArea.SECOND_LAYOUT;
-    		} else {
-    			layout = GameArea.BACK_LAYOUT;
-    		}
-    	}
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
@@ -406,5 +399,11 @@ const mouseControl = () => {
 			player.interact(targetX, targetY, layout);
 			lastPlaceBlockTime = currentTime;
 		}
+	}
+
+	// Нажата E
+	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
+		player.interactWithNearest(layout);
+		lastPlaceBlockTime = currentTime;
 	}
 }

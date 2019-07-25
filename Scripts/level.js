@@ -64,8 +64,8 @@ const beginPlay = () => {
 
     	player = new Player(px, py);
     	player.addToInv({
-    		"id" : 257,
-    		"durability" : items[257].durability,
+    		"id" : 278,
+    		"durability" : items[278].durability,
     		"name" : "Iron pickaxe"
     	});
     }

@@ -467,7 +467,7 @@ class Render {
 		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
 		const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 		
-		this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 8 * this.size, 0.3);
+		this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 10 * this.size, 0.2);
 		this.gl.uniform1f(this.sizeBlockUniformLocation2, this.size);
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation2, false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,

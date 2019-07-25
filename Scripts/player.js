@@ -500,7 +500,7 @@ class Player {
                     light += gameArea.getLight(x, y);
                 }
             }
-            return light / n;
+            return Math.max(0.2, light / n);
         }
 
         this.setAnimation = (part, animation) => {

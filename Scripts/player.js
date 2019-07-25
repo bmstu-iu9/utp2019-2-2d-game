@@ -148,7 +148,7 @@ class Player {
             x = Math.floor(x);
             y = Math.floor(y);
             return gameArea.map[x][y][layout] === undefined
-                    || items[gameArea.map[x][y][layout]].type === "water";
+                    || items[gameArea.map[x][y][layout]].isCanInteractThrow;
         }
 
         // Может дотянуться до блока

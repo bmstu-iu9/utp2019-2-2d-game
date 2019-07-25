@@ -110,6 +110,7 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         hasGravity: true,
         density: 0.5,
         isNaturalLight: true
@@ -121,6 +122,7 @@ let items = {
         type: 'flowingWater',
         durability: 1,
         brightness: 6,
+        isCanInteractThrow: true,
         isCollissed: false,
         isNaturalLight: true,
         name: 'flowing-water-image'
@@ -135,6 +137,7 @@ let items = {
         type: 'water',
         durability: 1,
         brightness: 8,
+        isCanInteractThrow: true,
         isCollissed: false,
         hasGravity: true,
         density: 0.9
@@ -146,6 +149,7 @@ let items = {
         type: 'flowingWater',
         durability: 1,
         brightness: 8,
+        isCanInteractThrow: true,
         isCollissed: false,
         name: 'flowing-lava-image'
     },
@@ -267,6 +271,7 @@ let items = {
         isSolid: false,
         isCollissed: true,
         isClickable: true,
+        isCanInteractThrow: true,
         interactFunction : (x, y, layout) => {
             gameArea.placeBlock(x, y, layout, 63);
 
@@ -291,6 +296,7 @@ let items = {
         isSolid: true,
         isCollissed: false,
         isClickable: true,
+        isCanInteractThrow: true,
         interactFunction : (x, y, layout) => {
             gameArea.destroyBlock(x, y, layout);
             gameArea.placeBlock(x, y, layout, 62);

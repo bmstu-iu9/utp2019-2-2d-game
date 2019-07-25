@@ -124,6 +124,8 @@ class Render {
 		this.gl.enable(this.gl.BLEND);
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		
+		// TODO: createUniformLocation(program, params)
+		
 		// SHADER PROGRAM 0
 		this.gl.useProgram(this.program[0]);
 		// получение uniform-переменных из шейдеров
@@ -139,12 +141,13 @@ class Render {
 		this.translateUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_translate');
 		this.resolutionUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_resolution');
 		this.lightUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_light');
+		this.sizeBlockUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_sizeBlock');
 		this.centerUniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_center');
-		this.texture0UniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_texture0');
-		this.texture1UniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_texture1');
+		const texture0UniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_texture0');
+		const texture1UniformLocation1 = this.gl.getUniformLocation(this.program[1], 'u_texture1');
 		
-		this.gl.uniform1i(this.texture0UniformLocation1, 0);
-		this.gl.uniform1i(this.texture1UniformLocation1, 1);
+		this.gl.uniform1i(texture0UniformLocation1, 0);
+		this.gl.uniform1i(texture1UniformLocation1, 1);
 		
 		// SHADER PROGRAM 2
 		this.gl.useProgram(this.program[2]);
@@ -155,11 +158,11 @@ class Render {
 		this.lightUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_light');
 		this.sizeBlockUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_sizeBlock');
 		this.dynamicLightUniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_dynamicLight');
-		this.texture0UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture0');
-		this.texture1UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture1');
+		const texture0UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture0');
+		const texture1UniformLocation2 = this.gl.getUniformLocation(this.program[2], 'u_texture1');
 		
-		this.gl.uniform1i(this.texture0UniformLocation2, 0);
-		this.gl.uniform1i(this.texture1UniformLocation2, 1);
+		this.gl.uniform1i(texture0UniformLocation2, 0);
+		this.gl.uniform1i(texture1UniformLocation2, 1);
 		
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
@@ -509,6 +512,7 @@ class Render {
 			this.gl.useProgram(this.program[1]);
 			this.gl.uniform2f(this.centerUniformLocation1, deltaX, deltaY);
 			this.gl.uniform1f(this.lightUniformLocation1, 1);
+			this.gl.uniform1f(this.sizeBlockUniformLocation1, this.size);
 			this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation1, false, [
 				2.0 / (right - left), 0.0, 0.0, 0.0,
 				0.0, 2.0 / (top - bottom), 0.0, 0.0,
@@ -571,6 +575,10 @@ class Render {
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 	}
 	
+	createAnimations(playerAnims) {
+		
+	}
+	
 	createShader(type, source) {
 		// создание шейдера
 		const shader = this.gl.createShader(type);
@@ -590,6 +598,14 @@ class Render {
 		error += this.gl.getShaderInfoLog(shader);
 		this.gl.deleteShader(shader);
 		throw new Error(error);
+	}
+	
+	createUniformLocation(program, params) {
+		let uniformLocation = {};
+		for (let i in params) {
+			uniformLocation[i] = this.gl.getUniformLocation(program, i);
+		}
+		return uniformLocation;
 	}
 	
 	createProgram(vertexShader, fragmentShader) {

@@ -7,7 +7,7 @@ let _fragmentShader = [];
 // VertexShader - вершинный шейдер, занимается обработкой расположения вершин фигур на экране/буфере кадров
 // FragmentShader - фрагментный шейдер, занимается обработкой цвета каждого пикселя
 
-//u_light
+// шейдеры для блоков, игрока, фона
 _vertexShader[0] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
@@ -37,6 +37,7 @@ _fragmentShader[0] = `
 		gl_FragColor = vec4(tex.rgb * u_light, tex.a);
 	}`;
 
+// шейдеры для 1 слоя
 _vertexShader[1] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
@@ -59,21 +60,24 @@ _fragmentShader[1] = `
 	uniform sampler2D u_texture0;
 	uniform sampler2D u_texture1;
 	uniform float u_light;
+	uniform float u_sizeBlock;
 	uniform vec2 u_center;
 
 	varying vec2 v_texCoord;
-
+	
 	void main() {
 		float radius = 250.0;
 		float minAlpha = 0.2;
 		vec4 tex = texture2D(u_texture0, v_texCoord);
-		vec4 lightTex = texture2D(u_texture1, vec2(v_texCoord.x / 2.0 + 1.0 / 36.0, v_texCoord.y / 2.0 + 1.0 / 36.0));
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
 		vec2 delta = u_center - gl_FragCoord.xy;
-		float alpha = clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha) / radius + minAlpha,
+		float alpha = mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0 ? 1.0 :
+		clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha) / radius + minAlpha,
 			minAlpha, 1.0);
-		gl_FragColor = vec4(tex.rgb * lightTex.x * u_light, tex.a * alpha);
+		gl_FragColor = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
 	}`;
 
+// шейдеры для 2 и 3 слоя
 _vertexShader[2] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
@@ -103,10 +107,10 @@ _fragmentShader[2] = `
 
 	void main() {
 		vec4 tex = texture2D(u_texture0, v_texCoord);
-		vec4 lightTex = texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0);
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
 		float radius = u_dynamicLight.p;
 		float maxLight = u_dynamicLight.a;
 		vec2 delta = u_dynamicLight.xy - gl_FragCoord.xy;
 		float light = clamp(maxLight - sqrt(delta.x * delta.x + delta.y * delta.y) * maxLight / radius, 0.0, maxLight);
-		gl_FragColor = vec4(tex.rgb * max(lightTex.x, light) * u_light, tex.a);
+		gl_FragColor = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
 	}`;

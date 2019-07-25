@@ -76,8 +76,8 @@ _fragmentShader[1] = `
 		float alpha = tex2alpha == 0.0
 			? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0
 				? 1.0
-				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha) / radius + minAlpha,
-					minAlpha, 1.0) < 1.0 ? minAlpha : 1.0)
+				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha + 0.15) / radius + minAlpha - 0.15,
+					minAlpha, 1.0))
 			: 1.0;
 		gl_FragColor = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
 	}`;

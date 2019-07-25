@@ -73,7 +73,7 @@ const beginPlay = () => {
 	cameraSet(player.x, player.y);
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(60);
+	callSetTimeOfDay(300);
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {
@@ -334,6 +334,8 @@ const playerMovement = () => {
 }
 
 const mouseControl = () => {
+	if(!controller.mouse.active) player.setAnimation("body", "idle");
+
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
     	let layout = player.layout;
@@ -348,9 +350,6 @@ const mouseControl = () => {
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
-    		// Анимация
-    		player.setAnimation("body", "kick");
-
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
@@ -394,13 +393,12 @@ const mouseControl = () => {
 		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
 		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
 		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
-		       	// Анимация
-    			player.setAnimation("body", "kick");
-
     			// Установка блока
 		       	player.place(targetX, targetY, layout);
 		       	lastPlaceBlockTime = currentTime;
 		    }
+		} else {
+			player.interact(targetX, targetY, layout);
 		}
 	}
 }

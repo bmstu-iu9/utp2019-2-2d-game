@@ -438,7 +438,7 @@ class GameArea{
         // Функция взаимодействия с блоком
         this.interactWithBlock = (x, y, layout) => {
             if(!inRange(x, 0 ,this.width) || !inRange(y, 0, this.height)) return; // проверка на выход из карты
-            console.log("Interaction with block on coordinates : [${x} ${y} ${layout}]");
+            console.log(`Interaction with block on coordinates : [${x} ${y} ${layout}]`);
             let block = items[this.map[x][y][layout]];
             if(block.isClickable) {
                 block.interactFunction();

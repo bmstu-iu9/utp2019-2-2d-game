@@ -84,6 +84,9 @@ class Player {
                     gameArea.destroyBlock(x, y, layout);
                 }
             }
+
+            // Анимация
+            player.setAnimation("body", "kick");
         };
 
         // Разместить блок из руки на (x, y, layout)
@@ -91,6 +94,9 @@ class Player {
             if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)) {
                 gameArea.placeBlock(x, y, layout, this.hand.item);
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+
+                // Анимация
+                player.setAnimation("body", "kick");
             }
         };
 
@@ -99,6 +105,9 @@ class Player {
             if (this.blockAvailable(x, y, layout)) {
                 gameArea.interactWithBlock(x, y, layout);
             }
+
+            // Анимация
+            player.setAnimation("body", "kick");
         }
 
         // Можно взаимодействовать через этот блок

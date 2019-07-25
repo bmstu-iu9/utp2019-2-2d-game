@@ -1,6 +1,6 @@
 'use strict';
 
-let cameraScale = 2;  // Масштаб, 1 - стандарт
+let cameraScale = 1;  // Масштаб, 1 - стандарт
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
@@ -188,8 +188,8 @@ image.onload = () => {
 
 				{  // Обновление чанков
 					const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
-					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0]   / (2 * chunkWidth)),
-						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1]   / (2 * chunkHeight))
+					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] * cameraScale / (2 * chunkWidth)),
+						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] * cameraScale / (2 * chunkHeight))
 					let neigChunk = {};
 					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {

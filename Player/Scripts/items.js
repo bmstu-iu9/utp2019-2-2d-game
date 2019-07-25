@@ -258,6 +258,55 @@ let items = {
         weight: WEIGHT_OF_BLOCKS
     },
 
+    '60':
+    {
+        id: '60',
+        name: 'Closed Trapdoor',
+        type: 'wood',
+        isBlock: true,
+        dropId: '61',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        interactFunction : (x, y, layout) => {
+            gameArea.destroyBlock(x, y, layout);
+            gameArea.placeBlock(x, y, layout, 61);
+
+            if (inRange(x + 1, 0, gameArea.height)
+                    && gameArea.map[x + 1][y][layout] === 60) gameArea.interactWithBlock(x + 1, y, layout);
+            if (inRange(x - 1, 0, gameArea.height)
+                    && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
+        }
+    },
+
+    '61':
+    {
+        id: '61',
+        name: 'Trapdoor',
+        type: 'wood',
+        isBlock: true,
+        dropId: '61',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: true,
+        isCollissed: false,
+        isClickable: true,
+        isCanInteractThrow: true,
+        interactFunction : (x, y, layout) => {
+            gameArea.destroyBlock(x, y, layout);
+            gameArea.placeBlock(x, y, layout, 60);
+
+            if (inRange(x + 1, 0, gameArea.height)
+                    && gameArea.map[x + 1][y][layout] === 61) gameArea.interactWithBlock(x + 1, y, layout);
+            if (inRange(x - 1, 0, gameArea.height)
+                    && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
+        }
+    },
+
     '62':
     {
         id: '62',
@@ -271,10 +320,9 @@ let items = {
         isSolid: false,
         isCollissed: true,
         isClickable: true,
-        isCanInteractThrow: true,
         interactFunction : (x, y, layout) => {
+            gameArea.destroyBlock(x, y, layout);
             gameArea.placeBlock(x, y, layout, 63);
-
 
             if (inRange(y + 1, 0, gameArea.height)
                     && gameArea.map[x][y + 1][layout] === 62) gameArea.interactWithBlock(x, y + 1, layout);

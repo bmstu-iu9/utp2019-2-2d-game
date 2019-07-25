@@ -100,7 +100,7 @@ image.onload = () => {
 
 			let OnScreen = {};
 			let arrOfChunks = {};
-			let oldTime = 0;
+			let oldTime;
 			let oldTimeOfDay = 0;
 			const deletechunkById = (xLocate, yLocate) => {
 				for (let chunk in arrOfChunks) {
@@ -180,6 +180,11 @@ image.onload = () => {
 					arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk);
 			}
 
+			const bufferOldTime = (newTime) => {
+				oldTime = newTime;
+				requestAnimationFrame(update);
+			}
+
 			const update = (newTime) => {
 				deltaTime = (newTime - oldTime) / 1000;
 				oldTime = newTime;
@@ -237,9 +242,15 @@ image.onload = () => {
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}
+
+			const loadingGame = async () => {
+				await beginPlay();
+				const elem = document.getElementById("loading");
+				elem.parentNode.removeChild(elem);
+			}
 			
 			if (loadExist()) {
-				let wait = async () => {
+				const wait = async () => {
 					return new Promise (responce => {
 						loadWorld('world')
 						.then(result => {
@@ -250,16 +261,14 @@ image.onload = () => {
 				}
 
 				wait().then(() => {
-					beginPlay();
-					const elem = document.getElementById("loading");
-					elem.parentNode.removeChild(elem);
-					requestAnimationFrame(update);
+					loadingGame().then(() => {
+						requestAnimationFrame(bufferOldTime);
+					});
 				});
 			} else {
-				beginPlay();
-				const elem = document.getElementById("loading");
-				elem.parentNode.removeChild(elem);
-				requestAnimationFrame(update);
+				loadingGame().then(() => {
+					requestAnimationFrame(bufferOldTime);
+				});
 			}
 		}
 	}

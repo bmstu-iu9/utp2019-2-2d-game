@@ -72,6 +72,11 @@ const beginPlay = () => {
     		id: 63,
     		count: 20
     	});
+
+    	player.addToInv({
+    		id: 61,
+    		count: 20
+    	});
     }
 
 	cameraSet(player.x, player.y);
@@ -82,14 +87,7 @@ const beginPlay = () => {
 
 const callSetTimeOfDay = (lengthOfDay) => {
 	setTimeOfDay(currentTime, lengthOfDay);
-	setTimeout(callSetTimeOfDay, 1000, lengthOfDay);  // Затычка вместо \/
-	// if (gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0) {
-	// 	// Вызываем через 1\4 + 1\1000 суток (перед вечером)
-	// 	setTimeout(callSetTimeOfDay, 251 * lengthOfDay, lengthOfDay);
-	// } else {
-	// 	// На смену суток 125 состояний света (вызов через каждые 1\500 суток)
-	// 	setTimeout(callSetTimeOfDay, 2 * lengthOfDay, lengthOfDay);
-	// }
+	setTimeout(callSetTimeOfDay, 1000, lengthOfDay);
 }
 
 // Установка текущего времени суток. При изменении не забудь заглянуть в callSetTimeOfDay

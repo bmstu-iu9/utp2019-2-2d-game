@@ -375,7 +375,7 @@ class GameArea{
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
-            if (layout === GameArea.FIRST_LAYOUT) {
+            if (lastBlock !== undefined && layout === GameArea.FIRST_LAYOUT) {
                 this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
                     items[lastBlock].isNaturalLight === true);
                 this.addLightRound(x, y, x, y, 9, true, false);
@@ -440,8 +440,8 @@ class GameArea{
             if(!inRange(x, 0 ,this.width) || !inRange(y, 0, this.height)) return; // проверка на выход из карты
             console.log(`Interaction with block on coordinates : [${x} ${y} ${layout}]`);
             let block = items[this.map[x][y][layout]];
-            if(block.isClickable) {
-                block.interactFunction();
+            if(block !== undefined && block.isClickable) {
+                block.interactFunction(x, y, layout);
             }
         };
 

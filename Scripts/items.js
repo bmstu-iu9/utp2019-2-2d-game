@@ -71,6 +71,21 @@ let items = {
         durability: 7,
         brightness: 0,
         isCollissed: true,
+        isClickable : true,
+        interactFunction : (x, y, layout) => {
+            gameArea.destroyBlock(x, y, layout);
+            gameArea.placeBlock(x, y, layout, 7);
+
+            console.log(gameArea.map[x][y - 1][layout]);
+            if (gameArea.map[x + 1][y][layout] === '4'
+                    && inRange(x + 1, 0, gameArea.width)) gameArea.interactWithBlock(x + 1, y, layout);
+            if (gameArea.map[x - 1][y][layout] === '4'
+                    && inRange(x - 1, 0, gameArea.width)) gameArea.interactWithBlock(x - 1, y, layout);
+            if (gameArea.map[x][y + 1][layout] === '4'
+                    && inRange(y + 1, 0, gameArea.height)) gameArea.interactWithBlock(x, y + 1, layout);
+            if (gameArea.map[x][y - 1][layout] === '4'
+                    && inRange(y - 1, 0, gameArea.height)) gameArea.interactWithBlock(x, y - 1, layout);
+        },
         isSolid: true
     },
 

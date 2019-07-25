@@ -506,7 +506,7 @@ const vectorLengthSqr = (x, y, x1, y1) => {
 }
 
 const inRange = (n, start, length) => {
-    return n >= start && n < length - start;
+    return n >= start && n < length + start;
 }
 
 const between = (n, a, b) => {

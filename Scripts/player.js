@@ -102,11 +102,48 @@ class Player {
 
         // Если можно взаимодействовать - сделать это
         this.interact = (x, y, layout) => {
-            if (this.blockAvailable(x, y, layout)) {
+            console.log(x + " " + (this.x - Player.INTERACTION_RADIUS));
+            if (this.blockAvailable(x, y, layout)
+                    && inRange(x, this.x - Player.INTERACTION_RADIUS, 2 * Player.INTERACTION_RADIUS)
+                    && inRange(y, this.y + Player.HEIGHT / 2 - Player.INTERACTION_RADIUS,
+                                                                    2 * Player.INTERACTION_RADIUS)) {
                 gameArea.interactWithBlock(x, y, layout);
 
                 // Анимация
                 player.setAnimation("body", "kick");
+            }
+        }
+
+        // Взаимодействовать с ближайшим интерактивным блоком
+        this.interactWithNearest = (layout) => {
+            let interactArr = [];
+            for (let x = Math.floor(this.x - Player.INTERACTION_RADIUS);
+                    x <= Math.floor(this.x + Player.INTERACTION_RADIUS); x++) {
+                for (let y = Math.floor(this.y + Player.HEIGHT / 2 - Player.INTERACTION_RADIUS);
+                        y <= Math.floor(this.y + Player.HEIGHT / 2 + Player.INTERACTION_RADIUS); y++) {
+                    if (inRange(x, 0, gameArea.width) && inRange(y, 0, gameArea.height)
+                            && gameArea.map[x][y][layout] !== undefined
+                            && items[gameArea.map[x][y][layout]].isClickable) {
+                        interactArr.push({
+                            id: items[gameArea.map[x][y][layout]].id,
+                            x: x,
+                            y: y
+                        })
+                    }
+                }
+            }
+
+            interactArr.sort((a, b) => {
+                return hypotenuse(a.x - this.x, a.y - this.y - Player.HEIGHT / 2)
+                        - hypotenuse(b.x - this.x, b.y - this.y - Player.HEIGHT / 2);
+            });
+
+            for(let i = 0; i < interactArr.length; i++) {
+                let block = interactArr[i]; 
+                if (this.blockAvailable(block.x, block.y, layout)) {
+                    this.interact(block.x, block.y, layout);
+                    break;
+                }
             }
         }
 
@@ -550,6 +587,7 @@ const playerCopy = (player, obj) => {
 
 // Константы
 Player.ACTION_RADIUS = 12;      // Радиус действия игрока
+Player.INTERACTION_RADIUS = 5;  // Радиус взаимодействия с интерактивными блоками
 Player.HEIGHT = 2.8;            // Рост игрока в блоках
 Player.WIDTH = 1.5;             // Половина ширины игрока в блоках
 Player.SPEED = 15;              // Модификатор скорости игрока

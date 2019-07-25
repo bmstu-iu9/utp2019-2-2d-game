@@ -579,6 +579,7 @@ const playerCopy = (player, obj) => {
     player.hand = obj.hand;
     player.vx = obj.vx;
     player.vy = obj.vy;
+    player.layout = obj.layout;
 }
 
 // Константы

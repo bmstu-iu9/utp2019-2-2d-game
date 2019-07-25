@@ -102,11 +102,7 @@ class Player {
 
         // Если можно взаимодействовать - сделать это
         this.interact = (x, y, layout) => {
-            console.log(x + " " + (this.x - Player.INTERACTION_RADIUS));
-            if (this.blockAvailable(x, y, layout)
-                    && inRange(x, this.x - Player.INTERACTION_RADIUS, 2 * Player.INTERACTION_RADIUS)
-                    && inRange(y, this.y + Player.HEIGHT / 2 - Player.INTERACTION_RADIUS,
-                                                                    2 * Player.INTERACTION_RADIUS)) {
+            if (this.blockAvailable(x, y, layout)) {
                 gameArea.interactWithBlock(x, y, layout);
 
                 // Анимация

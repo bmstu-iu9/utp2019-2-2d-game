@@ -72,6 +72,11 @@ const beginPlay = () => {
     		id: 63,
     		count: 20
     	});
+
+    	player.addToInv({
+    		id: 61,
+    		count: 20
+    	});
     }
 
 	cameraSet(player.x, player.y);

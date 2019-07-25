@@ -40,21 +40,19 @@ const beginPlay = () => {
 
     if (loadExist()) {
 		key = loadingResult.key;
+		BlocksGlobalChange = loadingResult.change;
+		currentTime = loadingResult.currentTime;
+
 		gameArea = generate(loadingResult.gameArea.width,
 			loadingResult.gameArea.height,
-			key);
+			key,
+			BlocksGlobalChange);
 		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
-		for (let i in loadingResult.change) {
-			gameArea.map[loadingResult.change[i].x][loadingResult.change[i].y][loadingResult.change[i].layout]
-				= loadingResult.change[i].newValue;
-		}
-		BlocksGlobalChange = loadingResult.change;
 
-		currentTime = loadingResult.currentTime;
     	player = new Player();
     	playerCopy(player, loadingResult.player);
     } else {
-    	gameArea = generate(1000, 1000, key);
+		gameArea = generate(1000, 1000, key);
 
     	let px = gameArea.width / 2;
     	let py = 0;
@@ -405,6 +403,6 @@ const mouseControl = () => {
 		} else {
 			player.interact(targetX, targetY, layout);
 			lastPlaceBlockTime = currentTime;
-		}
+			}
 	}
 }

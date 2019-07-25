@@ -1,5 +1,5 @@
-// Генерация земли
-const generate = (width, height, seed) => {
+// Генерация земли, changes необходимы при загрузке с изменениями исходного мира
+const generate = (width, height, seed, changes) => {
     let elevationMap = new Array();
     let shadowMap = new Array();
     let seedTemp = seed;
@@ -694,6 +694,11 @@ const generate = (width, height, seed) => {
             }
         }
     }
+
+    // Внесение изменений в сгенерировааный мир до расчета теней
+	for (let i in changes) {
+		worldMap[changes[i].x][changes[i].y][changes[i].layout] = changes[i].newValue;
+	}
 
     // Создть карту освещения
     createShadows(9);

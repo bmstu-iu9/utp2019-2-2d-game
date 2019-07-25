@@ -1,6 +1,6 @@
 'use strict';
 
-let cameraScale = 1;  // Масштаб, 1 - стандарт
+let cameraScale = 2;  // Масштаб, 1 - стандарт
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
@@ -118,26 +118,23 @@ image.onload = () => {
 				const startY = yLocate * chunkHeight;
 
 				for (let layout = minLayout; layout <= maxLayout; layout++) {
-					let layoutChunk = [];
+					let layoutChunk = {
+						chunk: [], x: xLocate, y: yLocate
+					};
 
 					for (let i = startX; i < stopX; i++) {
-						layoutChunk[i - startX] = [];
+						layoutChunk.chunk[i - startX] = [];
 						for (let j = startY; j < stopY; j++) {
 							if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
-
-								// Элементы слоя света - уровень освещенности блока
-								if (layout === maxLayout + 1) {
-									layoutChunk[i - startX][j - startY] =
-										gameArea.getLight(Math.floor(i), Math.floor(j));
+								// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+								if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) {
+									layoutChunk.chunk[i - startX][j - startY] = 9;
 								} else {
-									// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
-									if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1)
-										layoutChunk[i - startX][j - startY] = 9;
-									else layoutChunk[i - startX][j - startY] =
+									layoutChunk.chunk[i - startX][j - startY] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
 								}
 							} else {
-								layoutChunk[i - startX][j - startY] = undefined;
+								layoutChunk.chunk[i - startX][j - startY] = undefined;
 							}
 						}
 					}
@@ -146,10 +143,15 @@ image.onload = () => {
 						layoutChunk;
 				}
 
-				arrOfChunks[xLocate + "x" + yLocate + "xL"] = [];
+				arrOfChunks[xLocate + "x" + yLocate + "xL"] = {
+					chunk: [],
+					layout: "L"
+				};
 				for (let j = startY - 1; j <= stopY; j++) {
 					for (let i = startX - 1; i <= stopX; i++) {
-						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(gameArea
+						arrOfChunks[xLocate + "x" + yLocate + "xL"]
+							.chunk
+							.push(gameArea
 							.getLight(
 								Math.floor(i < 0
 									? 0 : (i >= gameArea.width
@@ -159,23 +161,23 @@ image.onload = () => {
 										? gameArea.height - 1 : j))));
 					}
 					for (let i = 0; i < chunkWidth - 2; i++) {
-						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(0);
+						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
 					}
 				}
 				for (let i = 0; i < chunkWidth * 2; i++) {
 					for (let j = 0; j < chunkHeight - 2; j++) {
-						arrOfChunks[xLocate + "x" + yLocate + "xL"].push(0);
+						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
 					}
 				}
 				
 				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,
 					[
-						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT],
-						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT],
-						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT]
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT].chunk,
+						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk
 					],
-					arrOfChunks[xLocate + "x" + yLocate + "xL"]);
+					arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk);
 			}
 
 			const update = (newTime) => {
@@ -186,8 +188,8 @@ image.onload = () => {
 
 				{  // Обновление чанков
 					const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
-					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0] * cameraScale / (2 * chunkWidth)),
-						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1] * cameraScale / (2 * chunkHeight))
+					const halfScreenChunkCapasityX = Math.ceil(render.getFieldSize()[0]   / (2 * chunkWidth)),
+						halfScreenChunkCapasityY = Math.ceil(render.getFieldSize()[1]   / (2 * chunkHeight))
 					let neigChunk = {};
 					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 						i++) {
@@ -199,6 +201,9 @@ image.onload = () => {
 					}
 
 					for (let chunk in arrOfChunks) {
+						if(arrOfChunks[chunk].layout === "L") {
+							continue;
+						}
 						if (neigChunk[arrOfChunks[chunk].x] === undefined ||
 						neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] === undefined) {
 							// Если не ближайший чанк, то удаляем

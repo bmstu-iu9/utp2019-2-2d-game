@@ -73,7 +73,7 @@ const beginPlay = () => {
 	cameraSet(player.x, player.y);
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(300);
+	callSetTimeOfDay(600);
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {

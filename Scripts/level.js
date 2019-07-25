@@ -51,7 +51,7 @@ const beginPlay = () => {
 
     	player = new Player();
     	playerCopy(player, loadingResult.player);
-    	slicePlayer = player.layout;
+    	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
     } else {
 		gameArea = generate(1000, 1000, key);
 

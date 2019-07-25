@@ -383,6 +383,7 @@ class Render {
 		
 		this.gl.viewport(0, 0, width, height);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
+		this.gl.uniform1f(this.lightUniformLocation0, 1);
 		
 		// Отрисовка слоёв
 		for (let i in this.arrayOfChunks[c].tex) {
@@ -397,8 +398,6 @@ class Render {
 					const yh = y / this.heightChunk;
 					const id = blocksOfChunk[i][x][y];
 					if (id != undefined) {
-						const light = this.lightOfChunks[i] * lightChunk[x][y];
-						this.gl.uniform1f(this.lightUniformLocation0, light);
 						this.gl.uniform3f(this.translateUniformLocation0, xh, yh, -1);
 						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
 					}
@@ -468,7 +467,7 @@ class Render {
 		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
 		const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 		
-		this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 10 * this.size, 0.4);
+		this.gl.uniform4f(this.dynamicLightUniformLocation2, deltaX, deltaY, 8 * this.size, 0.3);
 		this.gl.uniform1f(this.sizeBlockUniformLocation2, this.size);
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation2, false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
@@ -610,8 +609,8 @@ class Render {
 	resizeCanvas(canvas, multiplier) {
 		// подгоняем канвас под экран
 		multiplier = multiplier || 1;
-		const width = Math.floor(canvas.clientWidth * window.devicePixelRatio * multiplier);
-		const height = Math.floor(canvas.clientHeight * window.devicePixelRatio * multiplier);
+		const width = Math.floor(canvas.clientWidth * multiplier);
+		const height = Math.floor(canvas.clientHeight * multiplier);
 		if (canvas.width !== width || canvas.height !== height) {
 			canvas.width = width;
 			canvas.height = height;

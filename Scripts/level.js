@@ -68,6 +68,11 @@ const beginPlay = () => {
     		"durability" : items[278].durability,
     		"name" : "Iron pickaxe"
     	});
+
+    	player.addToInv({
+    		id: 63,
+    		count: 20
+    	});
     }
 
 	cameraSet(player.x, player.y);
@@ -399,6 +404,7 @@ const mouseControl = () => {
 		    }
 		} else {
 			player.interact(targetX, targetY, layout);
+			lastPlaceBlockTime = currentTime;
 		}
 	}
 }

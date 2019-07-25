@@ -71,21 +71,6 @@ let items = {
         durability: 7,
         brightness: 0,
         isCollissed: true,
-        isClickable : true,
-        interactFunction : (x, y, layout) => {
-            gameArea.destroyBlock(x, y, layout);
-            gameArea.placeBlock(x, y, layout, 7);
-
-            console.log(gameArea.map[x][y - 1][layout]);
-            if (gameArea.map[x + 1][y][layout] === '4'
-                    && inRange(x + 1, 0, gameArea.width)) gameArea.interactWithBlock(x + 1, y, layout);
-            if (gameArea.map[x - 1][y][layout] === '4'
-                    && inRange(x - 1, 0, gameArea.width)) gameArea.interactWithBlock(x - 1, y, layout);
-            if (gameArea.map[x][y + 1][layout] === '4'
-                    && inRange(y + 1, 0, gameArea.height)) gameArea.interactWithBlock(x, y + 1, layout);
-            if (gameArea.map[x][y - 1][layout] === '4'
-                    && inRange(y - 1, 0, gameArea.height)) gameArea.interactWithBlock(x, y - 1, layout);
-        },
         isSolid: true
     },
 
@@ -267,6 +252,54 @@ let items = {
         isBlock: true,
         dropId: '264',
         weight: WEIGHT_OF_BLOCKS
+    },
+
+    '62':
+    {
+        id: '62',
+        name: 'Closed Door',
+        type: 'wood',
+        isBlock: true,
+        dropId: '63',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        interactFunction : (x, y, layout) => {
+            gameArea.placeBlock(x, y, layout, 63);
+
+
+            if (inRange(y + 1, 0, gameArea.height)
+                    && gameArea.map[x][y + 1][layout] === 62) gameArea.interactWithBlock(x, y + 1, layout);
+            if (inRange(y - 1, 0, gameArea.height)
+                    && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
+        }
+    },
+
+    '63':
+    {
+        id: '63',
+        name: 'Door',
+        type: 'wood',
+        isBlock: true,
+        dropId: '63',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: true,
+        isCollissed: false,
+        isClickable: true,
+        interactFunction : (x, y, layout) => {
+            gameArea.destroyBlock(x, y, layout);
+            gameArea.placeBlock(x, y, layout, 62);
+
+            if (inRange(y + 1, 0, gameArea.height)
+                    && gameArea.map[x][y + 1][layout] === 63) gameArea.interactWithBlock(x, y + 1, layout);
+            if (inRange(y - 1, 0, gameArea.height)
+                    && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
+        }
     },
 
     '256':

@@ -210,16 +210,17 @@ class GameArea{
                     // Если блок дерева не видит под собой опоры в нижнем блоке, либо стоит на листве, плюс
                     // крайние нижние блоки - это не блоки дерева, то оно рушится
                 {
-
-                    if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
-                        for (let i = x - 1; i <= x + 1; i++) {
-                            if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
-                                items[this.map[x][y - 1][layout]].type !== "wood")) {
-                            } else {
-                                return;
+                    if(block.id === '17'){
+                        if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
+                            for (let i = x - 1; i <= x + 1; i++) {
+                                if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
+                                    items[this.map[x][y - 1][layout]].type !== "wood")) {
+                                } else {
+                                    return;
+                                }
                             }
+                            this.goodDestroy(x, y, layout, player);
                         }
-                        this.goodDestroy(x, y, layout, player);
                     }
                 }
                 break;
@@ -438,7 +439,6 @@ class GameArea{
         // Функция взаимодействия с блоком
         this.interactWithBlock = (x, y, layout) => {
             if(!inRange(x, 0 ,this.width) || !inRange(y, 0, this.height)) return; // проверка на выход из карты
-            console.log(`Interaction with block on coordinates : [${x} ${y} ${layout}]`);
             let block = items[this.map[x][y][layout]];
             if(block !== undefined && block.isClickable) {
                 block.interactFunction(x, y, layout);

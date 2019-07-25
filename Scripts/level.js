@@ -143,6 +143,9 @@ const UI = () => {
 const worldChange = () => {
 	for (let chunk in gameArea.chunkDifferList) {
 		for (let change in gameArea.chunkDifferList[chunk]) {
+			if(change[change.length - 1] === "L") {  // Изменение света
+				continue;
+			}
 			const obj = gameArea.chunkDifferList[chunk][change];
 			BlocksGlobalChange[obj.x + "x" + obj.y + "x" + obj.layout] = {
 				x: obj.x,

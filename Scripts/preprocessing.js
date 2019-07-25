@@ -60,32 +60,35 @@ image.onload = () => {
 							'id': j * playerAnimsCountX + i + 1,
 							'head': [
 								[
-									i * playerAnimsCountX,
-									j * playerAnumsCountY
+									i / playerAnimsCountX,
+									j / playerAnimsCountY
 								],
 								[
-									(i + 1) * playerAnimsCountX,
-									j * playerAnumsCountY + 30  // Конец головы по у, 30 прикселей - длинна головы
+									(i + 1) / playerAnimsCountX,
+									j / playerAnimsCountY + 30 / playerImage.height
+									// Конец головы по у, 30 прикселей - длинна головы
 								]
 							],
 							'body': [
 								[
-									i * playerAnimsCountX,
-									j * playerAnumsCountY + 31
+									i / playerAnimsCountX,
+									j / playerAnimsCountY + 31 / playerImage.height
 								],
 								[
-									(i + 1) * playerAnimsCountX,
-									j * playerAnumsCountY + 30 + 28  // Конец тела по у, 28 прикселей - длинна тела
+									(i + 1) / playerAnimsCountX,
+									j / playerAnimsCountY + (30 + 28) / playerImage.height
+									// Конец тела по у, 28 прикселей - длинна тела
 								]
 							],
 							'legs': [
 								[
-									i * playerAnimsCountX,
-									j * playerAnumsCountY + 59
+									i / playerAnimsCountX,
+									j / playerAnimsCountY + 59 / playerImage.height
 								],
 								[
-									(i + 1) * playerAnimsCountX,
-									j * playerAnumsCountY + 58 + 38  // Конец ног по у, 38 прикселей - длинна ног
+									(i + 1) / playerAnimsCountX,
+									j / playerAnimsCountY + (58 + 38) / playerImage.height
+									// Конец ног по у, 38 прикселей - длинна ног
 								]
 							]
 						});

@@ -73,18 +73,19 @@ const beginPlay = () => {
 	cameraSet(player.x, player.y);
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(120);
+	callSetTimeOfDay(60);
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {
 	setTimeOfDay(currentTime, lengthOfDay);
-	if (gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0) {
-		// Вызываем через 1\4 + 1\1000 суток (перед вечером)
-		setTimeout(callSetTimeOfDay, 251 * lengthOfDay, lengthOfDay);
-	} else {
-		// На смену суток 125 состояний света (вызов через каждые 1\500 суток)
-		setTimeout(callSetTimeOfDay, 2 * lengthOfDay, lengthOfDay);
-	}
+	setTimeout(callSetTimeOfDay, 1000, lengthOfDay);  // Затычка вместо \/
+	// if (gameArea.timeOfDay === 1 || gameArea.timeOfDay === 0) {
+	// 	// Вызываем через 1\4 + 1\1000 суток (перед вечером)
+	// 	setTimeout(callSetTimeOfDay, 251 * lengthOfDay, lengthOfDay);
+	// } else {
+	// 	// На смену суток 125 состояний света (вызов через каждые 1\500 суток)
+	// 	setTimeout(callSetTimeOfDay, 2 * lengthOfDay, lengthOfDay);
+	// }
 }
 
 // Установка текущего времени суток. При изменении не забудь заглянуть в callSetTimeOfDay

@@ -73,9 +73,12 @@ _fragmentShader[1] = `
 		float tex2alpha = (texture2D(u_texture2, v_texCoord)).a;
 		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
 		vec2 delta = u_center - gl_FragCoord.xy;
-		float alpha = tex2alpha == 0.0 ? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0 ? 1.0 :
-		clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha) / radius + minAlpha,
-			minAlpha, 1.0)) : 1.0;
+		float alpha = tex2alpha == 0.0
+			? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0
+				? 1.0
+				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha) / radius + minAlpha,
+					minAlpha, 1.0) < 1.0 ? minAlpha : 1.0)
+			: 1.0;
 		gl_FragColor = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
 	}`;
 

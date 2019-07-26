@@ -313,6 +313,10 @@ const playerMovement = () => {
 	// Направление игрока
 	if (newX - player.fx != 0) {
 		player.direction = Math.sign(newX - player.fx);
+	} else {
+		if (controller.mouse.click) {
+			player.direction = Math.sign(controller.mouse.direction.x);
+		}
 	}
 
 	// Присваиваем фактические координаты
@@ -350,6 +354,8 @@ const mouseControl = () => {
 
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
+
+
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);

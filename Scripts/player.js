@@ -136,6 +136,7 @@ class Player {
             for(let i = 0; i < interactArr.length; i++) {
                 let block = interactArr[i]; 
                 if (this.blockAvailable(block.x, block.y, layout)) {
+                    player.direction = Math.sign(block.x + 0.5 - player.x);
                     this.interact(block.x, block.y, layout);
                     break;
                 }

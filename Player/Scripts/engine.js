@@ -97,10 +97,39 @@ image.onload = () => {
 Обращаться к Надиму
 */
 
+/*
+Не трограть! Это важно!
+Указатели на атрибуты:
+
+SHADER 0:
+a_position: 0
+a_texCoord: 1
+
+SHADER 1:
+a_position: 0
+a_texCoord: 1
+
+SHADER 2:
+a_position: 0
+a_texCoord: 1
+
+SHADER 3:
+a_positionPlayer: 2
+a_texCoordPlayer: 3
+*/
+const _positionAttributeLocation = 0;
+const _texCoordAttributeLocation = 1;
+const _positionPlayerAttributeLocation = 2;
+const _texCoordPlayerAttributeLocation = 3;
+// TODO: раскидать данные по своим указателям
+
 class Render {
 	constructor() {
 		const canvas = document.getElementById('canvas'); // получаем канвас
-		this.gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: false }); // получаем доступ к webgl
+		this.gl = canvas.getContext('webgl', {
+				premultipliedAlpha: false,
+				alpha: false
+			}); // получаем доступ к webgl
 		if (!this.gl) {
 			const ErrorMsg = 'Browser is very old';
 			stop();
@@ -166,6 +195,13 @@ class Render {
 		this.gl.uniform1i(texture0UniformLocation2, 0);
 		this.gl.uniform1i(texture1UniformLocation2, 1);
 		
+		// SHADER PROGRAM 3
+		this.gl.useProgram(this.program[3]);
+		// получение uniform-переменных из шейдеров
+		this.projectionMatrixUniformLocation3 = this.gl.getUniformLocation(this.program[3], 'u_projectionMatrix');
+		this.resolutionUniformLocation3 = this.gl.getUniformLocation(this.program[3], 'u_resolution');
+		this.lightUniformLocation3 = this.gl.getUniformLocation(this.program[3], 'u_light');
+		
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
 		
@@ -213,11 +249,11 @@ class Render {
 		
 		/*
 		ID:
-		0 - фон 1
-		1 - фон 2
-		2 - чёрный блок
-		3 - игрок
-		4 - буфер кадров
+		0 - фон
+		1 - задел на успешное будущее
+		2 - чёрный блок // TODO: удалить
+		3 - игрок // TODO: удалить
+		4 - буфер кадров // TODO: удалить
 		5+ - остальные блоки
 		*/
 		
@@ -232,11 +268,11 @@ class Render {
 			this.backgroundAsp, 1,
 			
 			0, 0, // ID: 1
-			this.backgroundAsp, 0,
+			1, 0,
 			0, 1,
 			0, 1,
-			this.backgroundAsp, 0,
-			this.backgroundAsp, 1,
+			1, 0,
+			1, 1,
 			
 			l, l, // ID: 2
 			h, l,
@@ -314,20 +350,24 @@ class Render {
 		});
 		
 		// создание буфера и атрибута координат позиций
-		const positionAttributeLocation = this.gl.getAttribLocation(this.program[0], 'a_position');
 		const positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(positionAttributeLocation);
-		this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(_positionAttributeLocation);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindAttribLocation(this.program[0], _positionAttributeLocation, 'a_position');
+		this.gl.bindAttribLocation(this.program[1], _positionAttributeLocation, 'a_position');
+		this.gl.bindAttribLocation(this.program[2], _positionAttributeLocation, 'a_position');
 		
 		// создание буфера и атрибута текстурных координат
-		const texCoordAttributeLocation = this.gl.getAttribLocation(this.program[0], 'a_texCoord');
 		const texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(texCoordAttributeLocation);
-		this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(_texCoordAttributeLocation);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindAttribLocation(this.program[0], _texCoordAttributeLocation, 'a_texCoord');
+		this.gl.bindAttribLocation(this.program[1], _texCoordAttributeLocation, 'a_texCoord');
+		this.gl.bindAttribLocation(this.program[2], _texCoordAttributeLocation, 'a_texCoord');
 		
 		this.frameBufferTextures = {};
 		const near = 0.01;
@@ -337,6 +377,82 @@ class Render {
 			0.0, 2.0, 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
+	}
+	
+	createAnimations(playerResolutionX, playerResolutionY, playerAnims) {
+		let arrayOfPosition = [];
+		let arrayOfTexCoord = [];
+		
+		for (let i in playerAnims) {
+			arrayOfPosition = arrayOfPosition.concat([
+				0, 0,
+				playerResolutionX - 1, 0,
+				0, playerAnims[i].head[2],
+				0, playerAnims[i].head[2],
+				playerResolutionX - 1, 0,
+				playerResolutionX - 1, playerAnims[i].head[2],
+				
+				0, playerAnims[i].head[2] + 1,
+				playerResolutionX - 1, playerAnims[i].head[2] + 1,
+				0, playerAnims[i].body[2],
+				0, playerAnims[i].body[2],
+				playerResolutionX - 1, playerAnims[i].head[2] + 1,
+				playerResolutionX - 1, playerAnims[i].body[2],
+				
+				0, playerAnims[i].body[2] + 1,
+				playerResolutionX - 1, playerAnims[i].body[2] + 1,
+				0, playerAnims[i].legs[2],
+				0, playerAnims[i].legs[2],
+				playerResolutionX - 1, playerAnims[i].body[2] + 1,
+				playerResolutionX - 1, playerAnims[i].legs[2]]);
+			
+			arrayOfTexCoord = arrayOfTexCoord.concat([
+				playerAnims[i].head[0][0], playerAnims[i].head[1][1],
+				playerAnims[i].head[1][0], playerAnims[i].head[1][1],
+				playerAnims[i].head[0][0], playerAnims[i].head[0][1],
+				playerAnims[i].head[0][0], playerAnims[i].head[0][1],
+				playerAnims[i].head[1][0], playerAnims[i].head[1][1],
+				playerAnims[i].head[1][0], playerAnims[i].head[0][1],
+				
+				playerAnims[i].body[0][0], playerAnims[i].body[1][1],
+				playerAnims[i].body[1][0], playerAnims[i].body[1][1],
+				playerAnims[i].body[0][0], playerAnims[i].body[0][1],
+				playerAnims[i].body[0][0], playerAnims[i].body[0][1],
+				playerAnims[i].body[1][0], playerAnims[i].body[1][1],
+				playerAnims[i].body[1][0], playerAnims[i].body[0][1],
+				
+				playerAnims[i].legs[0][0], playerAnims[i].legs[1][1],
+				playerAnims[i].legs[1][0], playerAnims[i].legs[1][1],
+				playerAnims[i].legs[0][0], playerAnims[i].legs[0][1],
+				playerAnims[i].legs[0][0], playerAnims[i].legs[0][1],
+				playerAnims[i].legs[1][0], playerAnims[i].legs[1][1],
+				playerAnims[i].legs[1][0], playerAnims[i].legs[0][1]]);
+		}
+		
+		// создание буфера и атрибута координат позиций
+		const positionBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
+		this.gl.enableVertexAttribArray(_positionPlayerAttributeLocation);
+		this.gl.vertexAttribPointer(_positionPlayerAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindAttribLocation(this.program[3], _positionPlayerAttributeLocation, 'a_positionPlayer');
+		
+		// создание буфера и атрибута текстурных координат
+		const texCoordBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
+		this.gl.enableVertexAttribArray(_texCoordPlayerAttributeLocation);
+		this.gl.vertexAttribPointer(_texCoordPlayerAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindAttribLocation(this.program[3], _texCoordPlayerAttributeLocation, 'a_texCoordPlayer');
+		
+		this.texturePlayer = this.gl.createTexture();
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
+		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, playerResolutionX, playerResolutionY, 0, this.gl.RGBA,
+			this.gl.UNSIGNED_BYTE, null);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 	}
 	
 	drawChunk(x, y, blocksOfChunk, lightChunk) {
@@ -463,6 +579,7 @@ class Render {
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		
+		// TODO: Привести код в порядок
 		// отрисовка чанков
 		this.gl.uniform1f(this.resolutionUniformLocation0, this.gl.canvas.height);
 		this.gl.uniform1f(this.lightUniformLocation0, 1); // стандартное освещение
@@ -577,10 +694,6 @@ class Render {
 			0.0, 2.0, 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
-	}
-	
-	createAnimations(playerAnims) {
-		
 	}
 	
 	createShader(type, source) {

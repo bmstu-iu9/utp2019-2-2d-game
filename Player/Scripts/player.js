@@ -91,7 +91,8 @@ class Player {
 
         // Разместить блок из руки на (x, y, layout)
         this.place = (x, y, layout) => {
-            if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)) {
+            if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)
+                    && (!items[this.hand.item].canPlace || items[this.hand.item].canPlace(x, y, layout))) {
                 gameArea.placeBlock(x, y, layout, this.hand.item);
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
 

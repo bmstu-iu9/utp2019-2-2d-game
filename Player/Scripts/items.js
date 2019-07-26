@@ -14,6 +14,8 @@ const DIAMOND_DURABILITY = 300;
 
 
 let items = { 
+    undefined: {},
+
     '1':
     {
         id: '1',
@@ -271,14 +273,33 @@ let items = {
         isSolid: false,
         isCollissed: true,
         isClickable: true,
-        interactFunction : (x, y, layout) => {
-            gameArea.destroyBlock(x, y, layout);
-            gameArea.placeBlock(x, y, layout, 61);
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 61);
 
             if (inRange(x + 1, 0, gameArea.height)
                     && gameArea.map[x + 1][y][layout] === 60) gameArea.interactWithBlock(x + 1, y, layout);
             if (inRange(x - 1, 0, gameArea.height)
                     && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.get(x + 1, y, layout) !== undefined
+                    && (gameArea.map[x + 1][y][layout] === 61
+                        || gameArea.map[x + 1][y][layout] === 60
+                        || (items[gameArea.map[x + 1][y][layout]].isSolid
+                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
+                || (gameArea.get(x - 1, y, layout) !== undefined
+                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.map[x - 1][y][layout] === 60
+                        || (items[gameArea.map[x - 1][y][layout]].isSolid
+                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 61 || gameArea.get(x + 1, y, layout) === 60) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
         }
     },
 
@@ -296,14 +317,33 @@ let items = {
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,
-        interactFunction : (x, y, layout) => {
-            gameArea.destroyBlock(x, y, layout);
-            gameArea.placeBlock(x, y, layout, 60);
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 60);
 
             if (inRange(x + 1, 0, gameArea.height)
                     && gameArea.map[x + 1][y][layout] === 61) gameArea.interactWithBlock(x + 1, y, layout);
             if (inRange(x - 1, 0, gameArea.height)
                     && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.get(x + 1, y, layout) !== undefined
+                    && (gameArea.map[x + 1][y][layout] === 61
+                        || gameArea.map[x + 1][y][layout] === 60
+                        || (items[gameArea.map[x + 1][y][layout]].isSolid
+                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
+                || (gameArea.get(x - 1, y, layout) !== undefined
+                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.map[x - 1][y][layout] === 60
+                        || (items[gameArea.map[x - 1][y][layout]].isSolid
+                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 61 || gameArea.get(x + 1, y, layout) === 60) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
         }
     },
 
@@ -320,14 +360,28 @@ let items = {
         isSolid: false,
         isCollissed: true,
         isClickable: true,
-        interactFunction : (x, y, layout) => {
-            gameArea.destroyBlock(x, y, layout);
-            gameArea.placeBlock(x, y, layout, 63);
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 63);
 
             if (inRange(y + 1, 0, gameArea.height)
                     && gameArea.map[x][y + 1][layout] === 62) gameArea.interactWithBlock(x, y + 1, layout);
             if (inRange(y - 1, 0, gameArea.height)
                     && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
+                    && (gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.map[x][y - 1][layout] === 62
+                        || (items[gameArea.map[x][y - 1][layout]].isSolid
+                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 63 || gameArea.get(x, y + 1, layout) === 62) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
+            }
         }
     },
 
@@ -345,14 +399,29 @@ let items = {
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,
-        interactFunction : (x, y, layout) => {
-            gameArea.destroyBlock(x, y, layout);
-            gameArea.placeBlock(x, y, layout, 62);
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 62);
+
 
             if (inRange(y + 1, 0, gameArea.height)
                     && gameArea.map[x][y + 1][layout] === 63) gameArea.interactWithBlock(x, y + 1, layout);
             if (inRange(y - 1, 0, gameArea.height)
                     && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
+                    && (gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.map[x][y - 1][layout] === 62
+                        || (items[gameArea.map[x][y - 1][layout]].isSolid
+                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 63 || gameArea.get(x, y + 1, layout) === 62) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
+            }
         }
     },
 

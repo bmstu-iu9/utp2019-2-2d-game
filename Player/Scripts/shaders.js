@@ -126,26 +126,23 @@ _fragmentShader[2] = `
 _vertexShader[3] = `
 	attribute vec2 a_positionPlayer;
 	attribute vec2 a_texCoordPlayer;
-	
-	uniform mat4 u_projectionMatrix;
 
 	varying vec2 v_texCoord;
 	
 	void main() {
 		v_texCoord = a_texCoordPlayer;
-		vec4 pos = vec4(a_positionPlayer, 0.0, 1.0);
-		gl_Position = u_projectionMatrix * pos;
+		vec4 pos = vec4(a_positionPlayer * 2.0 - 1.0, 0.0, 1.0);
+		gl_Position = pos;
 	}`;
 
 _fragmentShader[3] = `
 	precision mediump float;
 
 	uniform sampler2D u_texture;
-	uniform float u_light;
 	
 	varying vec2 v_texCoord;
 
 	void main() {
 		vec4 tex = texture2D(u_texture, v_texCoord);
-		gl_FragColor = vec4(tex.rgb * u_light, tex.a);
+		gl_FragColor = tex;
 	}`;

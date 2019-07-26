@@ -111,15 +111,12 @@ const eventTick = () => {
 	mouseControl();
 	UI();
 	playerActionButtons();
-
-	//TODO : Добавить поддержку в engine.js
-	/*
+	
 	render.getPlayerParts(
 		player.animationStates.head,
 		player.animationStates.body,
 		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
-	*/
-
+	
 	// В последнюю очередь
 	// Анимации
 	animationsTickCount++;
@@ -313,6 +310,15 @@ const playerMovement = () => {
 		player.setAnimation("legs", "idle");
 	}
 
+	// Направление игрока
+	if (newX - player.fx != 0) {
+		player.direction = Math.sign(newX - player.fx);
+	} else {
+		if (controller.mouse.click) {
+			player.direction = Math.sign(controller.mouse.direction.x);
+		}
+	}
+
 	// Присваиваем фактические координаты
 	player.fx = newX;
 	player.fy = newY;
@@ -336,7 +342,6 @@ const playerMovement = () => {
 }
 
 const mouseControl = () => {
-	if(!controller.mouse.active) player.setAnimation("body", "idle");
 
 	let layout = player.layout;
     if(controller.shift.active) {
@@ -349,10 +354,15 @@ const mouseControl = () => {
 
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
+
+
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
+            // Анимация
+            player.setAnimation("body", "kick");
+
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
@@ -391,11 +401,17 @@ const mouseControl = () => {
     			// Установка блока
 		       	player.place(targetX, targetY, layout);
 		       	lastPlaceBlockTime = currentTime;
+
+                // Анимация
+                player.setAnimation("body", "kick");
 		    }
 		} else {
 			player.interact(targetX, targetY, layout);
 			lastPlaceBlockTime = currentTime;
-			}
+
+            // Анимация
+            player.setAnimation("body", "kick");
+		}
 	}
 
 	// Нажата E

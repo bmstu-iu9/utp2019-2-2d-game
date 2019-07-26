@@ -292,7 +292,7 @@ class Render {
 	}
 
 	createObjects(arrayOfObjects) {
-		let endId = 5;
+		let endId = 6;
 		this.ids = [];
 		
 		/*
@@ -300,9 +300,9 @@ class Render {
 		0 - фон
 		1 - задел на успешное будущее
 		2 - чёрный блок // TODO: удалить
-		3 - игрок // TODO: удалить
-		4 - буфер кадров // TODO: удалить
-		5+ - остальные блоки
+		3-4 - игрок // TODO: удалить
+		5 - буфер кадров // TODO: удалить
+		6+ - остальные блоки
 		*/
 		
 		const l = 0, h = this.size;
@@ -336,7 +336,14 @@ class Render {
 			h * 0.75, l,
 			h * 0.75, h * 3,
 			
-			l, l, // ID: 4
+			h * -0.75, l, // ID: 4
+			h * 0.75, l,
+			h * -0.75, h * 3,
+			h * -0.75, h * 3,
+			h * 0.75, l,
+			h * 0.75, h * 3,
+			
+			l, l, // ID: 5
 			h * this.widthChunk, l,
 			l, h * this.heightChunk,
 			l, h * this.heightChunk,
@@ -372,7 +379,14 @@ class Render {
 			48 / 128, 0,
 			48 / 128, 96 / 128,
 			
-			0, 0, // ID: 4
+			48 / 128, 0, // ID: 4
+			0, 0,
+			48 / 128, 96 / 128,
+			48 / 128, 96 / 128,
+			0, 0,
+			0, 96 / 128,
+			
+			0, 0, // ID: 5
 			1, 0,
 			0, 1,
 			0, 1,
@@ -599,7 +613,7 @@ class Render {
 		return this.arrayOfChunks[`${x}x${y}`] != undefined;
 	}
 	
-	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer) {
+	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer) {
 		this.resizeCanvas(this.gl.canvas); // подгоняем канвас под экран
 		
 		// "вырезаем" кусок экрана для отображения
@@ -667,11 +681,11 @@ class Render {
 				this.gl.uniform1f(this.lightUniformLocation2, ls / 2);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[2]);
 				this.gl.uniform3f(this.translateUniformLocation2, xc, yc, -3);
-				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
 				this.gl.uniform1f(this.lightUniformLocation2, ls);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
 				this.gl.uniform3f(this.translateUniformLocation2, xc, yc, -3);
-				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
 			}
 		}
 		this.gl.useProgram(this.program[0]);
@@ -682,7 +696,11 @@ class Render {
 			this.gl.uniform1f(this.lightUniformLocation0, lightOfPlayer);
 			this.gl.uniform1f(this.resolutionUniformLocation0, this.gl.canvas.height);
 			this.gl.uniform3f(this.translateUniformLocation0, xp * ch, yp * ch, -1);
-			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+			if (rotatePlayer > 0) {
+				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+			} else {
+				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+			}
 			
 			this.gl.useProgram(this.program[1]);
 			this.gl.uniform2f(this.centerUniformLocation1, deltaX, deltaY);
@@ -706,7 +724,7 @@ class Render {
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
 					this.gl.uniform3f(this.translateUniformLocation1, xc, yc, -2);
-					this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+					this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
 				}
 			}
 			this.gl.useProgram(this.program[0]);
@@ -730,7 +748,7 @@ class Render {
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
 					this.gl.uniform3f(this.translateUniformLocation2, xc, yc, -2);
-					this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+					this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
 				}
 			}
 			this.gl.useProgram(this.program[0]);
@@ -742,7 +760,11 @@ class Render {
 			this.gl.uniform1f(this.lightUniformLocation0, lightOfPlayer);
 			this.gl.uniform1f(this.resolutionUniformLocation0, this.gl.canvas.height);
 			this.gl.uniform3f(this.translateUniformLocation0, xp * ch, yp * ch, -1);
-			this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+			if (rotatePlayer > 0) {
+				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+			} else {
+				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+			}
 		}
 		
 		this.gl.uniformMatrix4fv(this.projectionMatrixUniformLocation0, false, [

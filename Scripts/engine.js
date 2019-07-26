@@ -470,7 +470,6 @@ class Render {
 				playerAnims[i].legs[1][0], playerAnims[i].legs[1][1],
 				playerAnims[i].legs[1][0], playerAnims[i].legs[0][1]]);
 		}
-		console.log(playerAnims);
 		
 		// создание буфера и атрибута координат позиций
 		const positionBuffer = this.gl.createBuffer();

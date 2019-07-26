@@ -373,13 +373,16 @@ class GameArea{
 
         // Действие при разрушении блока
         this.destroyBlock = (x, y, layout, player) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
+            if (!this.exist(x, y)) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
             if (lastBlock !== undefined && layout === GameArea.FIRST_LAYOUT) {
                 this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
                     items[lastBlock].isNaturalLight === true);
                 this.addLightRound(x, y, x, y, 9, true, false);
+            }
+            if (items[lastBlock].destroyFunction) {
+                items[lastBlock].destroyFunction(x, y, layout);
             }
             this.updateRadius(x, y, layout, player);
         };
@@ -391,12 +394,12 @@ class GameArea{
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
                 let endY = Math.floor(player.y + Player.HEIGHT);
-                return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
+                return this.exist(x, y) // Пределы мира
                     && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
                     && (this.map[x][y][layout] === undefined
                     || this.map[x][y][layout].type === "water");
             } else {
-                return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
+                return this.exist(x, y) // Пределы мира
                     && this.map[x][y][layout] === undefined;
             }
         }
@@ -411,14 +414,14 @@ class GameArea{
                 && !this.canPlace(x - 1, y, layout)
                 && !this.canPlace(x, y - 1, layout))) return false;
 
-            return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
+            return this.exist(x, y) // Пределы мира
                 && this.map[x][y][layout] != undefined
                 && this.map[x][y][layout].type != "water";
         }
 
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
-            if(!inRange(x, 0 ,this.width) || !inRange(y, 0, this.height)) return; // проверка на выход из карты
+            if(!this.exist(x, y)) return; // проверка на выход из карты
             if(!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
                 this.gameAreaMapSet(x, y, layout, id);
@@ -438,7 +441,7 @@ class GameArea{
 
         // Функция взаимодействия с блоком
         this.interactWithBlock = (x, y, layout) => {
-            if(!inRange(x, 0 ,this.width) || !inRange(y, 0, this.height)) return; // проверка на выход из карты
+            if(!this.exist(x, y)) return; // проверка на выход из карты
             let block = items[this.map[x][y][layout]];
             if(block !== undefined && block.isClickable) {
                 block.interactFunction(x, y, layout);
@@ -462,6 +465,20 @@ class GameArea{
                 player.addToInv(this.dropLoot(x, y, block));
             } else this.destroyBlock(x, y, layout, player);
         };
+
+        // Находится ли точка в мире
+        this.exist = (x, y) => {
+            return inRange(x, 0, this.width) && inRange(y, 0, this.height);
+        }
+
+        // Получить id блока если он внутри границ мира
+        this.get = (x, y, layout) => {
+            if (this.exist(x, y)) {
+                return gameArea.map[x][y][layout];
+            } else {
+                return undefined;
+            }
+        }
 
         // Необходим для отслеживания изменений
         this.gameAreaMapSet = (x, y, layout, id) => {

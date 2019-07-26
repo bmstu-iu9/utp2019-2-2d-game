@@ -87,7 +87,7 @@ const beginPlay = () => {
 
 const callSetTimeOfDay = (lengthOfDay) => {
 	setTimeOfDay(currentTime, lengthOfDay);
-	setTimeout(callSetTimeOfDay, 1000, lengthOfDay);
+	setTimeout(callSetTimeOfDay, 2000, lengthOfDay);
 }
 
 // Установка текущего времени суток. При изменении не забудь заглянуть в callSetTimeOfDay
@@ -326,10 +326,10 @@ const playerMovement = () => {
 	player.y = roundToFunc(newY, blockSize, Math.round);
 
 	// Плавное движение камеры
-	if (Math.abs(cameraX - newX) > 0.3) {
+	if (Math.abs(cameraX - newX) > 1) {
 		cameraSet(cameraX + roundToFunc(1.5 * (player.x - cameraX) * deltaTime, blockSize, Math.round), cameraY);
 	}
-	if (Math.abs(cameraY - newY) > 0.3) {
+	if (Math.abs(cameraY - newY) > 1) {
 		cameraSet(cameraX, cameraY + roundToFunc(1.5 * (player.y - cameraY) * deltaTime, blockSize, Math.round));
 	}
 	

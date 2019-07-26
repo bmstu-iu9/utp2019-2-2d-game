@@ -16,7 +16,7 @@ const fpsUpdate = () => {
 			}
 		}
 		document.getElementById('fps').innerHTML += _fps_countner + ' FPS';
-		_fps_time = nowtime;
+		_fps_time += 1000;
 		_fps_countner = 0;
 	}
 }

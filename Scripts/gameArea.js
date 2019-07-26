@@ -42,6 +42,9 @@ class GameArea{
         this.shadowMap = shadowMap;
         this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
 
+        // Ассоциативный массив inventoryBlocks[[x, y, layout]] -> [ ] инвентарь блока
+        this.inventoryBlocks = new Map();
+
         // Ширина и высота игрового пространства
         this.width = width;
         this.height = height;

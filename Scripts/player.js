@@ -6,6 +6,7 @@ class Player {
         this.fx = x;
         this.fy = y;
         this.layout = GameArea.FIRST_LAYOUT;
+        this.direction = 1;
 
         this.animation = {
             head : {

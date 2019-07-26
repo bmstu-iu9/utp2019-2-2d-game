@@ -310,6 +310,11 @@ const playerMovement = () => {
 		player.setAnimation("legs", "idle");
 	}
 
+	// Направление игрока
+	if (newX - player.fx != 0) {
+		player.direction = Math.sign(newX - player.fx);
+	}
+
 	// Присваиваем фактические координаты
 	player.fx = newX;
 	player.fy = newY;

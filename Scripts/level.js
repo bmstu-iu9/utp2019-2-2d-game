@@ -111,15 +111,12 @@ const eventTick = () => {
 	mouseControl();
 	UI();
 	playerActionButtons();
-
-	//TODO : Добавить поддержку в engine.js
-	/*
+	
 	render.getPlayerParts(
 		player.animationStates.head,
 		player.animationStates.body,
 		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
-	*/
-
+	
 	// В последнюю очередь
 	// Анимации
 	animationsTickCount++;

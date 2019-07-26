@@ -49,15 +49,12 @@ image.onload = () => {
 				}
 				render.createObjects(objects);
 				
-				// TODO : добавить поддержку в engine.js
-				
-				const playerAnimsCountX = Math.floor(playerImage.width / playerResolutionX),
-					playerAnimsCountY = Math.floor(playerImage.height / playerResolutionY);
+				const playerAnimsCountX = playerImage.width / playerResolutionX,
+					playerAnimsCountY = playerImage.height / playerResolutionY;
 				let playerAnims = [];
-				for (let i = 0; i < playerAnimsCountX; i++) {
 					for (let j = 0; j < playerAnimsCountY; j++) {
+				for (let i = 0; i < playerAnimsCountX; i++) {
 						playerAnims.push({
-							'id': j * playerAnimsCountX + i,
 							'head': [
 								[
 									i / playerAnimsCountX,
@@ -68,7 +65,7 @@ image.onload = () => {
 									j / playerAnimsCountY + 30 / playerImage.height
 									// Конец головы по у, 30 прикселей - длина головы
 								],
-								30 - 1 // конец головы (0 - включительно, поэтому -1)
+								96 // конец головы (снизу вверх)
 							],
 							'body': [
 								[
@@ -80,7 +77,7 @@ image.onload = () => {
 									j / playerAnimsCountY + (30 + 28) / playerImage.height
 									// Конец тела по у, 28 прикселей - длина тела
 								],
-								30 + 28 - 1 // конец тела (0 - включительно, поэтому -1)
+								38 + 28 // конец тела (снизу вверх)
 							],
 							'legs': [
 								[
@@ -92,14 +89,14 @@ image.onload = () => {
 									j / playerAnimsCountY + (58 + 38) / playerImage.height
 									// Конец ног по у, 38 прикселей - длина ног
 								],
-								58 + 38 - 1 // конец ног (0 - включительно, поэтому -1)
+								38 // конец ног (снизу вверх)
 							]
 						});
 					}
 				}
 				render.createAnimations(playerResolutionX, playerResolutionY, playerAnims);
 			}
-
+			
 			let OnScreen = {};
 			let arrOfChunks = {};
 			let oldTime;

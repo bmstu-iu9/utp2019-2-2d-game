@@ -1,13 +1,14 @@
 'use strict';
 
-let _vertexShader = [];
-let _fragmentShader = [];
-
 // Шейдеры написаны на языке программирования GLSL (Graphics Library Shader Language)
 // VertexShader - вершинный шейдер, занимается обработкой расположения вершин фигур на экране/буфере кадров
 // FragmentShader - фрагментный шейдер, занимается обработкой цвета каждого пикселя
 
-// шейдеры для блоков, игрока, фона
+let _vertexShader = [];
+let _fragmentShader = [];
+
+// TODO: фон вынести в отдельный шейдер
+// шейдеры для блоков, фона
 _vertexShader[0] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
@@ -54,6 +55,7 @@ _vertexShader[1] = `
 		gl_Position = u_projectionMatrix * pos;
 	}`;
 
+// TODO: вынести радиус
 _fragmentShader[1] = `
 	precision mediump float;
 
@@ -118,4 +120,32 @@ _fragmentShader[2] = `
 		vec2 delta = u_dynamicLight.xy - gl_FragCoord.xy;
 		float light = clamp(maxLight - sqrt(delta.x * delta.x + delta.y * delta.y) * maxLight / radius, 0.0, maxLight);
 		gl_FragColor = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
+	}`;
+
+// шейдеры для игрока
+_vertexShader[3] = `
+	attribute vec2 a_positionPlayer;
+	attribute vec2 a_texCoordPlayer;
+	
+	uniform mat4 u_projectionMatrix;
+
+	varying vec2 v_texCoord;
+	
+	void main() {
+		v_texCoord = a_texCoordPlayer;
+		vec4 pos = vec4(a_positionPlayer, 0.0, 1.0);
+		gl_Position = u_projectionMatrix * pos;
+	}`;
+
+_fragmentShader[3] = `
+	precision mediump float;
+
+	uniform sampler2D u_texture;
+	uniform float u_light;
+	
+	varying vec2 v_texCoord;
+
+	void main() {
+		vec4 tex = texture2D(u_texture, v_texCoord);
+		gl_FragColor = vec4(tex.rgb * u_light, tex.a);
 	}`;

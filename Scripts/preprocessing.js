@@ -50,14 +50,14 @@ image.onload = () => {
 				render.createObjects(objects);
 				
 				// TODO : добавить поддержку в engine.js
-				/*
+				
 				const playerAnimsCountX = Math.floor(playerImage.width / playerResolutionX),
 					playerAnimsCountY = Math.floor(playerImage.height / playerResolutionY);
 				let playerAnims = [];
 				for (let i = 0; i < playerAnimsCountX; i++) {
-					for (let j = 0; j < playerAnimsCountY; i++) {
+					for (let j = 0; j < playerAnimsCountY; j++) {
 						playerAnims.push({
-							'id': j * playerAnimsCountX + i + 1,
+							'id': j * playerAnimsCountX + i,
 							'head': [
 								[
 									i / playerAnimsCountX,
@@ -66,8 +66,9 @@ image.onload = () => {
 								[
 									(i + 1) / playerAnimsCountX,
 									j / playerAnimsCountY + 30 / playerImage.height
-									// Конец головы по у, 30 прикселей - длинна головы
-								]
+									// Конец головы по у, 30 прикселей - длина головы
+								],
+								30 - 1 // конец головы (0 - включительно, поэтому -1)
 							],
 							'body': [
 								[
@@ -77,8 +78,9 @@ image.onload = () => {
 								[
 									(i + 1) / playerAnimsCountX,
 									j / playerAnimsCountY + (30 + 28) / playerImage.height
-									// Конец тела по у, 28 прикселей - длинна тела
-								]
+									// Конец тела по у, 28 прикселей - длина тела
+								],
+								30 + 28 - 1 // конец тела (0 - включительно, поэтому -1)
 							],
 							'legs': [
 								[
@@ -88,14 +90,14 @@ image.onload = () => {
 								[
 									(i + 1) / playerAnimsCountX,
 									j / playerAnimsCountY + (58 + 38) / playerImage.height
-									// Конец ног по у, 38 прикселей - длинна ног
-								]
+									// Конец ног по у, 38 прикселей - длина ног
+								],
+								58 + 38 - 1 // конец ног (0 - включительно, поэтому -1)
 							]
 						});
 					}
 				}
-				render.createAnimations(playerAnims);
-				*/
+				render.createAnimations(playerResolutionX, playerResolutionY, playerAnims);
 			}
 
 			let OnScreen = {};
@@ -170,7 +172,6 @@ image.onload = () => {
 					}
 				}
 				
-				// Строго 3 слоя
 				render.drawChunk(xLocate, yLocate,
 					[
 						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT].chunk,

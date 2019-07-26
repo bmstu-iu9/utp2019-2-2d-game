@@ -338,7 +338,6 @@ const playerMovement = () => {
 }
 
 const mouseControl = () => {
-	if(!controller.mouse.active) player.setAnimation("body", "idle");
 
 	let layout = player.layout;
     if(controller.shift.active) {
@@ -355,6 +354,9 @@ const mouseControl = () => {
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
+            // Анимация
+            player.setAnimation("body", "kick");
+
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
@@ -393,11 +395,17 @@ const mouseControl = () => {
     			// Установка блока
 		       	player.place(targetX, targetY, layout);
 		       	lastPlaceBlockTime = currentTime;
+
+                // Анимация
+                player.setAnimation("body", "kick");
 		    }
 		} else {
 			player.interact(targetX, targetY, layout);
 			lastPlaceBlockTime = currentTime;
-			}
+
+            // Анимация
+            player.setAnimation("body", "kick");
+		}
 	}
 
 	// Нажата E

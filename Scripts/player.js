@@ -10,14 +10,17 @@ class Player {
 
         this.animation = {
             head : {
+                go: false,
                 name : "idle",
                 startTick : 0
             },
             body : {
+                go: false,
                 name : "idle",
                 startTick : 0
             },
             legs : {
+                go: false,
                 name : "idle",
                 startTick : 0
             },
@@ -85,9 +88,6 @@ class Player {
                     gameArea.destroyBlock(x, y, layout);
                 }
             }
-
-            // Анимация
-            player.setAnimation("body", "kick");
         };
 
         // Разместить блок из руки на (x, y, layout)
@@ -96,9 +96,6 @@ class Player {
                     && (!items[this.hand.item].canPlace || items[this.hand.item].canPlace(x, y, layout))) {
                 gameArea.placeBlock(x, y, layout, this.hand.item);
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
-
-                // Анимация
-                player.setAnimation("body", "kick");
             }
         };
 
@@ -552,18 +549,67 @@ class Player {
                 this.animation[part].name = animation;
                 this.animation[part].startTick = animationsTickCount;
             }
+            this.animation[part].go = true;
         }
 
         this.animate = () => {
-            this.animationStates.head =
-                animations.player.head[this.animation.head.name][(animationsTickCount - this.animation.head.startTick)
-                                                            % animations.player.head[this.animation.head.name].length];
-            this.animationStates.body =
-                animations.player.body[this.animation.body.name][(animationsTickCount - this.animation.body.startTick)
-                                                            % animations.player.body[this.animation.body.name].length];
-            this.animationStates.legs =
-                animations.player.legs[this.animation.legs.name][(animationsTickCount - this.animation.legs.startTick)
-                                                            % animations.player.legs[this.animation.legs.name].length];
+            if (!this.animation.head.go) {
+                if (animationsTickCount - this.animation.head.startTick
+                        >= animations.player.head[this.animation.head.name].length) {
+                    this.animationStates.head = 0;
+                } else {
+                    this.animationStates.head = animations.player.head[this.animation.head.name]
+                                                                [animationsTickCount - this.animation.head.startTick];
+                }
+            } else {
+                if (animationsTickCount - this.animation.head.startTick
+                        >= animations.player.head[this.animation.head.name].length) {
+                    this.animation.head.startTick = animationsTickCount;
+                }
+
+                this.animationStates.head = animations.player.head[this.animation.head.name]
+                                                                [animationsTickCount - this.animation.head.startTick];
+            }
+
+            if (!this.animation.body.go) {
+                if (animationsTickCount - this.animation.body.startTick
+                        >= animations.player.body[this.animation.body.name].length) {
+                    this.animationStates.body = 0;
+                } else {
+                    this.animationStates.body = animations.player.body[this.animation.body.name]
+                                                                [animationsTickCount - this.animation.body.startTick];
+                }
+            } else {
+                if (animationsTickCount - this.animation.body.startTick
+                        >= animations.player.body[this.animation.body.name].length) {
+                    this.animation.body.startTick = animationsTickCount;
+                }
+
+                this.animationStates.body = animations.player.body[this.animation.body.name]
+                                                                [animationsTickCount - this.animation.body.startTick];
+            }
+
+            if (!this.animation.legs.go) {
+                if (animationsTickCount - this.animation.legs.startTick
+                        >= animations.player.legs[this.animation.legs.name].length) {
+                    this.animationStates.legs = 0;
+                } else {
+                    this.animationStates.legs = animations.player.legs[this.animation.legs.name]
+                                                                [animationsTickCount - this.animation.legs.startTick];
+                }
+            } else {
+                if (animationsTickCount - this.animation.legs.startTick
+                        >= animations.player.legs[this.animation.legs.name].length) {
+                    this.animation.legs.startTick = animationsTickCount;
+                }
+
+                this.animationStates.legs = animations.player.legs[this.animation.legs.name]
+                                                                [animationsTickCount - this.animation.legs.startTick];
+            }
+            
+            this.animation.head.go = false;
+            this.animation.body.go = false;
+            this.animation.legs.go = false;
         }
     }
 }

@@ -116,12 +116,11 @@ a_texCoord: 1
 SHADER 3:
 a_positionPlayer: 2
 a_texCoordPlayer: 3
+
+UPD: будет удалено
 */
 const _positionAttributeLocation = 0;
 const _texCoordAttributeLocation = 1;
-const _positionPlayerAttributeLocation = 2;
-const _texCoordPlayerAttributeLocation = 3;
-// TODO: раскидать данные по своим указателям
 
 class Render {
 	constructor() {
@@ -243,11 +242,11 @@ class Render {
 		const fragmentShader3 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[3]);
 		const linker3 = [
 			{
-				'id': _positionPlayerAttributeLocation,
+				'id': _positionAttributeLocation,
 				'name': 'a_positionPlayer'
 			},
 			{
-				'id': _texCoordPlayerAttributeLocation,
+				'id': _texCoordAttributeLocation,
 				'name': 'a_texCoordPlayer'
 			}];
 		this.program[3] = this.createProgram(vertexShader3, fragmentShader3, linker3);
@@ -424,15 +423,15 @@ class Render {
 		}
 		
 		// создание буфера и атрибута координат позиций
-		const positionBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+		this.positionBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
 		this.gl.enableVertexAttribArray(_positionAttributeLocation);
 		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
-		const texCoordBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+		this.texCoordBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
 		this.gl.enableVertexAttribArray(_texCoordAttributeLocation);
 		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
@@ -490,18 +489,23 @@ class Render {
 		}
 		
 		// создание буфера и атрибута координат позиций
-		const positionBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+		this.positionBufferPlayer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(_positionPlayerAttributeLocation);
-		this.gl.vertexAttribPointer(_positionPlayerAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(_positionAttributeLocation);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
-		const texCoordBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+		this.texCoordBufferPlayer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(_texCoordPlayerAttributeLocation);
-		this.gl.vertexAttribPointer(_texCoordPlayerAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(_texCoordAttributeLocation);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		this.texturePlayer = this.gl.createTexture();
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
@@ -514,6 +518,11 @@ class Render {
 	}
 	
 	getPlayerParts(head, body, legs) {
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		
 		this.gl.useProgram(this.program[3]);
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
@@ -526,6 +535,11 @@ class Render {
 		this.gl.drawArrays(this.gl.TRIANGLES, body * 18 + 6, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, legs * 18 + 12, 6);
 		this.gl.useProgram(this.program[0]);
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
 	drawChunk(x, y, blocksOfChunk, lightChunk) {

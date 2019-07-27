@@ -304,8 +304,10 @@ const playerMovement = () => {
 	}
 
 	// Анимация
-	if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime / 3) {
+	if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime * 2 / 3) {
 		player.setAnimation("legs", "run");
+	} else if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime / 3) {
+		player.setAnimation("legs", "walk");
 	} else {
 		player.setAnimation("legs", "idle");
 	}

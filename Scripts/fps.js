@@ -13,6 +13,7 @@ const fpsUpdate = () => {
 	if (delta < 1000) {
 		_fpsCountner++;
 	} else {
+		document.getElementById('fps').innerHTML = '';
 		if (_fpsCountner < 100) {
 			document.getElementById('fps').innerHTML = ' ';
 			if (_fpsCountner < 10) {

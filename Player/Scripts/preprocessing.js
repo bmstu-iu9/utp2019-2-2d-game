@@ -52,8 +52,8 @@ image.onload = () => {
 				const playerAnimsCountX = playerImage.width / playerResolutionX,
 					playerAnimsCountY = playerImage.height / playerResolutionY;
 				let playerAnims = [];
-					for (let j = 0; j < playerAnimsCountY; j++) {
-				for (let i = 0; i < playerAnimsCountX; i++) {
+				for (let j = 0; j < playerAnimsCountY; j++) {
+					for (let i = 0; i < playerAnimsCountX; i++) {
 						playerAnims.push({
 							'head': [
 								[
@@ -204,7 +204,7 @@ image.onload = () => {
 					}
 
 					for (let chunk in arrOfChunks) {
-						if(arrOfChunks[chunk].layout === "L") {
+						if (arrOfChunks[chunk].layout === "L") {
 							continue;
 						}
 						if (neigChunk[arrOfChunks[chunk].x] === undefined ||
@@ -218,8 +218,7 @@ image.onload = () => {
 					}
 
 					let changeTimeOfDay = oldTimeOfDay !== gameArea.timeOfDay;
-					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
-						i++) {
+					for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX; i++) {
 						for (let j = curchunkY - halfScreenChunkCapasityY; j <= curchunkY + halfScreenChunkCapasityY;
 							j++) {
 								if (gameArea.chunkDifferList[i + "x" + j] !== undefined

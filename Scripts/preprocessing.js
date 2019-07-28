@@ -15,9 +15,9 @@ let loadingResult = undefined;
 
 const render = new Render();
 
-const interface = new Image();
-interface.src = 'Images/interface.png';
-interface.onload = () => {
+const _UI = new Image();
+_UI.src = 'Assets/Grey.png';
+_UI.onload = () => {
 	const image = new Image();
 	image.src = 'Images/blocks.png';
 	image.onload = () => {
@@ -244,7 +244,7 @@ interface.onload = () => {
 						player.direction);
 					
 					/* ПРИМЕР */
-					const _texture = render.createTexture(image, 200, 200);
+					const _texture = render.createTexture(_UI, 200, 200);
 					// создаём текстуру (это пример, но лучше не вызывать каждый кадр)
 					/* .createTexture(image, width, height)
 					* image - изображение (должно быть квадратным)
@@ -256,16 +256,27 @@ interface.onload = () => {
 					const _size = render.getCanvasSize(); // получаем размер экрана
 					/* .getCanvasSize()
 					* возвращает массив из двух элементов (ширина и высота экрана) */
-					
-					let _array = [
-						{
-							'pa': [_size[0] / 2, _size[1] / 2], 'pb': [_size[0] / 2 * 3, _size[1] / 2 * 3],
-							'ta': [0.5, 0.5], 'tb': [1, 1]	
-						},
-						{
-							'pa': [10, 10 ], 'pb': [110, 110], 'ta': [0, 0], 'tb': [0.2, 0.2]
-						}];
-					
+					let _array;
+					if (deltaTime <= 0.03) {
+						_array = [
+							{
+								'pa': [_size[0] / 2, _size[1] / 2], 'pb': [_size[0] / 2 * 3, _size[1] / 2 * 3],
+								'ta': [0.5, 0.5], 'tb': [1, 1]	
+							}];
+					} else {
+						_array = [
+							{
+								'pa': [10, 10 ], 'pb': [110, 110], 'ta': [0, 0], 'tb': [1, 1]
+							}];
+					}
+					// let _array = [
+					// 	{
+					// 		'pa': [_size[0] / 2, _size[1] / 2], 'pb': [_size[0] / 2 * 3, _size[1] / 2 * 3],
+					// 		'ta': [0.5, 0.5], 'tb': [1, 1]	
+					// 	},
+					// 	{
+					// 		'pa': [10, 10 ], 'pb': [110, 110], 'ta': [0, 0], 'tb': [1, 1]
+					// 	}];
 					render.drawObjects(_texture, _array);
 					/* .drawObjects(texture, array)
 					* texture - текстура, полученная из .createTexture
@@ -313,9 +324,9 @@ interface.onload = () => {
 			}
 		}
 	}
-	
-	const cameraSet = (x, y) => {
-		cameraX = x;
-		cameraY = y;
-	}	
 }
+
+const cameraSet = (x, y) => {
+	cameraX = x;
+	cameraY = y;
+}	

@@ -302,7 +302,7 @@ class Render {
 
 	createObjects(arrayOfObjects) {
 		this.arrayOfObjects = arrayOfObjects;
-		this.testID = []; // test
+		this.IDs = [];
 		
 		const backgroundAsp = 512 / 512; // размер фона
 		
@@ -314,7 +314,6 @@ class Render {
 		3 - игрок // TODO: удалить
 		4 - отзеркаленный игрок // TODO: удалить
 		5 - буфер кадров // TODO: удалить
-		6+ - остальные блоки
 		*/
 		
 		const l = 0, h = this.size;
@@ -405,22 +404,8 @@ class Render {
 			1, 0,
 			1, 1];
 		
-		for (let i in arrayOfObjects) {/*
-			arrayOfPosition.push(
-				l, l,
-				h, l,
-				l, h,
-				l, h,
-				h, l,
-				h, h);
-			arrayOfTexCoord.push(
-				arrayOfObjects[i].a[0], arrayOfObjects[i].b[1],
-				arrayOfObjects[i].b[0], arrayOfObjects[i].b[1],
-				arrayOfObjects[i].a[0], arrayOfObjects[i].a[1],
-				arrayOfObjects[i].a[0], arrayOfObjects[i].a[1],
-				arrayOfObjects[i].b[0], arrayOfObjects[i].b[1],
-				arrayOfObjects[i].b[0], arrayOfObjects[i].a[1]);*/
-			this.testID[arrayOfObjects[i].id] = i; // test
+		for (let i in arrayOfObjects) {
+			this.IDs[arrayOfObjects[i].id] = i;
 		}
 		
 		// создание буфера и атрибута координат позиций
@@ -615,7 +600,7 @@ class Render {
 				const xh = x * w;
 				for (let y = 0; y < this.heightChunk; y++) {
 					const yh = y * h;
-					const aoo = this.arrayOfObjects[this.testID[blocksOfChunk[i][y][x]]];
+					const aoo = this.arrayOfObjects[this.IDs[blocksOfChunk[i][y][x]]];
 					if (aoo != undefined) {
 						arrayOfBuffer.push(
 							xh, yh,

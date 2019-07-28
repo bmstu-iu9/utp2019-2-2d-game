@@ -82,12 +82,12 @@ const beginPlay = () => {
 	cameraSet(player.x, player.y);
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(5);
+	callSetTimeOfDay(300);
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {
 	setTimeOfDay(currentTime, lengthOfDay);
-	setTimeout(callSetTimeOfDay, 5, lengthOfDay);
+	setTimeout(callSetTimeOfDay, 1500, lengthOfDay);
 }
 
 // Установка текущего времени суток. При изменении не забудь заглянуть в callSetTimeOfDay

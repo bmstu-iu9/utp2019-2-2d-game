@@ -10,7 +10,6 @@ let deltaTime = 0;  // Изменение времени между кадрам
 let gameArea;  // Игровой мир (объект GameArea)
 let slicePlayer = 1; // 1 - игрок на переднем слое, 2 - за передним слоем
 const playerResolutionX = 48, playerResolutionY = 96;
-
 let loadingResult = undefined;
 
 const render = new Render();
@@ -29,7 +28,9 @@ _UI.onload = () => {
 			playerImage.onload = () => {
 				render.init(image, background, playerImage);
 				render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
-	
+				const _texture = render.createTexture(_UI, _UI.width, _UI.height);
+				let _array = defaultUI();
+
 				// Отправка образцов объектов
 				{
 					const blocksCountX = Math.floor(image.width / blockResolution),
@@ -242,53 +243,10 @@ _UI.onload = () => {
 					const lightOfPlayer = player.getLight(); // освещённость игрока
 					render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
 						player.direction);
-					
-					/* ПРИМЕР */
-					const _texture = render.createTexture(_UI, 200, 200);
-					// создаём текстуру (это пример, но лучше не вызывать каждый кадр)
-					/* .createTexture(image, width, height)
-					* image - изображение (должно быть квадратным)
-					* width, height - ширина и высота изображения.
-					Изображение будет растянуто под указаннуюширину и высоту.
-					Исходное изображение должно быть квадратным! Вызывать желательно только 1 раз на каждое изображение
-					при инициализации! */
-					
-					const _size = render.getCanvasSize(); // получаем размер экрана
-					/* .getCanvasSize()
-					* возвращает массив из двух элементов (ширина и высота экрана) */
-					let _array;
-					if (deltaTime <= 0.03) {
-						_array = [
-							{
-								'pa': [_size[0] / 2, _size[1] / 2], 'pb': [_size[0] / 2 * 3, _size[1] / 2 * 3],
-								'ta': [0.5, 0.5], 'tb': [1, 1]	
-							}];
-					} else {
-						_array = [
-							{
-								'pa': [10, 10 ], 'pb': [110, 110], 'ta': [0, 0], 'tb': [1, 1]
-							}];
+
+					if (drawUI()) {
+						render.drawObjects(_texture, _array);
 					}
-					// let _array = [
-					// 	{
-					// 		'pa': [_size[0] / 2, _size[1] / 2], 'pb': [_size[0] / 2 * 3, _size[1] / 2 * 3],
-					// 		'ta': [0.5, 0.5], 'tb': [1, 1]	
-					// 	},
-					// 	{
-					// 		'pa': [10, 10 ], 'pb': [110, 110], 'ta': [0, 0], 'tb': [1, 1]
-					// 	}];
-					render.drawObjects(_texture, _array);
-					/* .drawObjects(texture, array)
-					* texture - текстура, полученная из .createTexture
-					* array - массив, состоящий из объектов вида:
-					* {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
-						* pa - нижний левый угол позиции объекта
-						* pb - верхний правый угол позиции объекта
-						* ta - нижний левый угол текстурных координат
-						* tb - ерхний правый угол текстурных координат
-					Вызывать можно только после .render! */
-					
-					/* КОНЕЦ ПРИМЕРА */
 					
 					fpsUpdate();
 					requestAnimationFrame(update);

@@ -112,7 +112,21 @@ image.onload = () => {
 	* pa - нижний левый угол позиции объекта
 	* pb - верхний правый угол позиции объекта
 	* ta - нижний левый угол текстурных координат
-	* tb - ерхний правый угол текстурных координат
+	* tb - верхний правый угол текстурных координат
+Вызывать можно только после .render!
+
+Отправить индикаторы на отрисовку:
+.drawProgressBars(texture0, texture1, array)
+* texture0 - текстура, полученная из .createTexture для заполненного значения
+* texture1 - текстура, полученная из .createTexture для пустого значения
+* array - массив, состоящий из объектов вида:
+* {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
+	* pa - нижний левый угол позиции объекта
+	* pb - верхний правый угол позиции объекта
+	* ta - нижний левый угол текстурных координат
+	* tb - верхний правый угол текстурных координат
+	* hor - true = горизонтальный индикатор, false = вертикальный индикатор
+	* status - заполненность индикатора [0..1]
 Вызывать можно только после .render!
 
 Чего-то непонятно?
@@ -251,6 +265,31 @@ class Render {
 			}];
 		this.program[3] = this.createProgram(vertexShader3, fragmentShader3, linker3);
 		this.gl.useProgram(this.program[3]);
+		
+		// SHADER PROGRAM 4
+		const vertexShader4 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[4]);
+		const fragmentShader4 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[4]);
+		const linker4 = [
+			{
+				'id': _positionAttributeLocation,
+				'name': 'a_position'
+			},
+			{
+				'id': _texCoordAttributeLocation,
+				'name': 'a_texCoord'
+			}];
+		this.program[4] = this.createProgram(vertexShader4, fragmentShader4, linker4);
+		this.gl.useProgram(this.program[4]);
+		
+		this.uniform[4] = this.createUniformLocation(this.program[4], [
+				'u_progress'
+			]); // получение uniform-переменных из шейдеров
+		
+		// привязка текстур к текстурным блокам
+		const texture0UniformLocation4 = this.gl.getUniformLocation(this.program[4], 'u_texture0');
+		const texture1UniformLocation4 = this.gl.getUniformLocation(this.program[4], 'u_texture1');
+		this.gl.uniform1i(texture0UniformLocation4, 0);
+		this.gl.uniform1i(texture1UniformLocation4, 1);
 		
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
@@ -924,7 +963,7 @@ class Render {
 				array[i].ta[0], array[i].ta[1],
 				array[i].tb[0], array[i].tb[1],
 				array[i].tb[0], array[i].ta[1]);
-				v += 6;
+			v += 6;
 		}
 		
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[1]);
@@ -934,5 +973,55 @@ class Render {
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
 		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
+	}
+	
+	// array: {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY], 'hor': true/false, 'status': 0..1}
+	drawProgressBars(texture0, texture1, array) {
+		this.gl.useProgram(this.program[4]);
+		this.gl.activeTexture(this.gl.TEXTURE1);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, texture1[0]);
+		this.gl.activeTexture(this.gl.TEXTURE0);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, texture0[0]);
+		
+		let arrayOfBuffer = [];
+		let textureOfBuffer = [];
+		
+		const w = 1 / this.gl.canvas.width;
+		const h = 1 / this.gl.canvas.height;
+		
+		for (let i in array) {
+			arrayOfBuffer.push(
+				array[i].pa[0] * w, array[i].pa[1] * h,
+				array[i].pb[0] * w, array[i].pa[1] * h,
+				array[i].pa[0] * w, array[i].pb[1] * h,
+				array[i].pa[0] * w, array[i].pb[1] * h,
+				array[i].pb[0] * w, array[i].pa[1] * h,
+				array[i].pb[0] * w, array[i].pb[1] * h);
+			textureOfBuffer.push(
+				array[i].ta[0], array[i].tb[1],
+				array[i].tb[0], array[i].tb[1],
+				array[i].ta[0], array[i].ta[1],
+				array[i].ta[0], array[i].ta[1],
+				array[i].tb[0], array[i].tb[1],
+				array[i].tb[0], array[i].ta[1]);
+		}
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture0[1]);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture0[2]);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		
+		for (let i in array) {
+			if (array[i].hor) {
+				const l = array[i].pb[0] - array[i].pa[0];
+				this.gl.uniform2f(this.uniform[4].u_progress, array[i].pa[0] + l * array[i].status, this.gl.canvas.height);
+			} else {
+				const l = array[i].pb[1] - array[i].pa[1];
+				this.gl.uniform2f(this.uniform[4].u_progress, this.gl.canvas.width, array[i].pa[1] + l * array[i].status);
+			}
+			this.gl.drawArrays(this.gl.TRIANGLES, i * 6, 6);
+		}
 	}
 }

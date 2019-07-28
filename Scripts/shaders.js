@@ -146,3 +146,31 @@ _fragmentShader[3] = `
 		vec4 tex = texture2D(u_texture, v_texCoord);
 		gl_FragColor = tex;
 	}`;
+
+// шейдеры для индикаторов
+_vertexShader[4] = `
+	attribute vec2 a_position;
+	attribute vec2 a_texCoord;
+	
+	varying vec2 v_texCoord;
+	
+	void main() {
+		v_texCoord = a_texCoord;
+		vec4 pos = vec4(a_position * 2.0 - 1.0, 0.0, 1.0);
+		gl_Position = pos;
+	}`;
+
+_fragmentShader[4] = `
+	precision mediump float;
+
+	uniform sampler2D u_texture0;
+	uniform sampler2D u_texture1;
+	uniform vec2 u_progress;
+	
+	varying vec2 v_texCoord;
+	
+	void main() {
+		vec4 tex = gl_FragCoord.x <= u_progress.x && gl_FragCoord.y <= u_progress.y
+			? texture2D(u_texture0, v_texCoord) : texture2D(u_texture1, v_texCoord);
+		gl_FragColor = tex;
+	}`;

@@ -149,14 +149,15 @@ image.onload = () => {
 				for (let j = startY - 1; j <= stopY; j++) {
 					for (let i = startX - 1; i <= stopX; i++) {
 						arrOfChunks[xLocate + "x" + yLocate + "xL"]
-							.chunk[i - startX + 1][j - startY + 1]
-							= gameArea.getLight(
+							.chunk
+							.push(gameArea
+							.getLight(
 								Math.floor(i < 0
 									? 0 : (i >= gameArea.width
 										? gameArea.width - 1: i)),
 								Math.floor(j < 0
 									? 0 : (j >= gameArea.height
-										? gameArea.height - 1 : j)));
+										? gameArea.height - 1 : j))));
 					}
 					for (let i = 0; i < chunkWidth - 2; i++) {
 						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);

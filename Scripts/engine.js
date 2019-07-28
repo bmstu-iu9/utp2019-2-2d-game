@@ -560,11 +560,6 @@ class Render {
 		this.gl.drawArrays(this.gl.TRIANGLES, body * 18 + 6, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, legs * 18 + 12, 6);
 		this.gl.useProgram(this.program[0]);
-		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
 	drawChunk(x, y, blocksOfChunk, lightChunk) {
@@ -698,6 +693,11 @@ class Render {
 	
 	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer, drawObjects) {
 		this.resizeCanvas(); // подгоняем канвас под экран
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// "вырезаем" кусок экрана для отображения
 		const ch = this.size / this.gl.canvas.height;
@@ -1015,11 +1015,11 @@ class Render {
 		
 		for (let i in array) {
 			if (array[i].hor) {
-				const l = array[i].pb[0] - array[i].pa[0];
-				this.gl.uniform2f(this.uniform[4].u_progress, array[i].pa[0] + l * array[i].status, this.gl.canvas.height);
+				const l = (array[i].pb[0] - array[i].pa[0]) * array[i].status;
+				this.gl.uniform2f(this.uniform[4].u_progress, array[i].pa[0] + l, this.gl.canvas.height);
 			} else {
-				const l = array[i].pb[1] - array[i].pa[1];
-				this.gl.uniform2f(this.uniform[4].u_progress, this.gl.canvas.width, array[i].pa[1] + l * array[i].status);
+				const l = (array[i].pb[1] - array[i].pa[1]) * array[i].status;
+				this.gl.uniform2f(this.uniform[4].u_progress, this.gl.canvas.width, array[i].pa[1] + l);
 			}
 			this.gl.drawArrays(this.gl.TRIANGLES, i * 6, 6);
 		}

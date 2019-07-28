@@ -234,7 +234,43 @@ image.onload = () => {
 				gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
 				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 				const lightOfPlayer = player.getLight(); // освещённость игрока
-				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer, player.direction);
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
+					player.direction);
+				
+				/* ПРИМЕР */
+				const _texture = render.createTexture(image, 200, 200); // создаём текстуру (это пример, но лучше не вызывать каждый кадр)
+				/* .createTexture(image, width, height)
+				* image - изображение (должно быть квадратным)
+				* width, height - ширина и высота изображения. Изображение будет растянуто под указанную ширину и высоту.
+				Исходное изображение должно быть квадратным! Вызывать желательно только 1 раз на каждое изображение
+				при инициализации! */
+				
+				const _size = render.getCanvasSize(); // получаем размер экрана
+				/* .getCanvasSize()
+				* возвращает массив из двух элементов (ширина и высота экрана) */
+				
+				let _array = [
+					{
+						'pa': [_size[0] / 2, _size[1] / 2], 'pb': [_size[0] / 2 * 3, _size[1] / 2 * 3],
+						'ta': [0.5, 0.5], 'tb': [1, 1]	
+					},
+					{
+						'pa': [10, 10 ], 'pb': [110, 110], 'ta': [0, 0], 'tb': [0.2, 0.2]
+					}];
+				
+				render.drawObjects(_texture, _array);
+				/* .drawObjects(texture, array)
+				* texture - текстура, полученная из .createTexture
+				* array - массив, состоящий из объектов вида:
+				* {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
+					* pa - нижний левый угол позиции объекта
+					* pb - верхний правый угол позиции объекта
+					* ta - нижний левый угол текстурных координат
+					* tb - ерхний правый угол текстурных координат
+				Вызывать можно только после .render! */
+				
+				/* КОНЕЦ ПРИМЕРА */
+				
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}

@@ -93,32 +93,32 @@ image.onload = () => {
     };
 };
 
+Отрисовка объектов:
+Создать текстуру:
+.createTexture(image, width, height)
+* image - изображение (должно быть квадратным)
+* width, height - ширина и высота изображения. Изображение будет растянуто под указанную ширину и высоту.
+Исходное изображение должно быть квадратным! Вызывать желательно только 1 раз на каждое изображение при инициализации!
+
+Получить размер экрана в пикселях:
+.getCanvasSize()
+* возвращает массив из двух элементов (ширина и высота экрана)
+
+Отправить объекты на отрисовку:
+.drawObjects(texture, array)
+* texture - текстура, полученная из .createTexture
+* array - массив, состоящий из объектов вида:
+* {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
+	* pa - нижний левый угол позиции объекта
+	* pb - верхний правый угол позиции объекта
+	* ta - нижний левый угол текстурных координат
+	* tb - ерхний правый угол текстурных координат
+Вызывать можно только после .render!
+
 Чего-то непонятно?
 Обращаться к Надиму
 */
 
-/*
-Не трограть! Это важно!
-Указатели на атрибуты:
-
-SHADER 0:
-a_position: 0
-a_texCoord: 1
-
-SHADER 1:
-a_position: 0
-a_texCoord: 1
-
-SHADER 2:
-a_position: 0
-a_texCoord: 1
-
-SHADER 3:
-a_positionPlayer: 2
-a_texCoordPlayer: 3
-
-UPD: будет удалено
-*/
 const _positionAttributeLocation = 0;
 const _texCoordAttributeLocation = 1;
 
@@ -623,10 +623,10 @@ class Render {
 			}
 			
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[i]);
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.STREAM_DRAW);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[i]);
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.STREAM_DRAW);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 		}
@@ -657,8 +657,8 @@ class Render {
 		return this.arrayOfChunks[`${x}x${y}`] != undefined;
 	}
 	
-	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer) {
-		this.resizeCanvas(this.gl.canvas); // подгоняем канвас под экран
+	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer, drawObjects) {
+		this.resizeCanvas(); // подгоняем канвас под экран
 		
 		// "вырезаем" кусок экрана для отображения
 		const ch = this.size / this.gl.canvas.height;
@@ -770,7 +770,6 @@ class Render {
 					this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
 				}
 			}
-			this.gl.useProgram(this.program[0]);
 		} else {
 			this.gl.useProgram(this.program[2]);
 			
@@ -793,8 +792,8 @@ class Render {
 					this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
 				}
 			}
-			this.gl.useProgram(this.program[0]);
 		}
+		this.gl.useProgram(this.program[0]);
 		
 		if (slicePlayer == 1) {
 			// отрисовка игрока
@@ -863,14 +862,77 @@ class Render {
 		throw new Error(error);
 	}
 	
-	resizeCanvas(canvas, multiplier) {
+	resizeCanvas(multiplier) {
 		// подгоняем канвас под экран
 		multiplier = multiplier || 1;
-		const width = Math.floor(canvas.clientWidth * multiplier);
-		const height = Math.floor(canvas.clientHeight * multiplier);
-		if (canvas.width !== width || canvas.height !== height) {
-			canvas.width = width;
-			canvas.height = height;
+		const width = Math.floor(this.gl.canvas.clientWidth * multiplier);
+		const height = Math.floor(this.gl.canvas.clientHeight * multiplier);
+		if (this.gl.canvas.width !== width || this.gl.canvas.height !== height) {
+			this.gl.canvas.width = width;
+			this.gl.canvas.height = height;
 		}
+	}
+	
+	// отрисовка
+	createTexture(image, width, height) {
+		const texture = this.gl.createTexture();
+		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+			
+		// задание параметров текстуры
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
+		//this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_NEAREST);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+		//this.gl.generateMipmap(this.gl.TEXTURE_2D);
+		
+		const buffer0 = this.gl.createBuffer();
+		const buffer1 = this.gl.createBuffer();
+		return [texture, buffer0, buffer1];
+	}
+	
+	getCanvasSize() {
+		this.resizeCanvas();
+		return [this.gl.canvas.width, this.gl.canvas.height];
+	}
+	
+	// array: {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
+	drawObjects(texture, array) {
+		this.gl.useProgram(this.program[3]);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, texture[0]);
+		
+		let arrayOfBuffer = [];
+		let textureOfBuffer = [];
+		let v = 0;
+		
+		const w = 1 / this.gl.canvas.width;
+		const h = 1 / this.gl.canvas.height;
+		
+		for (let i in array) {
+			arrayOfBuffer.push(
+				array[i].pa[0] * w, array[i].pa[1] * h,
+				array[i].pb[0] * w, array[i].pa[1] * h,
+				array[i].pa[0] * w, array[i].pb[1] * h,
+				array[i].pa[0] * w, array[i].pb[1] * h,
+				array[i].pb[0] * w, array[i].pa[1] * h,
+				array[i].pb[0] * w, array[i].pb[1] * h);
+			textureOfBuffer.push(
+				array[i].ta[0], array[i].tb[1],
+				array[i].tb[0], array[i].tb[1],
+				array[i].ta[0], array[i].ta[1],
+				array[i].ta[0], array[i].ta[1],
+				array[i].tb[0], array[i].tb[1],
+				array[i].tb[0], array[i].ta[1]);
+				v += 6;
+		}
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[1]);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[2]);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 	}
 }

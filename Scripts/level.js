@@ -87,7 +87,7 @@ const beginPlay = () => {
 
 const callSetTimeOfDay = (lengthOfDay) => {
 	setTimeOfDay(currentTime, lengthOfDay);
-	setTimeout(callSetTimeOfDay, 2000, lengthOfDay);
+	setTimeout(callSetTimeOfDay, 1500, lengthOfDay);
 }
 
 // Установка текущего времени суток. При изменении не забудь заглянуть в callSetTimeOfDay
@@ -304,8 +304,10 @@ const playerMovement = () => {
 	}
 
 	// Анимация
-	if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime / 3) {
+	if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime * 2 / 3) {
 		player.setAnimation("legs", "run");
+	} else if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime / 3) {
+		player.setAnimation("legs", "walk");
 	} else {
 		player.setAnimation("legs", "idle");
 	}
@@ -313,6 +315,10 @@ const playerMovement = () => {
 	// Направление игрока
 	if (newX - player.fx != 0) {
 		player.direction = Math.sign(newX - player.fx);
+	} else {
+		if (controller.mouse.click) {
+			player.direction = Math.sign(controller.mouse.direction.x);
+		}
 	}
 
 	// Присваиваем фактические координаты
@@ -338,7 +344,6 @@ const playerMovement = () => {
 }
 
 const mouseControl = () => {
-	if(!controller.mouse.active) player.setAnimation("body", "idle");
 
 	let layout = player.layout;
     if(controller.shift.active) {
@@ -351,10 +356,15 @@ const mouseControl = () => {
 
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
+
+
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
+            // Анимация
+            player.setAnimation("body", "kick");
+
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
@@ -393,11 +403,17 @@ const mouseControl = () => {
     			// Установка блока
 		       	player.place(targetX, targetY, layout);
 		       	lastPlaceBlockTime = currentTime;
+
+                // Анимация
+                player.setAnimation("body", "kick");
 		    }
 		} else {
 			player.interact(targetX, targetY, layout);
 			lastPlaceBlockTime = currentTime;
-			}
+
+            // Анимация
+            player.setAnimation("body", "kick");
+		}
 	}
 
 	// Нажата E

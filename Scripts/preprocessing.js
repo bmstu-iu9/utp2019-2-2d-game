@@ -34,7 +34,7 @@ image.onload = () => {
 				let objects = [];
 				for (let i = 0; i < blocksCountX; i++) {
 					for (let j = 0; j < blocksCountY; j++) {
-						objects.push({
+						objects[j * blocksCountX + i] = {
 							'id': j * blocksCountX + i + 1,
 							'a': [
 								i / blocksCountX + 1 / image.width,
@@ -44,7 +44,7 @@ image.onload = () => {
 								(i + 1) / blocksCountX - 1 / image.width,
 								(j + 1) / blocksCountY - 1 / image.height
 							]
-						});
+						};
 					}
 				}
 				render.createObjects(objects);
@@ -54,7 +54,7 @@ image.onload = () => {
 				let playerAnims = [];
 				for (let j = 0; j < playerAnimsCountY; j++) {
 					for (let i = 0; i < playerAnimsCountX; i++) {
-						playerAnims.push({
+						playerAnims[j * playerAnimsCountY + i] = {
 							'head': [
 								[
 									i / playerAnimsCountX,
@@ -91,7 +91,7 @@ image.onload = () => {
 								],
 								38 // конец ног (снизу вверх)
 							]
-						});
+						};
 					}
 				}
 				render.createAnimations(playerResolutionX, playerResolutionY, playerAnims);
@@ -149,15 +149,14 @@ image.onload = () => {
 				for (let j = startY - 1; j <= stopY; j++) {
 					for (let i = startX - 1; i <= stopX; i++) {
 						arrOfChunks[xLocate + "x" + yLocate + "xL"]
-							.chunk
-							.push(gameArea
-							.getLight(
+							.chunk[i - startX + 1][j - startY + 1]
+							= gameArea.getLight(
 								Math.floor(i < 0
 									? 0 : (i >= gameArea.width
 										? gameArea.width - 1: i)),
 								Math.floor(j < 0
 									? 0 : (j >= gameArea.height
-										? gameArea.height - 1 : j))));
+										? gameArea.height - 1 : j)));
 					}
 					for (let i = 0; i < chunkWidth - 2; i++) {
 						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);

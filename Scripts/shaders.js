@@ -7,7 +7,7 @@
 let _vertexShader = [];
 let _fragmentShader = [];
 
-// TODO: фон вынести в отдельный шейдер
+// TODO: фон вынести в отдельный шейдер и исправить
 // шейдеры для блоков, фона
 _vertexShader[0] = `
 	attribute vec2 a_position;
@@ -122,16 +122,16 @@ _fragmentShader[2] = `
 		gl_FragColor = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
 	}`;
 
-// шейдеры для игрока
+// шейдеры для игрока и блоков
 _vertexShader[3] = `
-	attribute vec2 a_positionPlayer;
-	attribute vec2 a_texCoordPlayer;
+	attribute vec2 a_position;
+	attribute vec2 a_texCoord;
 
 	varying vec2 v_texCoord;
 	
 	void main() {
-		v_texCoord = a_texCoordPlayer;
-		vec4 pos = vec4(a_positionPlayer * 2.0 - 1.0, 0.0, 1.0);
+		v_texCoord = a_texCoord;
+		vec4 pos = vec4(a_position * 2.0 - 1.0, 0.0, 1.0);
 		gl_Position = pos;
 	}`;
 

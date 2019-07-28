@@ -121,25 +121,24 @@ image.onload = () => {
 						chunk: [], x: xLocate, y: yLocate
 					};
 
-					for (let i = startX; i < stopX; i++) {
-						layoutChunk.chunk[i - startX] = [];
-						for (let j = startY; j < stopY; j++) {
+					for (let j = startY; j < stopY; j++) {
+						layoutChunk.chunk[j - startY] = [];
+						for (let i = startX; i < stopX; i++) {
 							if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
 								// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 								if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) {
-									layoutChunk.chunk[i - startX][j - startY] = 9;
+									layoutChunk.chunk[j - startY][i - startX] = 9;
 								} else {
-									layoutChunk.chunk[i - startX][j - startY] =
+									layoutChunk.chunk[j - startY][i - startX] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
 								}
 							} else {
-								layoutChunk.chunk[i - startX][j - startY] = undefined;
+								layoutChunk.chunk[j - startY][i - startX] = undefined;
 							}
 						}
 					}
 
-					arrOfChunks[xLocate + "x" + yLocate + "x" + layout] =
-						layoutChunk;
+					arrOfChunks[xLocate + "x" + yLocate + "x" + layout] = layoutChunk;
 				}
 
 				arrOfChunks[xLocate + "x" + yLocate + "xL"] = {

@@ -243,11 +243,11 @@ class Render {
 		const linker3 = [
 			{
 				'id': _positionAttributeLocation,
-				'name': 'a_positionPlayer'
+				'name': 'a_position'
 			},
 			{
 				'id': _texCoordAttributeLocation,
-				'name': 'a_texCoordPlayer'
+				'name': 'a_texCoord'
 			}];
 		this.program[3] = this.createProgram(vertexShader3, fragmentShader3, linker3);
 		this.gl.useProgram(this.program[3]);
@@ -301,9 +301,10 @@ class Render {
 	}
 
 	createObjects(arrayOfObjects) {
+		this.arrayOfObjects = arrayOfObjects;
+		this.testID = []; // test
+		
 		const backgroundAsp = 512 / 512; // размер фона
-		let endId = 6;
-		this.ids = [];
 		
 		/*
 		ID:
@@ -404,22 +405,22 @@ class Render {
 			1, 0,
 			1, 1];
 		
-		for (let i in arrayOfObjects) {
-			arrayOfPosition = arrayOfPosition.concat([
+		for (let i in arrayOfObjects) {/*
+			arrayOfPosition.push(
 				l, l,
 				h, l,
 				l, h,
 				l, h,
 				h, l,
-				h, h]);
-			arrayOfTexCoord = arrayOfTexCoord.concat([
+				h, h);
+			arrayOfTexCoord.push(
 				arrayOfObjects[i].a[0], arrayOfObjects[i].b[1],
 				arrayOfObjects[i].b[0], arrayOfObjects[i].b[1],
 				arrayOfObjects[i].a[0], arrayOfObjects[i].a[1],
 				arrayOfObjects[i].a[0], arrayOfObjects[i].a[1],
 				arrayOfObjects[i].b[0], arrayOfObjects[i].b[1],
-				arrayOfObjects[i].b[0], arrayOfObjects[i].a[1]]);
-			this.ids[arrayOfObjects[i].id] = endId++;
+				arrayOfObjects[i].b[0], arrayOfObjects[i].a[1]);*/
+			this.testID[arrayOfObjects[i].id] = i; // test
 		}
 		
 		// создание буфера и атрибута координат позиций
@@ -443,7 +444,7 @@ class Render {
 		let arrayOfTexCoord = [];
 		
 		for (let i in playerAnims) {
-			arrayOfPosition = arrayOfPosition.concat([
+			arrayOfPosition.push(
 				0, playerAnims[i].body[2] / playerResolutionY,
 				1, playerAnims[i].body[2] / playerResolutionY,
 				0, playerAnims[i].head[2] / playerResolutionY,
@@ -463,9 +464,9 @@ class Render {
 				0, playerAnims[i].legs[2] / playerResolutionY,
 				0, playerAnims[i].legs[2] / playerResolutionY,
 				1, 0,
-				1, playerAnims[i].legs[2] / playerResolutionY]);
+				1, playerAnims[i].legs[2] / playerResolutionY);
 			
-			arrayOfTexCoord = arrayOfTexCoord.concat([
+			arrayOfTexCoord.push(
 				playerAnims[i].head[0][0], playerAnims[i].head[1][1],
 				playerAnims[i].head[1][0], playerAnims[i].head[1][1],
 				playerAnims[i].head[0][0], playerAnims[i].head[0][1],
@@ -485,7 +486,7 @@ class Render {
 				playerAnims[i].legs[0][0], playerAnims[i].legs[0][1],
 				playerAnims[i].legs[0][0], playerAnims[i].legs[0][1],
 				playerAnims[i].legs[1][0], playerAnims[i].legs[1][1],
-				playerAnims[i].legs[1][0], playerAnims[i].legs[0][1]]);
+				playerAnims[i].legs[1][0], playerAnims[i].legs[0][1]);
 		}
 		
 		// создание буфера и атрибута координат позиций
@@ -548,8 +549,8 @@ class Render {
 		const c = `${x}x${y}`;
 		
 		// буфер кадров
-		if (this.arrayOfChunks[c] == undefined) {
-			let texture = [];
+		if (this.arrayOfChunks[c] === undefined) {
+			let texture = [], blockBuffer = [], texBuffer = [];
 			for (let i in blocksOfChunk) {
 				texture[i] = this.gl.createTexture();
 				this.gl.bindTexture(this.gl.TEXTURE_2D, texture[i]);
@@ -559,69 +560,111 @@ class Render {
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+				
+				blockBuffer[i] = this.gl.createBuffer();
+				texBuffer[i] = this.gl.createBuffer();
 			}
 			
 			let light = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, light);
-			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
-				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
-					return a * 255;
-				})));
+			
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+			
 			this.arrayOfChunks[c] = {
 				x: x,
 				y: y,
 				tex: texture,
-				light: light
+				light: light,
+				blockBuffer: blockBuffer,
+				texBuffer: texBuffer,
 			};
-		} else {
-			this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[`${x}x${y}`].light);
-			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
-				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
-					return a * 255;
-				})));
 		}
 		
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
+		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
+			this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
+				return a * 255;
+			})));
+		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
-		this.gl.uniform1f(this.uniform[0].u_resolution, height);
 		
 		this.gl.viewport(0, 0, width, height);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[0]);
-		this.gl.uniform1f(this.uniform[0].u_light, 1);
+		
+		this.gl.useProgram(this.program[3]);
+		
+		const w = 1 / this.widthChunk;
+		const h = 1 / this.heightChunk;
 		
 		// Отрисовка слоёв
 		for (let i in this.arrayOfChunks[c].tex) {
+			let arrayOfBuffer = [];
+			let textureOfBuffer = [];
+			
 			this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
 				this.arrayOfChunks[c].tex[i], 0);
 			this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 			
+			let v = 0;
+			
 			for (let x = 0; x < this.widthChunk; x++) {
-				const xh = x / this.widthChunk;
+				const xh = x * w;
 				for (let y = 0; y < this.heightChunk; y++) {
-					const yh = y / this.heightChunk;
-					const id = blocksOfChunk[i][x][y];
-					if (id != undefined) {
-						this.gl.uniform3f(this.uniform[0].u_translate, xh, yh, -1);
-						this.gl.drawArrays(this.gl.TRIANGLES, this.ids[id] * 6, 6);
+					const yh = y * h;
+					const aoo = this.arrayOfObjects[this.testID[blocksOfChunk[i][y][x]]];
+					if (aoo != undefined) {
+						arrayOfBuffer.push(
+							xh, yh,
+							xh + w, yh,
+							xh, yh + h,
+							xh, yh + h,
+							xh + w, yh,
+							xh + w, yh + h);
+						const a0 = aoo.a[0], a1 = aoo.a[1], b0 = aoo.b[0], b1 = aoo.b[1];
+						textureOfBuffer.push(
+							a0, b1,
+							b0, b1,
+							a0, a1,
+							a0, a1,
+							b0, b1,
+							b0, a1);
+						v += 6;
 					}
 				}
 			}
+			
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[i]);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.STREAM_DRAW);
+			this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[i]);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.STREAM_DRAW);
+			this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 		}
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
 	deleteChunk(x, y) {
-		if (this.arrayOfChunks[`${x}x${y}`] != undefined) {
-			for (let i in this.arrayOfChunks[`${x}x${y}`].tex) {
-				this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].tex[i]);
-				delete this.arrayOfChunks[`${x}x${y}`].tex[i];
+		const c = `${x}x${y}`;
+		if (this.arrayOfChunks[c] !== undefined) {
+			for (let i in this.arrayOfChunks[c].tex) {
+				this.gl.deleteTexture(this.arrayOfChunks[c].tex[i]);
+				delete this.arrayOfChunks[c].tex[i];
+				this.gl.deleteBuffer(this.arrayOfChunks[c].blockBuffer[i]);
+				delete this.arrayOfChunks[c].blockBuffer[i];
+				this.gl.deleteBuffer(this.arrayOfChunks[c].texBuffer[i]);
+				delete this.arrayOfChunks[c].texBuffer[i];
 			}
-			this.gl.deleteTexture(this.arrayOfChunks[`${x}x${y}`].light);
-			delete this.arrayOfChunks[`${x}x${y}`].light;
-			delete this.arrayOfChunks[`${x}x${y}`];
+			this.gl.deleteTexture(this.arrayOfChunks[c].light);
+			delete this.arrayOfChunks[c].light;
+			delete this.arrayOfChunks[c];
 		}
 	}
 	
@@ -640,6 +683,7 @@ class Render {
 		const right = xc * ch + width / 2;
 		const bottom = yc * ch - scale / 2;
 		const top = yc * ch + scale / 2;
+		this.gl.useProgram(this.program[0]);
 		const near = 0.01;
 		const far = 11;
 		this.gl.uniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, [
@@ -688,7 +732,7 @@ class Render {
 			ls = 0.75;
 		}
 		for (let c in this.arrayOfChunks) {
-			if (this.arrayOfChunks[c] != undefined) {
+			if (this.arrayOfChunks[c] !== undefined) {
 				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 				this.gl.activeTexture(this.gl.TEXTURE1);
@@ -728,7 +772,7 @@ class Render {
 			this.gl.uniform1f(this.uniform[1].u_resolution, this.gl.canvas.height);
 			
 			for (let c in this.arrayOfChunks) {
-				if (this.arrayOfChunks[c] != undefined) {
+				if (this.arrayOfChunks[c] !== undefined) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 					this.gl.activeTexture(this.gl.TEXTURE1);
@@ -753,7 +797,7 @@ class Render {
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 			
 			for (let c in this.arrayOfChunks) {
-				if (this.arrayOfChunks[c] != undefined) {
+				if (this.arrayOfChunks[c] !== undefined) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 					this.gl.activeTexture(this.gl.TEXTURE1);

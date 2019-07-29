@@ -251,7 +251,7 @@ const preprocessing = () => {
 		render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
 			player.direction);
 		drawUI();
-		render.drawObjects(_texture, screenUI.draw());
+		render.drawObjects(_texture, _array);
 		
 		fpsUpdate();
 		requestAnimationFrame(update);

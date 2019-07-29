@@ -12,6 +12,7 @@
 
 let fullUI;  // Якорь в % + размер в пикселях
 let screenUI;
+let _array;
 
 let UIMap = new Map();
 
@@ -197,23 +198,13 @@ const initUI = () => {
 let needUIRedraw = false;
 let lastCanvasSize = [ 0, 0 ];
 const drawUI = () => {
-    const _size = render.getCanvasSize(); // получаем размер экрана
+    const _size = render.getCanvasSize();
 
-        /* .drawObjects(texture, array)
-        * texture - текстура, полученная из .createTexture
-        * array - массив, состоящий из объектов вида:
-        * {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
-            * pa - нижний левый угол позиции объекта
-            * pb - верхний правый угол позиции объекта
-            * ta - нижний левый угол текстурных координат
-            * tb - ерхний правый угол текстурных координат
-        Вызывать можно только после .render! */
-
-        if (lastCanvasSize[0] !== _size[0] || lastCanvasSize[1] !== _size[1] || needUIRedraw) {
-            _array = screenUI.draw();
-            needUIRedraw = false;
-            lastCanvasSize = _size;
-        }
+    if (lastCanvasSize[0] !== _size[0] || lastCanvasSize[1] !== _size[1] || needUIRedraw) {
+        _array = screenUI.draw();
+        needUIRedraw = false;
+        lastCanvasSize = _size;
+    }
 }
 
 const UISetActiveSlot = (index) => {

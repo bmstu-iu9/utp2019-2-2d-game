@@ -39,6 +39,10 @@ class Player {
         // Очки дыхания
         this.bp = 100;
         this.maxBP = 100;
+
+        // Очки выносливости
+        this.sp = 100;
+        this.maxSP = 100;
         
         // Инвентарь, в начале пуст. Блоки пока не стакаются
         this.inv = {
@@ -437,7 +441,28 @@ class Player {
 
         this.updateBP = (count) => {
             this.bp = count;
-            UISetBar(this.bp / this.maxBP, UIMap.breathBar, 202, 16, 1, 1);
+            if (count >= this.maxBP) {
+                this.bp = this.maxBP;
+                UIMap.barsPanel.deleteChild(UIMap.breathBar.id);
+                UIMap.barsPanel.deleteChild(UIMap.breathBarEmpty.id);
+            } else if (!UIMap.barsPanel.get(UIMap.breathBar.id)) {
+                UIMap.barsPanel.add(UIMap.breathBar);
+                UIMap.barsPanel.add(UIMap.breathBarEmpty);
+            }
+            UISetBar(this.bp / this.maxBP, UIMap.breathBar, 202, 16, 1, 5);
+        }
+
+        this.updateSP = (count) => {
+            this.sp = count;
+            if (count >= this.maxSP) {
+                this.sp = this.maxSP;
+                UIMap.barsPanel.deleteChild(UIMap.staminaBar.id);
+                UIMap.barsPanel.deleteChild(UIMap.staminaBarEmpty.id);
+            } else if (!UIMap.barsPanel.get(UIMap.staminaBar.id)) {
+                UIMap.barsPanel.add(UIMap.staminaBar);
+                UIMap.barsPanel.add(UIMap.staminaBarEmpty);
+            }
+            UISetBar(this.sp / this.maxSP, UIMap.staminaBar, 202, 16, 1, 1);
         }
 
         // Взять в руку следующий элемент быстрого инвентаря

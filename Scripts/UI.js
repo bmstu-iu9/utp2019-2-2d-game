@@ -2,8 +2,11 @@ let fullUI;  // Якорь в % + размер в пикселях
 let screenUI;
 let _array = [];
 
+let UIMap = new Map();
+
 class Sprite {
     constructor(image, rect, indent) {
+        this.recountRect = undefined;
         this.children = [];
         this.image = image;
         this.rect = rect;
@@ -11,6 +14,10 @@ class Sprite {
         this.id = Sprite.counter++;
 
         this.draw = (parent) => {
+            if (this.recountRect) {
+                this.recountRect(this.rect);
+            }
+
             let isScreenUI = false;
             if (parent === undefined) {
                 parent = {
@@ -28,7 +35,7 @@ class Sprite {
             ];
 
             let ans = [];
-            if (!isScreenUI) {
+            if (!isScreenUI && image !== undefined) {
                 ans[0] = {
                     'pa': pa,
                     'pb': pb,
@@ -73,6 +80,7 @@ Sprite.pixelScale = 1;
 
 // Возмращает _array по-умолчанию
 const defaultUI = () => {
+    const _size = render.getCanvasSize(); // получаем размер экрана
     fullUI = [[0, 0], [1, 1]];
     screenUI = new Sprite(fullUI, {
             pa: {
@@ -93,64 +101,85 @@ const defaultUI = () => {
                 y: 0
             }
         });
-        screenUI.add(new Sprite([ [0.6, 0.6], [0.7, 0.7] ], {
-            pa: {
-                x: 0,
-                y: 0
+
+        let fastInvPanel = new Sprite(
+            undefined,
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 1 / 3,
+                    y: (1 / 24) * _size[0] / _size[1]
+                }
             },
-            pb: {
-                x: 0.5,
-                y: 0.5
-            }
-        }, {
-            pa: {
-                x: 10,
-                y: 10
+            {
+                pa: {
+                    x: 20,
+                    y: 20
+                },
+                pb: {
+                    x: 20,
+                    y: 20
+                }
+            });
+        fastInvPanel.recountRect = (rect) => {
+            let _size = render.getCanvasSize();
+            rect.pb.y = rect.pb.x / 8 * _size[0] / _size[1];
+        }
+        UIMap.fastInvPanel = fastInvPanel;
+        UIMap.fastInv = [];
+        for(let i = 0; i < 8; i++) {
+            let slot = new Sprite([ [0, 0], [0.25, 0.25] ],
+                {
+                    pa: {
+                        x: i / 8,
+                        y: 0
+                    },
+                    pb: {
+                        x: (i + 1) / 8,
+                        y: 1
+                    }
+                },
+                {
+                    pa: {
+                        x: 0,
+                        y: 0
+                    },
+                    pb: {
+                        x: 0,
+                        y: 0
+                    }
+                });
+            UIMap.fastInv[i] = slot;
+            fastInvPanel.add(slot);
+        }
+        UIMap.activeSlot = new Sprite([ [0.25, 0], [0.5, 0.25] ],
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 1 / 8,
+                    y: 1
+                }
             },
-            pb: {
-                x: 0,
-                y: 0
-            }
-        }));
-        let panel = screenUI.get(2);
-        panel.add(new Sprite([ [0.8, 0.6], [0.9, 0.7] ], {
-            pa: {
-                x: 0,
-                y: 1
-            },
-            pb: {
-                x: 0.5,
-                y: 1
-            }
-        }, {
-            pa: {
-                x: 10,
-                y: -50
-            },
-            pb: {
-                x: -10,
-                y: -10
-            }
-        }));
-        panel.add(new Sprite([ [0.3, 0.6], [0.4, 0.7] ], {
-            pa: {
-                x: 0.5,
-                y: 0.5
-            },
-            pb: {
-                x: 1,
-                y: 1
-            }
-        }, {
-            pa: {
-                x: 10,
-                y: 10
-            },
-            pb: {
-                x: -10,
-                y: -10
-            }
-        }));
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 0,
+                    y: 0
+                }
+            });
+        fastInvPanel.add(UIMap.activeSlot);
+
+
+        screenUI.add(fastInvPanel);
 }
 
 // Вызывается каждый кадр после EventTick
@@ -166,8 +195,14 @@ const drawUI = () => {
             * ta - нижний левый угол текстурных координат
             * tb - ерхний правый угол текстурных координат
         Вызывать можно только после .render! */
+
         _array = screenUI.draw();
-        console.log(_array);
+
         return true;
         // Возвращает true, если требуется перерисовка интерфейса
+}
+
+const UISetActiveSlot = (index) => {
+    UIMap.activeSlot.rect.pa.x = index / 8;
+    UIMap.activeSlot.rect.pb.x = (index + 1) / 8;
 }

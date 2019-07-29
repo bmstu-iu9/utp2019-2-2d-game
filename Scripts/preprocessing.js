@@ -52,7 +52,7 @@ _UI.onload = () => {
 						}
 					}
 					render.createObjects(objects);
-					
+
 					const playerAnimsCountX = playerImage.width / playerResolutionX,
 						playerAnimsCountY = playerImage.height / playerResolutionY;
 					let playerAnims = [];
@@ -100,7 +100,7 @@ _UI.onload = () => {
 					}
 					render.createAnimations(playerResolutionX, playerResolutionY, playerAnims);
 				}
-				
+
 				let OnScreen = {};
 				let arrOfChunks = {};
 				let oldTime;
@@ -119,12 +119,12 @@ _UI.onload = () => {
 					const stopY = (yLocate + 1) * chunkHeight;
 					const startX = xLocate * chunkWidth;
 					const startY = yLocate * chunkHeight;
-	
+
 					for (let layout = minLayout; layout <= maxLayout; layout++) {
 						let layoutChunk = {
 							chunk: [], x: xLocate, y: yLocate
 						};
-	
+
 						for (let j = startY; j < stopY; j++) {
 							layoutChunk.chunk[j - startY] = [];
 							for (let i = startX; i < stopX; i++) {
@@ -141,10 +141,10 @@ _UI.onload = () => {
 								}
 							}
 						}
-	
+
 						arrOfChunks[xLocate + "x" + yLocate + "x" + layout] = layoutChunk;
 					}
-	
+
 					arrOfChunks[xLocate + "x" + yLocate + "xL"] = {
 						chunk: [],
 						layout: "L"
@@ -171,7 +171,7 @@ _UI.onload = () => {
 							arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
 						}
 					}
-					
+
 					render.drawChunk(xLocate, yLocate,
 						[
 							arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT].chunk,
@@ -180,18 +180,18 @@ _UI.onload = () => {
 						],
 						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk);
 				}
-	
+
 				const bufferOldTime = (newTime) => {
 					oldTime = newTime;
 					requestAnimationFrame(update);
 				}
-	
+
 				const update = (newTime) => {
 					deltaTime = (newTime - oldTime) / 1000;
 					oldTime = newTime;
-	
+
 					eventTick();
-	
+
 					{  // Обновление чанков
 						const curchunkX = Math.floor(cameraX / chunkWidth), curchunkY = Math.floor(cameraY / chunkHeight);
 						const halfScreenChunkCapasityX =
@@ -207,7 +207,7 @@ _UI.onload = () => {
 								neigChunk[i][j] = false;
 							}
 						}
-	
+
 						for (let chunk in arrOfChunks) {
 							if (arrOfChunks[chunk].layout === "L") {
 								continue;
@@ -221,7 +221,7 @@ _UI.onload = () => {
 								neigChunk[arrOfChunks[chunk].x][arrOfChunks[chunk].y] = true;
 							}
 						}
-	
+
 						let changeTimeOfDay = oldTimeOfDay !== gameArea.timeOfDay;
 						for (let i = curchunkX - halfScreenChunkCapasityX; i <= curchunkX + halfScreenChunkCapasityX;
 							i++) {
@@ -229,7 +229,7 @@ _UI.onload = () => {
 								j++) {
 									if (gameArea.chunkDifferList[i + "x" + j] !== undefined
 										|| !OnScreen[i + "x" + j] || changeTimeOfDay) {
-	
+
 										OnScreen[i + "x" + j] = true;
 										loadchunk(i, j);
 									}
@@ -237,7 +237,7 @@ _UI.onload = () => {
 						}
 						oldTimeOfDay = gameArea.timeOfDay;
 					}
-	
+
 					gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
 					const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 					const lightOfPlayer = player.getLight(); // освещённость игрока
@@ -248,13 +248,13 @@ _UI.onload = () => {
 					fpsUpdate();
 					requestAnimationFrame(update);
 				}
-	
+
 				const loadingGame = async () => {
 					await beginPlay();
 					const elem = document.getElementById("loading");
 					elem.parentNode.removeChild(elem);
 				}
-				
+
 				if (loadExist()) {
 					const wait = async () => {
 						return new Promise (responce => {
@@ -265,7 +265,7 @@ _UI.onload = () => {
 							});
 						});
 					}
-	
+
 					wait().then(() => {
 						loadingGame().then(() => {
 							requestAnimationFrame(bufferOldTime);

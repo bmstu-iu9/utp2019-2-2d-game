@@ -113,6 +113,7 @@ const initUI = () => {
             }
         });
 
+        // Быстрый инвентарь
         let fastInvPanel = new Sprite(
             undefined,
             {
@@ -188,7 +189,6 @@ const initUI = () => {
                 }
             });
         fastInvPanel.add(UIMap.activeSlot);
-
 
         screenUI.add(fastInvPanel);
 }

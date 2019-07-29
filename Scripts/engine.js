@@ -132,19 +132,32 @@ const _texCoordAttributeLocation = 1;
 class Render {
 	constructor() {
 		const canvas = document.getElementById('canvas'); // получаем канвас
-		this.gl = canvas.getContext('webgl', {
+		let webglver = '2';
+		this.gl = canvas.getContext('webgl2', {
 				premultipliedAlpha: false,
 				alpha: false
-			}) || canvas.getContext('experimental-webgl', {
-				premultipliedAlpha: false,
-				alpha: false
-			}); // получаем доступ к webgl
+			}); // получаем доступ к webgl2
 		if (!this.gl) {
-			const ErrorMsg = 'Browser is very old';
-			stop();
-			alert(ErrorMsg);
-			throw new Error(ErrorMsg);
+			webglver = '1';
+			this.gl = canvas.getContext('webgl', {
+          premultipliedAlpha: false,
+          alpha: false
+        }); // получаем доступ к webgl
+			if (!this.gl) {
+				webglver = 'exp'
+				this.gl = canvas.getContext('experimental-webgl', {
+            premultipliedAlpha: false,
+            alpha: false
+          }); // получаем доступ к experimental-webgl
+				if (!this.gl) {
+					const ErrorMsg = 'Browser is very old';
+					stop();
+					alert(ErrorMsg);
+					throw new Error(ErrorMsg);
+				}
+			}
 		}
+		
 		this.resizeCanvas(canvas);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -283,6 +296,22 @@ class Render {
 		
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
+    
+		//stat
+		const dpr = window.devicePixelRatio;
+		_params += 'webgl=' + encodeURIComponent(webglver);
+		_params += '&context=' + encodeURIComponent(JSON.stringify(this.gl.getContextAttributes()));
+		_params += '&p01=' + encodeURIComponent(this.gl.getParameter(this.gl.CULL_FACE));
+		_params += '&p02=' + encodeURIComponent(this.gl.getParameter(this.gl.DEPTH_TEST));
+		_params += '&p03=' + encodeURIComponent(this.gl.getParameter(this.gl.BLEND));
+		_params += '&p04=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
+		_params += '&p05=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE));
+		_params += '&p06=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_IMAGE_UNITS));
+		_params += '&p07=' + encodeURIComponent(canvas.clientWidth + 'x' + canvas.clientHeight + 'x' + dpr);
+		_params += '&p08=' + encodeURIComponent(canvas.width + 'x' + canvas.height + 'x' + dpr);
+		_params += '&p09=' + encodeURIComponent(this.gl.getParameter(this.gl.VERSION));
+		_params += '&p10=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_RENDERBUFFER_SIZE));
+		_xhrSend(_xhr, _params);
 		
 		// буфер чанков
 		this.arrayOfChunks = {};

@@ -114,10 +114,17 @@ a_position: 0
 a_texCoord: 1
 
 SHADER 3:
-a_positionPlayer: 2
-a_texCoordPlayer: 3
+a_positionPlayer: 0
+a_texCoordPlayer: 1
 
-UPD: будет удалено
+SHADER 4:
+позиция: 0
+текстура: 1
+
+SHADER 5:
+нет зависимостей
+
+UPD: будет удалено позже
 */
 const _positionAttributeLocation = 0;
 const _texCoordAttributeLocation = 1;
@@ -138,6 +145,7 @@ class Render {
 			alert(ErrorMsg);
 			throw new Error(ErrorMsg);
 		}
+		this.resizeCanvas(canvas);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		
@@ -145,13 +153,14 @@ class Render {
 		
 		// прозрачность
 		this.gl.enable(this.gl.CULL_FACE);
-		this.gl.enable(this.gl.DEPTH_TEST);
+		//this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		
 		// сборка и компиляция шейдерной программы
 		this.program = [];
 		this.uniform = [];
+		this.attribute = [];
 		
 		// SHADER PROGRAM 0
 		const vertexShader0 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[0]);
@@ -252,6 +261,26 @@ class Render {
 		this.program[3] = this.createProgram(vertexShader3, fragmentShader3, linker3);
 		this.gl.useProgram(this.program[3]);
 		
+		/* ПОЖАЛУЙСТА, НЕ СЛИВАЙТЕ ИЗ Interface В Player САМОСТОЯТЕЛЬНО!!! */
+		
+		// SHADER PROGRAM 5
+		const vertexShader5 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[5]);
+		const fragmentShader5 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[5]);
+		this.program[5] = this.createProgram(vertexShader5, fragmentShader5);
+		this.gl.useProgram(this.program[5]);
+		
+		this.attribute[5] = this.createAttributeLocation(this.program[5], [
+				'a_id'
+			]); // получение атрибутов из шейдеров
+		
+		this.uniform[5] = this.createUniformLocation(this.program[5], [
+				'u_translate',
+				'u_resolution',
+				'u_number',
+				'u_time',
+				'u_elevation'
+			]); // получение uniform-переменных из шейдеров
+		
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
 		
@@ -267,6 +296,13 @@ class Render {
 			0.0, 2.0, 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
+		
+		// погода
+		this.rain = false;
+		
+		this.weather = [];
+		this.weather[0] = this.gl.createBuffer();
+		this.weather[1] = 0;
 	}
 	
 	init(image, background, playerImage) {
@@ -630,6 +666,7 @@ class Render {
 			this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 		}
+		
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
@@ -657,7 +694,7 @@ class Render {
 		return this.arrayOfChunks[`${x}x${y}`] != undefined;
 	}
 	
-	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer) {
+	render(xc, yc, xp, yp, scale, time, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer) {
 		this.resizeCanvas(this.gl.canvas); // подгоняем канвас под экран
 		
 		// "вырезаем" кусок экрана для отображения
@@ -680,7 +717,7 @@ class Render {
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT/* | this.gl.DEPTH_BUFFER_BIT*/);
 		
 		// отрисовка фона
 		const z = 0.1 - far;
@@ -698,7 +735,7 @@ class Render {
 		// отрисовка чанков
 		this.gl.uniform1f(this.uniform[0].u_resolution, this.gl.canvas.height);
 		this.gl.uniform1f(this.uniform[0].u_light, 1); // стандартное освещение
-		this.gl.disable(this.gl.DEPTH_TEST);
+		//this.gl.disable(this.gl.DEPTH_TEST);
 		
 		this.gl.useProgram(this.program[2]);
 		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
@@ -815,6 +852,45 @@ class Render {
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 		
 		this.gl.flush(); // очистка данных
+		
+		// дождь
+		if (this.rain) {
+			this.gl.useProgram(this.program[5]);
+			const xh = Math.round(this.gl.canvas.width / this.size / 2 + 1);
+			const num = Math.round(this.size * this.gl.canvas.height / 1000);
+			const max = num * xh * 2;
+			const xt = -(xc % 1);
+			
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.weather[0]);
+			this.gl.vertexAttribPointer(this.attribute[5].a_id, 1, this.gl.FLOAT, false, 0, 0);
+			if (max > this.weather[1]) {
+				const wIDs = new Float32Array(max);
+				for (let i = 0; i < max; i++) {
+					wIDs[i] = i;
+				}
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, wIDs, this.gl.STATIC_DRAW);
+				this.gl.uniform1f(this.uniform[5].u_number, max);
+				this.weather[1] = max;
+			}
+			
+			const w = this.size / this.gl.canvas.width;
+			const h = 2 / this.gl.canvas.height;
+			
+			this.gl.uniform1f(this.uniform[5].u_time, time * 0.0004);
+			this.gl.uniform1f(this.uniform[5].u_resolution, w);
+			
+			for (let i = 0; i < xh; i++) {
+				const yt = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
+				this.gl.uniform1f(this.uniform[5].u_translate, (xt - i) * w);
+				this.gl.uniform1f(this.uniform[5].u_elevation, yt * h);
+				this.gl.drawArrays(this.gl.POINTS, num * i * 2, num);
+				
+				const yt2 = (this.elevationMap[Math.floor(xc + i + 1)] + 1 - yc) * this.size;
+				this.gl.uniform1f(this.uniform[5].u_translate, (i + 1 + xt) * w);
+				this.gl.uniform1f(this.uniform[5].u_elevation, yt2 * h);
+				this.gl.drawArrays(this.gl.POINTS, num * i * 2 + num, num);
+			}
+		}
 	}
 	
 	createShader(type, source) {
@@ -836,6 +912,14 @@ class Render {
 		error += this.gl.getShaderInfoLog(shader);
 		this.gl.deleteShader(shader);
 		throw new Error(error);
+	}
+	
+	createAttributeLocation(program, params) {
+		let attributeLocation = {};
+		for (let i in params) {
+			attributeLocation[params[i]] = this.gl.getAttribLocation(program, params[i]);
+		}
+		return attributeLocation;
 	}
 	
 	createUniformLocation(program, params) {

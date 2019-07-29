@@ -146,3 +146,42 @@ _fragmentShader[3] = `
 		vec4 tex = texture2D(u_texture, v_texCoord);
 		gl_FragColor = tex;
 	}`;
+
+/* ПОЖАЛУЙСТА, НЕ СЛИВАЙТЕ ИЗ Interface В Player САМОСТОЯТЕЛЬНО!!! */
+
+// шейдеры для дождя
+_vertexShader[5] = `
+	attribute float a_id;
+	
+	uniform float u_translate;
+	uniform float u_resolution;
+	uniform float u_number;
+	uniform float u_time;
+	uniform float u_elevation;
+	
+	varying vec4 v_color;
+	
+	float hash(float i) {
+		vec2 p = fract(vec2(i * 5.3983, i * 5.4427));
+		p += dot(p.yx, p.xy + vec2(21.5351, 14.3137));
+		return fract(p.x * p.y * 95.4337);
+	}
+	
+	void main() {
+		float delta = a_id / u_number;
+		float offset = floor(u_time + delta) / 1000.0;
+		float x = (hash(offset + delta) * u_resolution + u_translate) * 2.0 ;
+		float y = fract(u_time + hash(delta)) * -2.0 + 1.0;
+		v_color = y >= u_elevation ? vec4(0.0, 0.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 0.0);
+		gl_Position = vec4(x, y, 0.0, 1.0);
+		gl_PointSize = 2.0;
+	}`;
+
+_fragmentShader[5] = `
+	precision mediump float;
+	
+	varying vec4 v_color;
+	
+	void main() {
+		gl_FragColor = v_color;
+	}`;

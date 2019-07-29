@@ -34,9 +34,11 @@ class Player {
 
         // Очки жизни
         this.hp = 100;
+        this.maxHP = 100;
 
         // Очки дыхания
         this.bp = 100;
+        this.maxBP = 100;
         
         // Инвентарь, в начале пуст. Блоки пока не стакаются
         this.inv = {
@@ -392,7 +394,7 @@ class Player {
             location.reload();
             this.x = gameArea.width / 2;
             this.y = gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1;
-            this.hp = 100;
+            this.hp = this.maxHP;
             this.vx = 0;
             this.vy = 0;
         }
@@ -406,12 +408,11 @@ class Player {
         // Получение урона
         this.getDamage = (count) => {
             if (count > 0) {
-                console.log("Damage - " + count);
                 this.hp = Math.max(this.hp - count, 0);
                 if (this.hp == 0) {
                     this.die();
                 }
-                console.log("Now you have " + this.hp + " hp");
+                UISetBar(this.hp / this.maxHP, UIMap.healthBar, 202, 16, 1, 0);
             }
         }
 
@@ -428,10 +429,15 @@ class Player {
         // Урон от удушья
         this.choke = (deltaTime) => {
             if (this.bp > 0) {
-                this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime, 0);
+                this.updateBP(Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime, 0));
             } else {
                 this.getDamage(Player.CHOKE_SPEED * deltaTime);
             }
+        }
+
+        this.updateBP = (count) => {
+            this.bp = count;
+            UISetBar(this.bp / this.maxBP, UIMap.breathBar, 202, 16, 1, 1);
         }
 
         // Взять в руку следующий элемент быстрого инвентаря

@@ -193,7 +193,7 @@ const playerMovement = () => {
 			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {
-		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);
+		player.updateBP(Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100));
 	}
 	let liquidK = player.getLiquidK();
 

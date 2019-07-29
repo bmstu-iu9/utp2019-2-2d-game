@@ -73,7 +73,7 @@ Sprite.pixelScale = 1;
 
 // Возмращает _array по-умолчанию
 const defaultUI = () => {
-    fullUI = [[0, 0], [_UI.width, _UI.height]];
+    fullUI = [[0, 0], [1, 1]];
     screenUI = new Sprite(fullUI, {
             pa: {
                 x: 0,

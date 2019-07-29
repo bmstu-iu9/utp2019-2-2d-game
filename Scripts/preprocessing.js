@@ -15,7 +15,7 @@ let loadingResult = undefined;
 const render = new Render();
 
 const _UI = new Image();
-_UI.src = 'Assets/blocks.png';
+_UI.src = 'Assets/Grey.png';
 _UI.onload = () => {
 	const image = new Image();
 	image.src = 'Images/blocks.png';

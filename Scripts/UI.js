@@ -1,6 +1,17 @@
+/* .drawObjects(texture, array)
+        * texture - текстура, полученная из .createTexture
+        * array - массив, состоящий из объектов вида:
+        * {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
+            * pa - нижний левый угол позиции объекта
+            * pb - верхний правый угол позиции объекта
+            * ta - нижний левый угол текстурных координат
+            * tb - ерхний правый угол текстурных координат
+        Вызывать можно только после .render!
+        render.getCanvasSize() возвращает массив с размерами экрана*/
+
+
 let fullUI;  // Якорь в % + размер в пикселях
 let screenUI;
-let _array = [];
 
 let UIMap = new Map();
 
@@ -78,8 +89,8 @@ class Sprite {
 Sprite.counter = 1;
 Sprite.pixelScale = 1;
 
-// Возмращает _array по-умолчанию
-const defaultUI = () => {
+// Инициализация интерфейса
+const initUI = () => {
     const _size = render.getCanvasSize(); // получаем размер экрана
     fullUI = [[0, 0], [1, 1]];
     screenUI = new Sprite(fullUI, {
@@ -182,25 +193,7 @@ const defaultUI = () => {
         screenUI.add(fastInvPanel);
 }
 
-// Вызывается каждый кадр после EventTick
-const drawUI = () => {
-    const _size = render.getCanvasSize(); // получаем размер экрана
-
-        /* .drawObjects(texture, array)
-        * texture - текстура, полученная из .createTexture
-        * array - массив, состоящий из объектов вида:
-        * {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
-            * pa - нижний левый угол позиции объекта
-            * pb - верхний правый угол позиции объекта
-            * ta - нижний левый угол текстурных координат
-            * tb - ерхний правый угол текстурных координат
-        Вызывать можно только после .render! */
-
-        _array = screenUI.draw();
-
-        return true;
-        // Возвращает true, если требуется перерисовка интерфейса
-}
+// Изменения состояния интерфейса
 
 const UISetActiveSlot = (index) => {
     UIMap.activeSlot.rect.pa.x = index / 8;

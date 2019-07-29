@@ -29,8 +29,7 @@ _UI.onload = () => {
 				render.init(image, background, playerImage);
 				render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
 				const _texture = render.createTexture(_UI, _UI.width, _UI.height);
-
-				defaultUI();
+				initUI();
 
 				// Отправка образцов объектов
 				{
@@ -244,10 +243,7 @@ _UI.onload = () => {
 					const lightOfPlayer = player.getLight(); // освещённость игрока
 					render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
 						player.direction);
-
-					if (drawUI()) {
-						render.drawObjects(_texture, _array);
-					}
+					render.drawObjects(_texture, screenUI.draw());
 					
 					fpsUpdate();
 					requestAnimationFrame(update);

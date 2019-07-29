@@ -27,7 +27,7 @@ class Sprite {
 
         this.draw = (parent) => {
             if (this.recountRect) {
-                this.recountRect(this.rect);
+                this.recountRect(this.rect, parent);
             }
 
             let isScreenUI = false;
@@ -137,9 +137,9 @@ const initUI = () => {
                     y: 20
                 }
             });
-        fastInvPanel.recountRect = (rect) => {
+        fastInvPanel.recountRect = (rect, parent) => {
             let _size = render.getCanvasSize();
-            rect.pb.y = rect.pb.x / 8 * _size[0] / _size[1];
+            rect.pb.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         }
         UIMap.fastInvPanel = fastInvPanel;
         UIMap.fastInv = [];
@@ -190,8 +190,35 @@ const initUI = () => {
                 }
             });
         fastInvPanel.add(UIMap.activeSlot);
-
         screenUI.add(fastInvPanel);
+
+        UIMap.barsPanel = new Sprite(
+            undefined,
+            {
+                pa: {
+                    x: 2 / 3,
+                    y: 0
+                },
+                pb: {
+                    x: 1,
+                    y: (1 / 24) * _size[0] / _size[1]
+                }
+            },
+            {
+                pa: {
+                    x: -20,
+                    y: 20
+                },
+                pb: {
+                    x: -20,
+                    y: 20
+                }
+            });
+
+        UIMap.healthBarEmpty = new Sprite({
+
+        });
+        
 }
 
 // Вызывается каждый кадр после EventTick

@@ -250,6 +250,7 @@ const preprocessing = () => {
 		const lightOfPlayer = player.getLight(); // освещённость игрока
 		render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
 			player.direction);
+		
 		drawUI();
 		render.drawObjects(_texture, _array);
 		

@@ -16,6 +16,7 @@ let key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
+let layoutSwitcher = false;
 let BlocksGlobalChange = {};
 
 // Вызывается при запуске игры
@@ -39,19 +40,20 @@ const beginPlay = () => {
 
     if (loadExist()) {
 		key = loadingResult.key;
+		BlocksGlobalChange = loadingResult.change;
+		currentTime = loadingResult.currentTime;
+
 		gameArea = generate(loadingResult.gameArea.width,
 			loadingResult.gameArea.height,
-			key);
+			key,
+			BlocksGlobalChange);
 		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
-		for (let change in loadingResult.change) {
-			gameArea.map[change.x][change.y][change.layout] = change.newValue;
-		}
 
-		currentTime = loadingResult.currentTime;
     	player = new Player();
     	playerCopy(player, loadingResult.player);
+    	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
     } else {
-    	gameArea = generate(1000, 1000, key);
+		gameArea = generate(1000, 1000, key);
 
     	let px = gameArea.width / 2;
     	let py = 0;
@@ -61,38 +63,69 @@ const beginPlay = () => {
 
     	player = new Player(px, py);
     	player.addToInv({
-    		"id" : 257,
-    		"durability" : items[257].durability,
+    		"id" : 278,
+    		"durability" : items[278].durability,
     		"name" : "Iron pickaxe"
+    	});
+
+    	player.addToInv({
+    		id: 63,
+    		count: 20
+    	});
+
+    	player.addToInv({
+    		id: 61,
+    		count: 20
     	});
     }
 
-    cameraSet(player.x, player.y);
+	cameraSet(player.x, player.y);
+	
+	elevationCalculate(); // расчитывает карту высот для погоды
+	
+	// Блок функций, которые не зависят от обновления кадров
+	callSetTimeOfDay(300);
 }
 
-// Вызывается каждый кадр
-const eventTick = () => {
-	currentTime += deltaTime;
-	setTimeOfDay(currentTime, 600);
-	playerMovement();
-	mouseControl();
-	UI();
-	worldChange();
-	playerActionButtons();
+const callSetTimeOfDay = (lengthOfDay) => {
+	setTimeOfDay(currentTime, lengthOfDay);
+	setTimeout(callSetTimeOfDay, 1000, lengthOfDay);
 }
 
-// Установка текущего времени суток
+// Установка текущего времени суток. При изменении не забудь заглянуть в callSetTimeOfDay
 const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	currentTime = currentTime / lenghtOfDay * Math.PI * 4 % (Math.PI * 4);
-	if (currentTime < Math.PI) { //.................................................. День
+	if (currentTime < Math.PI) { //................................................... День
 		gameArea.timeOfDay = 1;
 	} else if (currentTime < 2 * Math.PI) { //........................................ День -> Ночь
 		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
 	} else if (currentTime < 3 * Math.PI) { //........................................ Ночь
 		gameArea.timeOfDay = 0;
-	} else { //...................................................................... Ночь -> День
+	} else { //....................................................................... Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
 	}
+}
+
+// Вызывается каждый кадр
+const eventTick = () => {
+	currentTime += deltaTime;
+	playerMovement();
+	mouseControl();
+	UI();
+	playerActionButtons();
+	
+	render.getPlayerParts(
+		player.animationStates.head,
+		player.animationStates.body,
+		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
+	
+	// В последнюю очередь
+	// Анимации
+	animationsTickCount++;
+	player.animate();
+	// Запись изменений
+	worldChange();
+
 }
 
 // Управление интерфейсом
@@ -111,18 +144,24 @@ const UI = () => {
 // Запись изменений блоков мира
 const worldChange = () => {
 	for (let chunk in gameArea.chunkDifferList) {
-		for (let change in chunk) {
-			BlocksGlobalChange[change.y + "x" + change.y + "x" + change.layout] = change.newValue;
+		for (let change in gameArea.chunkDifferList[chunk]) {
+			if(change[change.length - 1] === "L") {  // Изменение света
+				continue;
+			}
+			const obj = gameArea.chunkDifferList[chunk][change];
+			BlocksGlobalChange[obj.x + "x" + obj.y + "x" + obj.layout] = {
+				x: obj.x,
+				y: obj.y,
+				layout: obj.layout,
+				newValue: obj.newValue
+			}
 		}
 	}
-
-	gameArea.chunkDifferList = {};
 }
 
 // Действия при нажатии клавиш действия
 const playerActionButtons = () => {
 	if (controller.f.active) {  // Сохранение
-		// setTimeout(saveWorld, 100, 'world');
 		saveWorld('world');
 	}
 	if (controller.g.active) { // Удалить сохранение
@@ -132,14 +171,28 @@ const playerActionButtons = () => {
 
 // Движение игрока
 const playerMovement = () => {
+
+	if(controller.down.active) {
+		 if(!layoutSwitcher) {
+		 	layoutSwitcher = true;
+		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
+		 	if(player.canStay(player.fx, player.fy, layout)) {
+		 		player.layout = layout;
+		 		slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+		 	}
+		 }
+	} else {
+		layoutSwitcher = false;
+	}
+
 	// Координаты блока, в котором голова
 	let headX = Math.floor(player.x + Player.HEAD_X);
 	let headY = Math.floor(player.y + Player.HEAD_Y);
 
 	// Урон от удушья 
-	if (gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]
-		&& (items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].type == "water"
-			|| items[gameArea.map[headX][headY][GameArea.MAIN_LAYOUT]].isCollissed)) {
+	if (gameArea.map[headX][headY][player.layout]
+		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
+			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {
 		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);
@@ -252,30 +305,69 @@ const playerMovement = () => {
 		}
 	}
 
+	// Анимация
+	if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime * 2 / 3) {
+		player.setAnimation("legs", "run");
+	} else if (Math.abs(newX - player.fx) > Player.SPEED * deltaTime / 3) {
+		player.setAnimation("legs", "walk");
+	} else {
+		player.setAnimation("legs", "idle");
+	}
+
+	// Направление игрока
+	if (newX - player.fx != 0) {
+		player.direction = Math.sign(newX - player.fx);
+	} else {
+		if (controller.mouse.click) {
+			player.direction = Math.sign(controller.mouse.direction.x);
+		}
+	}
+
+	// Присваиваем фактические координаты
 	player.fx = newX;
 	player.fy = newY;
+
+	// Анимация падения
+	if (!player.onGround()) {
+		player.setAnimation("legs", "jump");
+	}
 	
 	player.x = roundToFunc(newX, blockSize, Math.round);
 	player.y = roundToFunc(newY, blockSize, Math.round);
 
 	// Плавное движение камеры
-	if (Math.abs(cameraX - newX) > 0.3) {
+	if (Math.abs(cameraX - newX) > 1) {
 		cameraSet(cameraX + roundToFunc(1.5 * (player.x - cameraX) * deltaTime, blockSize, Math.round), cameraY);
 	}
-	if (Math.abs(cameraY - newY) > 0.3) {
+	if (Math.abs(cameraY - newY) > 1) {
 		cameraSet(cameraX, cameraY + roundToFunc(1.5 * (player.y - cameraY) * deltaTime, blockSize, Math.round));
 	}
 	
 }
 
 const mouseControl = () => {
+
+	let layout = player.layout;
+    if(controller.shift.active) {
+    	if(player.layout === GameArea.FIRST_LAYOUT) {
+    		layout = GameArea.SECOND_LAYOUT;
+    	} else {
+    		layout = GameArea.BACK_LAYOUT;
+    	}
+    }
+
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
-    	let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
+
+
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
+            // Анимация
+            player.setAnimation("body", "kick");
+
+    		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
     				x: targetX, y: targetY, layout: layout,
@@ -302,18 +394,33 @@ const mouseControl = () => {
 
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
-		let layout = controller.shift.active ? GameArea.BACK_LAYOUT : GameArea.MAIN_LAYOUT;
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY)) {
+		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, layout)) {
 		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //............................... Есть блок рядом
 		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
 		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
 		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
+    			// Установка блока
 		       	player.place(targetX, targetY, layout);
 		       	lastPlaceBlockTime = currentTime;
+
+                // Анимация
+                player.setAnimation("body", "kick");
 		    }
+		} else {
+			player.interact(targetX, targetY, layout);
+			lastPlaceBlockTime = currentTime;
+
+            // Анимация
+            player.setAnimation("body", "kick");
 		}
+	}
+
+	// Нажата E
+	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
+		player.interactWithNearest(layout);
+		lastPlaceBlockTime = currentTime;
 	}
 }

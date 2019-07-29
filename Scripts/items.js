@@ -14,6 +14,8 @@ const DIAMOND_DURABILITY = 300;
 
 
 let items = { 
+    undefined: {},
+
     '1':
     {
         id: '1',
@@ -110,6 +112,7 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         hasGravity: true,
         density: 0.5,
         isNaturalLight: true
@@ -121,6 +124,7 @@ let items = {
         type: 'flowingWater',
         durability: 1,
         brightness: 6,
+        isCanInteractThrow: true,
         isCollissed: false,
         isNaturalLight: true,
         name: 'flowing-water-image'
@@ -135,6 +139,7 @@ let items = {
         type: 'water',
         durability: 1,
         brightness: 8,
+        isCanInteractThrow: true,
         isCollissed: false,
         hasGravity: true,
         density: 0.9
@@ -146,6 +151,7 @@ let items = {
         type: 'flowingWater',
         durability: 1,
         brightness: 8,
+        isCanInteractThrow: true,
         isCollissed: false,
         name: 'flowing-lava-image'
     },
@@ -218,7 +224,7 @@ let items = {
         costOfMelting: '100',
         durability: 4,
         brightness: 0,
-        isCollissed: false,
+        isCollissed: true,
         isSolid: true
     },
 
@@ -252,6 +258,171 @@ let items = {
         isBlock: true,
         dropId: '264',
         weight: WEIGHT_OF_BLOCKS
+    },
+
+    '60':
+    {
+        id: '60',
+        name: 'Closed Trapdoor',
+        type: 'wood',
+        isBlock: true,
+        dropId: '61',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 61);
+
+            if (inRange(x + 1, 0, gameArea.height)
+                    && gameArea.map[x + 1][y][layout] === 60) gameArea.interactWithBlock(x + 1, y, layout);
+            if (inRange(x - 1, 0, gameArea.height)
+                    && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.get(x + 1, y, layout) !== undefined
+                    && (gameArea.map[x + 1][y][layout] === 61
+                        || gameArea.map[x + 1][y][layout] === 60
+                        || (items[gameArea.map[x + 1][y][layout]].isSolid
+                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
+                || (gameArea.get(x - 1, y, layout) !== undefined
+                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.map[x - 1][y][layout] === 60
+                        || (items[gameArea.map[x - 1][y][layout]].isSolid
+                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 61 || gameArea.get(x + 1, y, layout) === 60) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+        }
+    },
+
+    '61':
+    {
+        id: '61',
+        name: 'Trapdoor',
+        type: 'wood',
+        isBlock: true,
+        dropId: '61',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: true,
+        isCollissed: false,
+        isClickable: true,
+        isCanInteractThrow: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 60);
+
+            if (inRange(x + 1, 0, gameArea.height)
+                    && gameArea.map[x + 1][y][layout] === 61) gameArea.interactWithBlock(x + 1, y, layout);
+            if (inRange(x - 1, 0, gameArea.height)
+                    && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.get(x + 1, y, layout) !== undefined
+                    && (gameArea.map[x + 1][y][layout] === 61
+                        || gameArea.map[x + 1][y][layout] === 60
+                        || (items[gameArea.map[x + 1][y][layout]].isSolid
+                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
+                || (gameArea.get(x - 1, y, layout) !== undefined
+                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.map[x - 1][y][layout] === 60
+                        || (items[gameArea.map[x - 1][y][layout]].isSolid
+                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 61 || gameArea.get(x + 1, y, layout) === 60) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+        }
+    },
+
+    '62':
+    {
+        id: '62',
+        name: 'Closed Door',
+        type: 'wood',
+        isBlock: true,
+        dropId: '63',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 63);
+
+            if (inRange(y + 1, 0, gameArea.height)
+                    && gameArea.map[x][y + 1][layout] === 62) gameArea.interactWithBlock(x, y + 1, layout);
+            if (inRange(y - 1, 0, gameArea.height)
+                    && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
+                    && (gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.map[x][y - 1][layout] === 62
+                        || (items[gameArea.map[x][y - 1][layout]].isSolid
+                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 63 || gameArea.get(x, y + 1, layout) === 62) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
+            }
+        }
+    },
+
+    '63':
+    {
+        id: '63',
+        name: 'Door',
+        type: 'wood',
+        isBlock: true,
+        dropId: '63',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: true,
+        isCollissed: false,
+        isClickable: true,
+        isCanInteractThrow: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 62);
+
+
+            if (inRange(y + 1, 0, gameArea.height)
+                    && gameArea.map[x][y + 1][layout] === 63) gameArea.interactWithBlock(x, y + 1, layout);
+            if (inRange(y - 1, 0, gameArea.height)
+                    && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
+                    && (gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.map[x][y - 1][layout] === 62
+                        || (items[gameArea.map[x][y - 1][layout]].isSolid
+                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 63 || gameArea.get(x, y + 1, layout) === 62) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
+            }
+        }
     },
 
     '256':

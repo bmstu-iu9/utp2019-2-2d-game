@@ -72,7 +72,7 @@ class Sprite {
             for (let i = 0; i < this.children.length; i++) {
                 if (this.children[i].id === id) {
                     this.children.splice(i, 1);
-                    return;
+                    //return;
                 }
             }
         }
@@ -192,6 +192,8 @@ const initUI = () => {
         fastInvPanel.add(UIMap.activeSlot);
         screenUI.add(fastInvPanel);
 
+
+        UIMap.bars = [];
         UIMap.barsPanel = new Sprite(
             undefined,
             {
@@ -236,6 +238,7 @@ const initUI = () => {
                     y: 0
                 }
             });
+
         UIMap.healthBarEmpty.recountRect = (rect, indent, parent, image) => {
             rect.pb.y = (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         }
@@ -265,8 +268,12 @@ const initUI = () => {
         UIMap.healthBar.recountRect = (rect, indent, parent, image) => {
             rect.pb.y = (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         }
+        UIMap.bars[0] = {
+            empty: UIMap.healthBarEmpty,
+            bar: UIMap.healthBar,
+            priority: 0
+        }
         UIMap.barsPanel.add(UIMap.healthBar);
-
 
         UIMap.breathBarEmpty = new Sprite([ [0, 0.25], [202 / 256, 0.3125] ],
             {
@@ -320,6 +327,11 @@ const initUI = () => {
             rect.pb.y = 2 * (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
             rect.pa.y = (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         }
+        UIMap.bars[5] = {
+            empty: UIMap.breathBarEmpty,
+            bar: UIMap.breathBar,
+            priority: 5
+        }
         UIMap.barsPanel.add(UIMap.breathBar);
 
 
@@ -346,6 +358,14 @@ const UISetActiveSlot = (index) => {
 }
 
 const UISetBar = (count, bar, length, height, padding, number) => {
+    let bars = UIMap.bars;
+    let priority = number;
+    console.log(bars);
+    for(let i = number - 1; i >= 0; i--) {
+        if (bars[i] === undefined || !UIMap.barsPanel.get(bars[i].bar.id)) number--;
+    }
+
+
     needUIRedraw = true;
     bar.image = [ bar.image[0], [ length * count / _UI.width, bar.image[1][1] ] ];
     bar.recountRect = (rect, indent, parent, image) => {
@@ -354,5 +374,11 @@ const UISetBar = (count, bar, length, height, padding, number) => {
         indent.pa.y = 5 * number;
         indent.pb.y = 5 * number;
         rect.pb.x = count;
+    }
+    bars[priority].empty.recountRect = (rect, indent, parent, image) => {
+        rect.pb.y = (number + 1) * (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        rect.pa.y = number * (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        indent.pa.y = 5 * number;
+        indent.pb.y = 5 * number;
     }
 }

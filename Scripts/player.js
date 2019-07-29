@@ -437,7 +437,14 @@ class Player {
 
         this.updateBP = (count) => {
             this.bp = count;
-            UISetBar(this.bp / this.maxBP, UIMap.breathBar, 202, 16, 1, 1);
+            if (count >= this.maxBP) {
+                UIMap.barsPanel.deleteChild(UIMap.breathBar.id);
+                UIMap.barsPanel.deleteChild(UIMap.breathBarEmpty.id);
+            } else if (!UIMap.barsPanel.get(UIMap.breathBar.id)) {
+                UIMap.barsPanel.add(UIMap.breathBar);
+                UIMap.barsPanel.add(UIMap.breathBarEmpty);
+            }
+            UISetBar(this.bp / this.maxBP, UIMap.breathBar, 202, 16, 1, 5);
         }
 
         // Взять в руку следующий элемент быстрого инвентаря

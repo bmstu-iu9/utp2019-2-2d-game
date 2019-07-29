@@ -93,19 +93,19 @@ const defaultUI = () => {
                 y: 0
             }
         });
-        screenUI.add(new Sprite(fullUI, {
+        screenUI.add(new Sprite([ [0.6, 0.6], [0.7, 0.7] ], {
             pa: {
                 x: 0,
                 y: 0
             },
             pb: {
-                x: 1,
-                y: 1
+                x: 0.5,
+                y: 0.5
             }
         }, {
             pa: {
-                x: 0,
-                y: 0
+                x: 10,
+                y: 10
             },
             pb: {
                 x: 0,

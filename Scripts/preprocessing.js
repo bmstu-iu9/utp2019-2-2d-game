@@ -11,12 +11,11 @@ let gameArea;  // Игровой мир (объект GameArea)
 let slicePlayer = 1; // 1 - игрок на переднем слое, 2 - за передним слоем
 const playerResolutionX = 48, playerResolutionY = 96;
 let loadingResult = undefined;
-let _array = [];
 
 const render = new Render();
 
 const _UI = new Image();
-_UI.src = 'Assets/Grey.png';
+_UI.src = 'Assets/blocks.png';
 _UI.onload = () => {
 	const image = new Image();
 	image.src = 'Images/blocks.png';
@@ -246,7 +245,7 @@ _UI.onload = () => {
 					render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
 						player.direction);
 
-					if (drawUI()) {console.log(_array)
+					if (drawUI()) {
 						render.drawObjects(_texture, _array);
 					}
 					

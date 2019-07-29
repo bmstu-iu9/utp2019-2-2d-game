@@ -128,7 +128,7 @@ const drawUI = () => {
             * tb - ерхний правый угол текстурных координат
         Вызывать можно только после .render! */
         _array = screenUI.draw();
-// console.log(_array);
+        console.log(_array);
         return true;
         // Возвращает true, если требуется перерисовка интерфейса
 }

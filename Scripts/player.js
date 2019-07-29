@@ -379,7 +379,7 @@ class Player {
                     this.hand.info = items[this.hand.item.id];
                 }
             }
-
+            UISetActiveSlot(index);
             if (this.hand.item) {
                 console.log(this.hand.info.name);
             } else {

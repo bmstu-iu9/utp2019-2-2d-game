@@ -113,6 +113,59 @@ const initUI = () => {
                 y: 0
             }
         });
+        // Инвентарь
+        let invPanel = new Sprite(
+            [ [0.25, 0], [0.5, 0.25] ],
+            {
+                pa: {
+                    x: 0,
+                    y: undefined
+                },
+                pb: {
+                    x: 1 / 3,
+                    y: 1
+                }
+            },
+            {
+                pa: {
+                    x: 20,
+                    y: 40
+                },
+                pb: {
+                    x: 10,
+                    y: - 20
+                }
+            });
+        invPanel.recountRect = (rect, indent, parent, image) => {
+            rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        }
+        UIMap.invPanel = invPanel;
+        screenUI.add(invPanel);
+        // Кастомное окно по середине
+        let actionPanel = new Sprite(
+            [ [0.25, 0], [0.5, 0.25] ],
+            {
+                pa: {
+                    x: 1 / 3,
+                    y: 0
+                },
+                pb: {
+                    x: 3 / 4,
+                    y: 1
+                }
+            },
+            {
+                pa: {
+                    x: 30,
+                    y: 20
+                },
+                pb: {
+                    x: - 30,
+                    y: - 20
+                }
+            });
+        UIMap.actionPanel = actionPanel;
+        screenUI.add(actionPanel);
 
         // Быстрый инвентарь
         let fastInvPanel = new Sprite(

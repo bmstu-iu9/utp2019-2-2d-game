@@ -361,10 +361,12 @@ const mouseControl = () => {
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
+    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
+    		&& player.sp > 0) {
             // Анимация
             player.setAnimation("body", "kick");
 
+            player.updateSP(player.sp - 4 * deltaTime);
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
@@ -388,6 +390,7 @@ const mouseControl = () => {
     	}
     } else {
     	currentBlock = undefined;
+    	player.updateSP(player.sp + 2 * deltaTime);
     }
 
 	// Когда зажата ПКМ

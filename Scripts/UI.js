@@ -335,6 +335,68 @@ const initUI = () => {
         UIMap.barsPanel.add(UIMap.breathBar);
 
 
+
+        UIMap.staminaBarEmpty = new Sprite([ [0, 0.25], [202 / 256, 0.3125] ],
+            {
+                pa: {
+                    x: 0,
+                    y: undefined
+                },
+                pb: {
+                    x: 1,
+                    y: undefined
+                }
+            },
+            {
+                pa: {
+                    x: 0,
+                    y: 5
+                },
+                pb: {
+                    x: 0,
+                    y: 5
+                }
+            });
+        UIMap.staminaBarEmpty.recountRect = (rect, indent, parent, image) => {
+            rect.pb.y = 2 * (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+            rect.pa.y = (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        }
+        UIMap.barsPanel.add(UIMap.staminaBarEmpty);
+
+        UIMap.staminaBar = new Sprite([ [0, 0.4375], [202 / 256, 0.5] ],
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 1,
+                    y: undefined
+                }
+            },
+            {
+                pa: {
+                    x: 0,
+                    y: 5
+                },
+                pb: {
+                    x: 0,
+                    y: 5
+                }
+            });
+        UIMap.staminaBar.recountRect = (rect, indent, parent, image) => {
+            rect.pb.y = 2 * (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+            rect.pa.y = (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        }
+        UIMap.bars[1] = {
+            empty: UIMap.staminaBarEmpty,
+            bar: UIMap.staminaBar,
+            priority: 1
+        }
+        UIMap.barsPanel.add(UIMap.staminaBar);
+
+
+
         screenUI.add(UIMap.barsPanel);
 }
 
@@ -358,15 +420,13 @@ const UISetActiveSlot = (index) => {
 }
 
 const UISetBar = (count, bar, length, height, padding, number) => {
+    needUIRedraw = true;
     let bars = UIMap.bars;
     let priority = number;
-    console.log(bars);
     for(let i = number - 1; i >= 0; i--) {
         if (bars[i] === undefined || !UIMap.barsPanel.get(bars[i].bar.id)) number--;
     }
 
-
-    needUIRedraw = true;
     bar.image = [ bar.image[0], [ length * count / _UI.width, bar.image[1][1] ] ];
     bar.recountRect = (rect, indent, parent, image) => {
         rect.pb.y = (number + 1) * height / length * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);

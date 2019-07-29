@@ -183,6 +183,8 @@ const defaultUI = () => {
 }
 
 // Вызывается каждый кадр после EventTick
+let needUIRedraw = false;
+let lastCanvasSize = [ 0, 0 ];
 const drawUI = () => {
     const _size = render.getCanvasSize(); // получаем размер экрана
 
@@ -196,13 +198,15 @@ const drawUI = () => {
             * tb - ерхний правый угол текстурных координат
         Вызывать можно только после .render! */
 
-        _array = screenUI.draw();
-
-        return true;
-        // Возвращает true, если требуется перерисовка интерфейса
+        if (lastCanvasSize[0] !== _size[0] || lastCanvasSize[1] !== _size[1] || needUIRedraw) {
+            _array = screenUI.draw();
+            needUIRedraw = false;
+            lastCanvasSize = _size;
+        }
 }
 
 const UISetActiveSlot = (index) => {
+    needUIRedraw = true;
     UIMap.activeSlot.rect.pa.x = index / 8;
     UIMap.activeSlot.rect.pb.x = (index + 1) / 8;
 }

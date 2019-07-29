@@ -245,9 +245,8 @@ _UI.onload = () => {
 					render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
 						player.direction);
 
-					if (drawUI()) {
-						render.drawObjects(_texture, _array);
-					}
+					drawUI();
+					render.drawObjects(_texture, _array);
 					
 					fpsUpdate();
 					requestAnimationFrame(update);

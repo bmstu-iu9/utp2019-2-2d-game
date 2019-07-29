@@ -140,7 +140,7 @@ const initUI = () => {
             rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         }
         UIMap.invPanel = invPanel;
-        screenUI.add(invPanel);
+        //screenUI.add(invPanel);
         // Кастомное окно по середине
         let actionPanel = new Sprite(
             [ [0.25, 0], [0.5, 0.25] ],
@@ -165,7 +165,7 @@ const initUI = () => {
                 }
             });
         UIMap.actionPanel = actionPanel;
-        screenUI.add(actionPanel);
+        //screenUI.add(actionPanel);
 
         // Быстрый инвентарь
         let fastInvPanel = new Sprite(

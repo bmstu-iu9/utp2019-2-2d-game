@@ -697,13 +697,15 @@ class Render {
 				}
 			}
 			
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[i]);
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.STREAM_DRAW);
-			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[i]);
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.STREAM_DRAW);
-			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
-			this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
+			if (v > 0) {
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[i]);
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.STREAM_DRAW);
+				this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[i]);
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.STREAM_DRAW);
+				this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
+				this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
+			}
 		}
 		
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);

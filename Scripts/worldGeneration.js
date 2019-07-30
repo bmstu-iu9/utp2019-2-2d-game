@@ -1,29 +1,114 @@
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
-    let elevationMap = new Array();
-    let shadowMap = new Array();
+    console.time('World generation');
+    // seed = 1564182166636;
+    __cheat_seed = seed;
+
     let seedTemp = seed;
     const random = () => {
         let x = Math.sin(seedTemp++) * 10000;
         return x - Math.floor(x);
     }
 
-    let lakeArr = new Array();
-    let dontGenHereArr = new Array();
+    class Point {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+        add(oth) {
+            return new Point(this.x + oth.x, this.y + oth.y);
+        }
+        sub(oth) {
+            return new Point(this.x - oth.x, this.y - oth.y);
+        }
+    }  
+    class Interval { //Одномерный интервал
+        constructor(start, stop) {
+            this.start = start;
+            this.stop = stop;
+        }
+        isSurround(x) {
+            return this.start <= x && x <= this.stop;
+        }
+    }
+
+    //Константы для id блоков и зон
+    //#region defines
+    const AIR_BLOCK = undefined;
+    const STONE_BLOCK = 1;
+    const GRASS_BKOCK = 2;
+    const DIRT_BLOCK = 3;
+    const COBBLESTONE_BLOCK = 4;
+    const BEDROCK_BLOCK = 7;
+    const WATER_BLOCK = 8;
+    const LAVA_BLOCK = 10;
+    const SAND_BLOCK = 12;
+    const GOLD_ORE_BLOCK = 14;
+    const IRON_ORE_BLOCK = 15;
+    const COAL_ORE_BLOCK = 16;
+    const WOOD_BLOCK = 17;
+    const LEAVES_BLOCK = 18;
+    const DIAMOND_ORE_BLOCK = 56;
+
+    const NONE_ZONE = 0;
+    const LAKE_ZONE = 1;
+    const CAVE_ZONE = 2;
+    const LAVA_LAKE_ZONE = 3;
+    const ORE_ZONE = 4;
+    //#endregion
+
+    //Методы для установки/чтения блоков/зон на карте
+    //#region mapIntercations
+    let worldMap = new Array(width);
+    let worldZones = new Array(width); //Массив, описывающий зоны (зона с озером, зона с пещерой и т.д.)
+    for (let i = 0; i < worldMap.length; i++) {
+        worldMap[i] = new Array(height);
+        worldZones[i] = new Array(height);
+        for (let j = 0; j < height; j++)
+            worldMap[i][j] = new Array();
+    }
+    const setBlock = (x, y, layer, block) => {
+        if (x < 0 || y < 0 || x >= width || y >= height)
+            throw "Out of bound";
+        worldMap[x][y][layer] = block;
+    }
+    const getBlock = (x, y, layer) => {
+        if (x < 0 || y < 0 || x >= width || y >= height)
+            return undefined;
+        return worldMap[x][y][layer];
+    }
+    const isBlock = (x, y, layer) => {
+        if (x < 0 || y < 0 || x >= width || y >= height)
+            return undefined;
+        return worldMap[x][y][layer] !== undefined && worldMap[x][y][layer] !== AIR_BLOCK;
+    }
+    const setZone = (x, y, zone) => {
+        worldZones[x][y] = zone;
+    }
+    const getZone = (x, y) => {
+        return worldZones[x][y] !== undefined ? worldZones[x][y] : NONE_ZONE;
+    }
+    //#endregion
+     
+    let elevationMap = new Array();
+    let shadowMap = new Array();
+
+    let dontGenHereArr = new Array(width);
     for (let x = 0; x < width; x++) {
-        lakeArr[x] = new Array();
         dontGenHereArr[x] = false;
     }
 
+    //Методы генерации определенных объектов (поверхности, озер, пещер, и т.п.)
+    //#region methods
     // Генерация массива уровней поверхности
     const landGen = (minHeight, maxHeight, widthWorld, heightWorld) => {
         let heights = [Math.floor((maxHeight + minHeight) / 2)];
 
-        let waterArrStartX = [], waterArrEndX = [];
-        let waterArrStartY = [], waterArrEndY = [];
+        let waterArrStart = [];
+        let waterArrEnd = [];
 
-        let waterStartX = 0, waterEndX = 0;
-        let waterStartY = 0, waterEndY = 0;
+        let waterStart = new Point(0, 0);
+        let waterEnd = new Point(0, 0);
 
         let i = 1;
         let lastSign = 0;
@@ -38,8 +123,7 @@ const generate = (width, height, seed, changes) => {
             }
 
             if (sign === -1 && lastDelta !== 0) {
-                waterStartX = i;
-                waterStartY = heights[i - 1];
+                waterStart = new Point(i, heights[i - 1]);
             }
 
             lastSign = sign;
@@ -67,95 +151,147 @@ const generate = (width, height, seed, changes) => {
                 } else heights.push(nextHeight);
                 sectionLength--;
             }
-            if (sign === 1 && lastDelta !== 0 && waterStartX !== 1 && lastSign !== 0) {
+            if (sign === 1 && lastDelta !== 0 && waterStart.x !== 1 && lastSign !== 0) {
                 if (i - 1 >= widthWorld) {
                     i = widthWorld;
                 }
 
-                waterEndX = i - 1;
+                waterEnd.x = i - 1;
 
-                if (heights[i - 1] > waterStartY) {
-                    waterEndY = waterStartY;
+                if (heights[i - 1] > waterStart.y) {
+                    waterEnd.y = waterStart.y;
                 } else if (random() < 0.07) {
-                    waterEndY = heights[i - 1];
-                    waterStartY = heights[i - 1];
+                    waterEnd.y = heights[i - 1];
+                    waterStart.y = heights[i - 1];
                 }
 
-                if (waterEndY !== 0) {
-                    waterArrStartX.push(waterStartX);
-                    waterArrStartY.push(waterStartY);
-                    waterArrEndX.push(waterEndX);
-                    waterArrEndY.push(waterEndY);
-
-                    waterStartX = 1;
-                    waterEndY = 0;
+                if (waterEnd.y !== 0) {
+                    waterArrStart.push(new Point(waterStart.x, waterStart.y));
+                    waterArrEnd.push(new Point(waterEnd.x, waterEnd.y));
+                    waterStart.x = 1;
+                    waterEnd.y = 0;
                 }
             }
         }
         elevationMap = heights;
-        // Преобразование карты высот в матрицу
-        let arr = new Array;
-        for (let x = 0; x < widthWorld; x++) {
-            arr[x] = new Array;
-            for (let y = 0; y < heightWorld; y++) {
-                arr[x][y] = (y <= heights[x]);
-            }
-        }
         // Заполнение озёр в финальном id массиве
-        for (let i = 0; i < waterArrStartX.length; i++) {
+        for (let i = 0; i < waterArrStart.length; i++) {
             let x;
             let y;
-            for (x = waterArrStartX[i]; x < waterArrEndX[i]; x++) {
-                for (y = waterArrStartY[i]; !arr[x][y]; y--) {
-                    lakeArr[x][y] = 8;
-                    if (arr[x - 1][y]) {
-                        lakeArr[x - 1][y] = 12;
+            for (x = waterArrStart[i].x; x < waterArrEnd[i].x; x++) {
+                for (y = waterArrStart[i].y; y > elevationMap[x]; y--) {
+                    setZone(x, y, LAKE_ZONE);
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, WATER_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, SAND_BLOCK);
+                    setBlock(x, y, GameArea.BACK_LAYOUT, SAND_BLOCK);
+                    if (y <= elevationMap[x - 1]) {
+                        setZone(x - 1, y, LAKE_ZONE);
+                        setBlock(x - 1, y, GameArea.FIRST_LAYOUT, SAND_BLOCK);
+                        setBlock(x - 1, y, GameArea.SECOND_LAYOUT, SAND_BLOCK);
+                        setBlock(x - 1, y, GameArea.BACK_LAYOUT, SAND_BLOCK);
                     }
-                    if (arr[x + 1][y]) {
-                        lakeArr[x + 1][y] = 12;
+                    if (y <= elevationMap[x + 1]) {
+                        setZone(x + 1, y, LAKE_ZONE);
+                        setBlock(x + 1, y, GameArea.FIRST_LAYOUT, SAND_BLOCK);
+                        setBlock(x + 1, y, GameArea.SECOND_LAYOUT, SAND_BLOCK);
+                        setBlock(x + 1, y, GameArea.BACK_LAYOUT, SAND_BLOCK);
                     }
                 }
-
-                if (lakeArr[x][y + 1] === 8 && arr[x][y]) {
-                    lakeArr[x][y] = 12;
+                if (getBlock(x, y + 1, GameArea.FIRST_LAYOUT) === WATER_BLOCK && y <= elevationMap[x]) {
+                    setZone(x, y, LAKE_ZONE);
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, SAND_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, SAND_BLOCK);
+                    setBlock(x, y, GameArea.BACK_LAYOUT, SAND_BLOCK);
                 }
             }
         }
-
-        return arr;
     }
 
-    // Расширение пещеры по её "направляющей"
-    const holeGen = (worldArr, caveX, caveY, maxRadius, dontGenHereArr, dontGenCountX) => {
-        // Выбор радиуса
-        let rand = random() , radius = 1;
-        while (rand < 0.5) {
-            if (radius === maxRadius) {
-                break;
-            }
-            rand = random();
-            radius++;
-        }
-
-        // Очистка блоков в радиусе
-        for (let i = caveX - radius; i <= caveX + radius; i++) {
-            for (let j = caveY - radius; j <= caveY + radius; j++) {
-                if (i >= 0 && i < worldArr.length && j >= 0 && j < worldArr[i].length &&
-                    radius * radius >= (i - caveX) * (i - caveX) + (j - caveY) * (j - caveY)) {
-                        worldArr[i][j] = false;
-                        if (!dontGenHereArr[i]) {
-                            dontGenHereArr[i] = true;
-                            dontGenCountX++;
+    // Создание земли и слоя камня
+    const surfaceGen = () => {
+        for (let x = 0; x < width; x++) {
+            let dirtDepth = Math.floor(random() * 7) + 15;
+            let needGrass = true;
+            for (let y = height - 1; y >= 0; y--) {
+                if (getZone(x, y) === LAKE_ZONE) {
+                    //Если блок - часть озера (песок или вода)
+                    dirtDepth--;
+                    needGrass = false;
+                }
+                else if (getZone(x, y + 1) === LAKE_ZONE && getBlock(x, y + 1, GameArea.FIRST_LAYOUT) === SAND_BLOCK) {
+                    //Если строго над нами - часть озера, и она - песок
+                    //Создаем дополнительную прослойку земли
+                    worldMap[x][y][GameArea.SECOND_LAYOUT] = DIRT_BLOCK;
+                    worldMap[x][y][GameArea.FIRST_LAYOUT] = DIRT_BLOCK;
+                    worldMap[x][y][GameArea.BACK_LAYOUT] = DIRT_BLOCK;
+                } 
+                else if (y <= elevationMap[x]) { //Иначе - если точка ниже уровня земли
+                    if (dirtDepth > 0) {
+                        //Устанавливаем слой земли
+                        if (needGrass) {
+                            //Слой травы
+                            worldMap[x][y][GameArea.SECOND_LAYOUT] = GRASS_BKOCK;
+                            worldMap[x][y][GameArea.BACK_LAYOUT] = GRASS_BKOCK;
+                            if (getZone(x, y) === NONE_ZONE) {
+                                worldMap[x][y][GameArea.FIRST_LAYOUT] = GRASS_BKOCK;
+                            }
+                            needGrass = false;
+                        } else {
+                            //Слой не травы
+                            worldMap[x][y][GameArea.BACK_LAYOUT] = DIRT_BLOCK;
+                            worldMap[x][y][GameArea.SECOND_LAYOUT] = DIRT_BLOCK;
+                            if (getZone(x, y) === NONE_ZONE) {
+                                worldMap[x][y][GameArea.FIRST_LAYOUT] = DIRT_BLOCK;
+                            }
                         }
+                        dirtDepth--;
+                    } 
+                    else {
+                        //Андерграунд
+                        worldMap[x][y][GameArea.BACK_LAYOUT] = STONE_BLOCK;
+                        worldMap[x][y][GameArea.SECOND_LAYOUT] = STONE_BLOCK;
+                        worldMap[x][y][GameArea.FIRST_LAYOUT] = STONE_BLOCK;
+                    }
                 }
             }
         }
-        // Возвращаем новое координат, под которыми есть пещеры
-        return dontGenCountX;
     }
 
-    // Создание "направляющих" для пещер
-    const caveGen = (worldArr, maxCount, maxLength) => {
+    // Создание пещер
+    const caveGen = (maxCount, maxLength) => {
+        const setCaveBlock = (x, y) => {
+            setZone(x, y, CAVE_ZONE);
+            setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+        }
+
+        // Расширение пещеры по её "направляющей"
+        const holeGen = (caveX, caveY, maxRadius, dontGenHereArr, dontGenCountX) => {
+            // Выбор радиуса
+            let rand = random() , radius = 1;
+            while (rand < 0.5) {
+                if (radius === maxRadius) {
+                    break;
+                }
+                rand = random();
+                radius++;
+            }
+
+            // Очистка блоков в радиусе
+            for (let i = caveX - radius; i <= caveX + radius; i++) {
+                for (let j = caveY - radius; j <= caveY + radius; j++) {
+                    if (i >= 0 && i < width && j >= 0 && j < height &&
+                        radius * radius >= (i - caveX) * (i - caveX) + (j - caveY) * (j - caveY)) {
+                            setCaveBlock(i, j);
+                            if (!dontGenHereArr[i]) {
+                                dontGenHereArr[i] = true;
+                                dontGenCountX++;
+                            }
+                    }
+                }
+            }
+            // Возвращаем новое координат, под которыми есть пещеры
+            return dontGenCountX;
+        }
 
         let dontGenHereArr = new Array();
         for (let x = 0; x < width; x++) {
@@ -165,11 +301,11 @@ const generate = (width, height, seed, changes) => {
         let dontGenCountX = 0;
         let count = 0;
 
-        while (dontGenCountX < worldArr.length && maxCount > count) {
+        while (dontGenCountX < width && maxCount > count) {
             let length = random() * 0.95 * maxLength + 0.05 * maxLength;
 
             // Ищем координаты точки старта на поверхности для будущей пещеры
-            let t = Math.ceil(random() * (worldArr.length - dontGenCountX));
+            let t = Math.ceil(random() * (width - dontGenCountX));
             let x = -1;
             while (t > 0) {
                 x++;
@@ -177,15 +313,12 @@ const generate = (width, height, seed, changes) => {
                     t--;
                 }
             }
-            if (lakeArr[x][elevationMap[x]] == 12) {
+            if (getBlock(x, elevationMap[x], GameArea.FIRST_LAYOUT) == SAND_BLOCK) {
                 dontGenCountX++;
                 dontGenHereArr[x] = true;
                 continue;
             }
-            let y = worldArr[0].length - 1;
-            while (y > 0 && !worldArr[x][y]) {
-                y--;
-            };
+            let y = elevationMap[x];
 
             // Запоминаем точку старта
             let startX = x;
@@ -197,7 +330,8 @@ const generate = (width, height, seed, changes) => {
 
             // Ищем следующую координату
             let randK = (random() > 0.5) ? 1 : -1;
-            while (caveArrX.length < length && y > 0 && x >= 0 && x < worldArr.length && worldArr[x][y]) {
+            // while (caveArrX.length < length && y > 0 && x >= 0 && x < width && worldArr[x][y]) {
+            while (caveArrX.length < length && y > 0 && x >= 0 && x < width && y <= elevationMap[x]) {
                 caveArrX.push(x);
                 caveArrY.push(y);
                 let nextX = x;
@@ -248,18 +382,103 @@ const generate = (width, height, seed, changes) => {
             if (caveArrX.length > 0.05 * maxLength) {
                 // Формируем пещеру по направляющей
                 for (let i = 0; i < caveArrX.length; i++) {
-                    dontGenCountX = holeGen(worldArr, caveArrX[i], caveArrY[i], 3, dontGenHereArr, dontGenCountX); // Дыры радиуса от 1 до 3
+                    dontGenCountX = holeGen(caveArrX[i], caveArrY[i], 3, dontGenHereArr, dontGenCountX); // Дыры радиуса от 1 до 3
                 }
                 count++;
             }
         }
-        return worldArr;
+    }
+
+    // Генерация руд
+    const oreGen = () => {
+        // Создать одну залежь руды
+        const createOre = (type, radius, x, y) => {
+            // Очистка блоков в радиусе
+            for (let i = x - radius; i <= x + radius; i++) {
+                for (let j = y - radius; j <= y + radius; j++) {
+                    if (i >= 0 && i < width && j >= 0 && j < height &&
+                        radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
+                        if (random() > 0.3) {
+                            if (getBlock(i, j, GameArea.FIRST_LAYOUT) === STONE_BLOCK)
+                                setBlock(i, j, GameArea.FIRST_LAYOUT, type);
+                            if (random() < 0.5 && getBlock(i, j, GameArea.SECOND_LAYOUT) === STONE_BLOCK)
+                                setBlock(i, j, GameArea.SECOND_LAYOUT, type);
+                        }
+                    }
+                }
+            }
+        } 
+        
+        // Разместить руды определенного типа
+        const placeOres = (type, frequency, maxRadius, minRadius, minHeight, maxHeight) => {
+            minHeight *= height;
+            maxHeight *= height;
+            for (let i = 0; i < Math.floor(height * (maxHeight - minHeight)) * frequency; i++) {
+                createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)),
+					Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
+            }
+        }
+
+        placeOres(COAL_ORE_BLOCK, 1 / 300, 3, 2, 0, 0.7);
+        placeOres(IRON_ORE_BLOCK, 1 / 400, 2, 1, 0, 0.5);
+        placeOres(GOLD_ORE_BLOCK, 1 / 600, 2, 1, 0.1, 0.4);
+        placeOres(DIAMOND_ORE_BLOCK, 1 / 1200, 1, 1, 0, 0.3);
+    }
+    
+    // Создание пещер с лавовыми озерами
+    const lavaLakes = (minHeight, maxHeight, frequency) => {
+        let curLake; //Точки озера
+        const noCaveAround = (x, y) => {      
+            return isBlock(x + 1, y, GameArea.FIRST_LAYOUT)
+                && isBlock(x - 1, y, GameArea.FIRST_LAYOUT)
+                && isBlock(x, y + 1, GameArea.FIRST_LAYOUT)
+                && isBlock(x, y - 1, GameArea.FIRST_LAYOUT);
+        }
+        // Создать полость радиуса
+        const createHole = (radius, x, y) => {
+            for (let i = x - radius; i <= x + radius; i++) {
+                if (i > 0 && i < width - 1) {
+                    for (let j = y - radius; j <= y + radius; j++) {
+                        if (j > 0 && j < height - 1 && radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
+                            if (noCaveAround(i, j)) {
+                                curLake.push(new Point(i, j));
+                            } else {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (let j = 0; j < Math.floor(height * (maxHeight - minHeight)) * frequency; j++) {
+            curLake = new Array();
+            let length = Math.floor(random() * 4) + 2;
+            let maxCenterHeight = 0;
+
+            let x = Math.floor(random() * width);
+            let y = Math.floor(random() * (maxHeight - minHeight)) + minHeight;
+            for (let i = 0; i < length; i++) {
+                createHole(Math.floor(random() * 4) + 3, x, y);
+                maxCenterHeight = Math.max(maxCenterHeight, y);
+                x++;
+                y = Math.floor(random() * 3) - 1 + y;
+            }
+            for (let i = 0; i < curLake.length; i++) {
+                if (curLake[i].y <= maxCenterHeight) {
+                    setZone(curLake[i].x, curLake[i].y, LAVA_LAKE_ZONE);
+                    setBlock(curLake[i].x, curLake[i].y, GameArea.FIRST_LAYOUT, LAVA_BLOCK);
+                } else {
+                    setZone(curLake[i].x, curLake[i].y, LAVA_LAKE_ZONE);
+                    setBlock(curLake[i].x, curLake[i].y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                }
+            }
+        }
     }
 
     // Генерция деревьев
-    const treeGen = (heights, worldArr, minHeight, maxHeight, maxCountOfTree) => {
-
-        const foliageGen = (worldArr, treeArr, treeX, treeY, layout) => {
+    const treeGen = (minHeight, maxHeight, maxCountOfTree) => {
+        const foliageGen = (treeArr, treeX, treeY, layout) => {
             let rand = random(), radius = 2;
             while (rand < 0.3) {
                 if (radius === 3) {
@@ -271,45 +490,48 @@ const generate = (width, height, seed, changes) => {
 
             for (let i = treeX - radius; i <= treeX + radius; i++) {
                 for (let j = treeY - radius; j <= treeY + radius; j++) {
-                    if (i >= 0 && i < worldArr.length && j >= 0 && j < worldArr[i].length
-						&& radius * radius >= (i - treeX) * (i - treeX) + (j - treeY) * (j - treeY)
-						&& treeArr[i][j] < 1 && !worldArr[i][j]) {
-                    	if(layout === GameArea.FIRST_LAYOUT) {
-                    		treeArr[i][j] = 2;
-                    	} else {
-                    		treeArr[i][j] = 4;
-                    	}
+                    if (i >= 0 && i < width && j >= 0 && j < height
+                        && radius * radius >= (i - treeX) * (i - treeX) + (j - treeY) * (j - treeY)
+                        && treeArr[i][j] < 1 && !isBlock(i, j, GameArea.FIRST_LAYOUT)) {
+                        if (layout === GameArea.FIRST_LAYOUT) {
+                            treeArr[i][j] = 2;
+                            setBlock(i, j, GameArea.FIRST_LAYOUT, LEAVES_BLOCK);
+                        } else {
+                            treeArr[i][j] = 4;
+                            setBlock(i, j, GameArea.SECOND_LAYOUT, LEAVES_BLOCK);
+                        }
                     }
                 }
             }
         }
 
+
         let treeArr = new Array();
 
-        for (let i = 0; i < worldArr.length; i++) {
+        for (let i = 0; i < width; i++) {
             treeArr[i] = new Array();
-            for (let j = 0; j < worldArr[i].length; j++) {
+            for (let j = 0; j < height; j++) {
                 treeArr[i].push(0);
             }
         }
 
         let isTreeX = [];
-        for (let i = 0; i < worldArr.length; i++) {
+        for (let i = 0; i < width; i++) {
             isTreeX[i] = false;
         }
 
         let countTree = 0;
         let countTreeX = 0;
 
-        while (countTreeX < worldArr.length && countTree < maxCountOfTree) {
-        	let layout = random() > 0.5 ? GameArea.FIRST_LAYOUT : GameArea.SECOND_LAYOUT;
+        while (countTreeX < width && countTree < maxCountOfTree) {
+            let layout = random() > 0.5 ? GameArea.FIRST_LAYOUT : GameArea.SECOND_LAYOUT;
 
             let treeArrX = [], endOfBranchX = [];
             let treeArrY = [], endOfBranchY = [];
 
             let t, x, y;
             do {
-                t = Math.ceil(random() * (worldArr.length - countTreeX));
+                t = Math.ceil(random() * (width - countTreeX));
                 x = -1;
                 while (t > 0) {
                     x++;
@@ -317,17 +539,18 @@ const generate = (width, height, seed, changes) => {
                         t--;
                     }
                 }
-                y = heights[x];
+                y = elevationMap[x];
 
                 isTreeX[x] = true;
                 countTreeX++;
             }
-            while (!worldArr[x][y] && countTreeX < worldArr.length);
-            if (!worldArr[x][y] && countTreeX <= worldArr.length) {
-                countTreeX = worldArr.length;
+            while (!isBlock(x, y, GameArea.FIRST_LAYOUT) && countTreeX < width);
+            if (!isBlock(x, y, GameArea.FIRST_LAYOUT) && countTreeX <= width) {
+                countTreeX = width;
                 break;
             } else {
-                if (lakeArr[x][elevationMap[x]] == 12 && countTreeX <= worldArr.length) continue;
+                if (getBlock(x, elevationMap[x], GameArea.FIRST_LAYOUT) == SAND_BLOCK && countTreeX <= width)
+                    continue;
                 countTree++;
             }
 
@@ -343,12 +566,12 @@ const generate = (width, height, seed, changes) => {
             let currentBranchLength; // Длина рассматриваемой боковой ветки
             let currentHeight = Math.ceil(random() * (maxHeight - minHeight)) + minHeight;
 
-            while (((x >= 0 && x < worldArr.length && y < worldArr[x].length && !worldArr[x][y] && !isTreeX[x]) ||
-                (forkY < worldArr[forkX].length && !worldArr[forkX][forkY])) && (forkY - startY < currentHeight)) {
+            while (((x >= 0 && x < width && y < height && !isBlock(x, y, GameArea.FIRST_LAYOUT) && !isTreeX[x]) ||
+                (forkY < height && !isBlock(forkX, forkY, GameArea.FIRST_LAYOUT))) && (forkY - startY < currentHeight)) {
 
                 if (x !== startX &&
-                    (currentBranchLength === 0 || !(x >= 0 && x < worldArr.length && y < worldArr[x].length
-                        && !worldArr[x][y] && !isTreeX[x]) ||
+                    (currentBranchLength === 0 || !(x >= 0 && x < width && y < height
+                        && !isBlock(x, y, GameArea.FIRST_LAYOUT) && !isTreeX[x]) ||
                     (y - startY >= maxHeight))) {
                     if (lastBranchX !== startX) {
                         endOfBranchX.push(lastBranchX);
@@ -418,11 +641,13 @@ const generate = (width, height, seed, changes) => {
             endOfBranchY.push(forkY);
 
             for (let i = 0; i < treeArrX.length; i++) {
-            	if(layout === GameArea.FIRST_LAYOUT) {
-	                treeArr[treeArrX[i]][treeArrY[i]] = 1;
-	            } else {
-	            	treeArr[treeArrX[i]][treeArrY[i]] = 3;
-	            }
+                if(layout === GameArea.FIRST_LAYOUT) {
+                    treeArr[treeArrX[i]][treeArrY[i]] = 1;
+                    setBlock(treeArrX[i], treeArrY[i], GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                } else {
+                    treeArr[treeArrX[i]][treeArrY[i]] = 3;
+                    setBlock(treeArrX[i], treeArrY[i], GameArea.SECOND_LAYOUT, WOOD_BLOCK);
+                }
             }
 
             for (let i = 0; i < endOfBranchX.length; i++) {
@@ -430,217 +655,39 @@ const generate = (width, height, seed, changes) => {
                 if (endOfBranchX[i] < leftEdge) leftEdge = endOfBranchX[i];
                 if (endOfBranchX[i] > rightEdge) rightEdge = endOfBranchX[i];
 
-                foliageGen(worldArr, treeArr, endOfBranchX[i], endOfBranchY[i], layout);
+                foliageGen(treeArr, endOfBranchX[i], endOfBranchY[i], layout);
             }
 
             for (let i = leftEdge - 7; i <= rightEdge + 7; i++) {
-                if (i >= 0 && i < worldArr.length) {
+                if (i >= 0 && i < width) {
                     if (!isTreeX[i]) countTreeX++;
                     isTreeX[i] = true;
                 }
             }
         }
-        return treeArr;
     }
+    //#endregion
 
-
-    // Генерация руд
-    const oreGen = () => {
-        let oreArr = new Array();
-        for (let i = 0; i < width; i++) {
-            oreArr[i] = new Array();
-        }
-
-        // Создать одну залежь руды
-        const createOre = (type, radius, x, y) => {
-            // Очистка блоков в радиусе
-            for (let i = x - radius; i <= x + radius; i++) {
-                for (let j = y - radius; j <= y + radius; j++) {
-                    if (i >= 0 && i < width && j >= 0 && j < height &&
-                        radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
-                        if (random() > 0.3) {
-                            oreArr[i][j] = type;
-                        }
-                    }
-                }
-            }
-        } 
-        
-        // Разместить руды определенного типа
-        const placeOres = (type, frequency, maxRadius, minRadius, minHeight, maxHeight) => {
-            minHeight *= height;
-            maxHeight *= height;
-            for (let i = 0; i < Math.floor(height * (maxHeight - minHeight)) * frequency; i++) {
-                createOre(type, minRadius + Math.floor(random() * (maxRadius - minRadius)),
-					Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
-            }
-        }
-
-        // Уголь
-        placeOres(16, 1 / 300, 3, 2, 0, 0.7);
-
-        // Железо
-        placeOres(15, 1 / 400, 2, 1, 0, 0.5);
-
-        // Золото
-        placeOres(14, 1 / 600, 2, 1, 0.1, 0.4);
-
-        // Алмазы
-        placeOres(56, 1 / 1200, 1, 1, 0, 0.3);
-
-        return oreArr;
-    }
-
-    const lavaLakes = (oreArr, withCavesMatrix, minHeight, maxHeight, frequency) => {
-        let lakeX = new Array();
-        let lakeY = new Array();
-        // Создать полость радиуса
-        const createHole = (radius, x, y) => {
-            for (let i = x - radius; i <= x + radius; i++) {
-                if (i > 0 && i < width - 1) {
-                    for (let j = y - radius; j <= y + radius; j++) {
-                        if (j > 0 && j < height - 1 && radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
-                            if (noCaveAround(i, j)) {
-                                lakeX.push(i);
-                                lakeY.push(j);
-                            } else {
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        const noCaveAround = (x, y) => {
-            return withCavesMatrix[x + 1][y] && withCavesMatrix[x - 1][y]
-                && withCavesMatrix[x][y + 1] && withCavesMatrix[x][y - 1]
-                && oreArr[x + 1][y] !== 10 && oreArr[x - 1][y] !== 10
-                && oreArr[x][y + 1] !== 10 && oreArr[x][y - 1] !== 10;
-        }
-
-        for (let j = 0; j < Math.floor(height * (maxHeight - minHeight)) * frequency; j++) {
-            lakeX = new Array();
-            lakeY = new Array();
-            let length = Math.floor(random() * 4) + 2;
-            let maxCenterHeight = 0;
-
-            let x = Math.floor(random() * width);
-            let y = Math.floor(random() * (maxHeight - minHeight)) + minHeight;
-            for (let i = 0; i < length; i++) {
-                createHole(Math.floor(random() * 4) + 3, x, y);
-                maxCenterHeight = Math.max(maxCenterHeight, y);
-                x++;
-                y = Math.floor(random() * 3) - 1 + y;
-            }
-            for (let i = 0; i < lakeX.length; i++) {
-                if (lakeY[i] <= maxCenterHeight) {
-                    oreArr[lakeX[i]][lakeY[i]] = 10; // id лавы
-                } else {
-                    withCavesMatrix[lakeX[i]][lakeY[i]] = undefined;
-                }
-            }
-        }
-    }
-
-    let landMatrix = landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height);
-
-    let landMatrix1 = new Array;
-    for (let i = 0; i < landMatrix.length; i++) {
-        landMatrix1[i] = new Array;
-        for (let j = 0; j < landMatrix.length; j++) {
-            landMatrix1[i][j] = landMatrix[i][j];
-        }
-    }
-
-    let withCavesMatrix = caveGen(landMatrix1, width / 100, height);
-
-    let oreArr = oreGen();
-
-    lavaLakes(oreArr, withCavesMatrix, 20, height / 2, 1 / 4000);
-
-    let worldMap = new Array();
+    //Процесс генерации
+    landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height); //elevationMap + озера
+    surfaceGen();
+    caveGen(width / 100, height / 3);
+    oreGen();
+    lavaLakes(20, height / 2, 1 / 4000);
+    treeGen(16, 19, Math.floor(width * 2 / 3));
+    
+    //Слой бедрока
     for (let x = 0; x < width; x++) {
-        worldMap[x] = new Array();
-        let grassDepth = Math.floor(random() * 7) + 15;
-        let dirtDepth = grassDepth - 1;
-        for (let y = height - 1; y >= 0; y--) {
-            worldMap[x][y] = new Array();
-            if (lakeArr[x][y] != undefined) {
-                worldMap[x][y][GameArea.FIRST_LAYOUT] = lakeArr[x][y];
-                worldMap[x][y][GameArea.SECOND_LAYOUT] = 12; // ID песка
-                worldMap[x][y][GameArea.BACK_LAYOUT] = 12; // ID песка
-                dirtDepth = --grassDepth;
-            } else if (lakeArr[x][y + 1] == 12) {
-                worldMap[x][y][GameArea.SECOND_LAYOUT] = 3; // ID грязи
-                worldMap[x][y][GameArea.FIRST_LAYOUT] = 3; // ID грязи
-                worldMap[x][y][GameArea.BACK_LAYOUT] = 3; // ID грязи
-            } else if (landMatrix[x][y]) {
-                if (grassDepth > 0 && oreArr[x][y] != 10) { // id лавы
-                    if (grassDepth > dirtDepth) {
-                        worldMap[x][y][GameArea.SECOND_LAYOUT] = 2; // ID травы
-                        worldMap[x][y][GameArea.BACK_LAYOUT] = 2; // ID травы
-                        if (withCavesMatrix[x][y]) {
-                            worldMap[x][y][GameArea.FIRST_LAYOUT] = 2; // ID травы
-                        }
-                    } else {
-                    	worldMap[x][y][GameArea.BACK_LAYOUT] = 3; // ID грязи
-                        worldMap[x][y][GameArea.SECOND_LAYOUT] = 3; // ID грязи
-                        if (withCavesMatrix[x][y]) {
-                            worldMap[x][y][GameArea.FIRST_LAYOUT] = 3; // ID грязи
-                        }
-                    }
-                    grassDepth--;
-                } else {
-                    worldMap[x][y][GameArea.BACK_LAYOUT] = 1; // ID камня
-                    worldMap[x][y][GameArea.SECOND_LAYOUT] = 1; // ID камня
-                    if (withCavesMatrix[x][y]) {
-                        if (oreArr[x][y] != undefined) {
-                            worldMap[x][y][GameArea.FIRST_LAYOUT] = oreArr[x][y];
-                            if(random() > 0.5) {
-                            	 worldMap[x][y][GameArea.SECOND_LAYOUT] = oreArr[x][y];
-                            } else {
-                            	worldMap[x][y][GameArea.SECOND_LAYOUT] = 1; // ID камня
-                            }
-                        } else {
-                            worldMap[x][y][GameArea.FIRST_LAYOUT] = 1; // ID камня
-                            worldMap[x][y][GameArea.SECOND_LAYOUT] = 1; // ID камня
-                        }
-                    }
-                }
-            }
-        }
         let bedrockHeight = Math.floor(random() * 3) + 1
         for (let y = 0; y < bedrockHeight; y++) {
-            worldMap[x][y][GameArea.FIRST_LAYOUT] = 7; // ID бедрока
-            worldMap[x][y][GameArea.SECOND_LAYOUT] = 7; // ID бедрока
-            worldMap[x][y][GameArea.BACK_LAYOUT] = 7; // ID бедрока
+            worldMap[x][y][GameArea.FIRST_LAYOUT] = BEDROCK_BLOCK;
+            worldMap[x][y][GameArea.SECOND_LAYOUT] = BEDROCK_BLOCK;
+            worldMap[x][y][GameArea.BACK_LAYOUT] = BEDROCK_BLOCK;
         }
     }
 
-    // Установка деревьев
-    let treeArr = treeGen(elevationMap, withCavesMatrix, 16, 19, Math.floor(width * 2 / 3));
-    for (let i = 0; i < treeArr.length; i++) {
-        for (let j = 0; j < treeArr[i].length; j++) {
-            if (!treeArr[i][j] == 0) {
-            	switch(treeArr[i][j]){
-            		case 1:
-            			worldMap[i][j][GameArea.FIRST_LAYOUT] = 17;
-            			break;
-            		case 2:
-            			worldMap[i][j][GameArea.FIRST_LAYOUT] = 18;
-            			break;
-            		case 3: 
-            			worldMap[i][j][GameArea.SECOND_LAYOUT] = 17;
-            			break;
-            		case 4:
-            			worldMap[i][j][GameArea.SECOND_LAYOUT] = 18;
-            			break;
-            	}
-            }
-        }
-    }
-
-
+    //Что-то связанное с освещением
+    //#region shading
     const shadowRound = (startX, startY, x, y, n, isNatural) => {
         const step = (nextX, nextY, n) => {
             if (n > 0 && (startX - x) * (startX - x) + (startY - y) * (startY - y) < (startX - nextX) * (startX - nextX)
@@ -694,16 +741,18 @@ const generate = (width, height, seed, changes) => {
             }
         }
     }
-
+    
     // Внесение изменений в сгенерировааный мир до расчета теней
 	for (let i in changes) {
 		worldMap[changes[i].x][changes[i].y][changes[i].layout] = changes[i].newValue;
-	}
-
+    }
+    
     // Создть карту освещения
     createShadows(9);
 
+    console.timeEnd('World generation');
     return new GameArea(worldMap, elevationMap, shadowMap, width, height);
+    //#endregion
 }
 
 // Визуализация полученной матрицы в консоли

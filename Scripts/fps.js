@@ -29,6 +29,7 @@ const fpsUpdate = () => {
 			}
 		}
 		document.getElementById('fps').innerHTML += AVG + ' AVG';
+		document.getElementById('fps').innerHTML += ` x:${player.x} y:${player.y}`;
 		_fpsTime += 1000;
 		_fpsCountner = 0;
 	}

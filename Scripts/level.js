@@ -190,7 +190,8 @@ const playerMovement = () => {
 	let headY = Math.floor(player.y + Player.HEAD_Y);
 
 	// Урон от удушья 
-	if (gameArea.map[headX][headY][player.layout]
+	if (!__cheat_spectator &&
+		gameArea.map[headX][headY][player.layout]
 		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
 			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
@@ -199,7 +200,13 @@ const playerMovement = () => {
 	}
 	let liquidK = player.getLiquidK();
 
-	if (liquidK == 0) { // Если игрок на суше
+	if (__cheat_spectator) {
+		if (controller.left.active) player.fx -= Player.SPEED * deltaTime;
+		if (controller.right.active) player.fx += Player.SPEED * deltaTime;
+		if (controller.up.active) player.fy += Player.SPEED * deltaTime;
+		if (controller.down.active) player.fy -= Player.SPEED * deltaTime;
+	}
+	else if (liquidK == 0) { // Если игрок на суше
 		if (player.onGround()) { //....................................................... Если игрок на поверхности
 			player.vy = Math.max(player.vy, 0);
 			if (controller.up.active) {

@@ -140,15 +140,15 @@ class Render {
 		if (!this.gl) {
 			webglver = '1';
 			this.gl = canvas.getContext('webgl', {
-          premultipliedAlpha: false,
-          alpha: false
-        }); // получаем доступ к webgl
+					premultipliedAlpha: false,
+					alpha: false
+				}); // получаем доступ к webgl
 			if (!this.gl) {
 				webglver = 'exp'
 				this.gl = canvas.getContext('experimental-webgl', {
-            premultipliedAlpha: false,
-            alpha: false
-          }); // получаем доступ к experimental-webgl
+						premultipliedAlpha: false,
+						alpha: false
+					}); // получаем доступ к experimental-webgl
 				if (!this.gl) {
 					const ErrorMsg = 'Browser is very old';
 					stop();
@@ -296,7 +296,7 @@ class Render {
 		
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
-    
+		
 		//stat
 		const dpr = window.devicePixelRatio;
 		_params += 'webgl=' + encodeURIComponent(webglver);

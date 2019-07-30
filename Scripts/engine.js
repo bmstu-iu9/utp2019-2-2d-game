@@ -4,15 +4,16 @@
 
 // Не лезь, оно тебя сожрёт!
 
-/*
+/***********************************************************************************************************************
 Как это использовать?
 
-const r = new Render(image, background, playerImage); // инициализация движка
+	ИНИЗАЛИЗАЦИЯ
+Инициализация движка:
+const r = new Render();
+r.init(image, background, playerImage);
 	image - это объект Image
 	background - это изображение с фоном объекта Image
 	playerImage - это изображение с игроком объекта Image
-
-Для корректного изображения фона, левая и правая половины фона должны быть абсолютно одинаковыми!!!
 
 Пример использования типа Image:
 const image = new Image();
@@ -21,37 +22,50 @@ image.onload = () => {
 	...
 }
 
-Изображения должны находится в виде текстурного аталаса, которые будут с помощью текстурных координат частично
+Изображения должны находится в виде текстурного атласа, которые будут с помощью текстурных координат частично
 использоваться.
-Рекомендуется использовать размер степени двойки.
+Изображения должны быть квадратными и использовать размер степени двойки.
 
 Настройка (должна быть вызвана перед созданием объектов обязательно):
-r.settings(size, widthChunk, heightChunk)
+.settings(size, widthChunk, heightChunk)
 	size - размер блоков
 	widthChunk - ширина чанков
 	heightChunk - высота чанков
 
 Создание объектов:
-r.createObjects(arrayOfObjects)
+.createObjects(arrayOfObjects)
 	arrayOfChunk - массив/объект таких ассоциативных массивов:
 		{'id': id, 'a': [x1, y1], 'b': [x2, y2]}
 			id - id блока
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
 
+	ОТРИСОВКА
+Отрисовка чанка в буфер кадров (создание/обновление):
+.drawChunk(x, y, blocksOfChunk, lightChunk)
+	x, y - координаты чанка
+	blocksOfChunk - массив чанков блоков
+	lightChunk - чанк освещения
+
+Удаление чанка из буфера кадров:
+.deleteChunk(x, y)
+	x, y - координаты чанка
+
 Отрисовка:
-r.render(xc, yc, xp, yp, scale, arrayOfObjects)
+.render(xc, yc, xp, yp, scale, time, deltaTime, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer)
 	xc, yc - координаты камеры
 	xp, yp - координаты игрока
 	scale - масштаб экрана
-	arrayOfObjects - массив/объект чанков, которые представляются в виде ассоциативных массивов:
-		{'chunk': chunk', 'slice': slice, 'x': xc, 'y': yc}
-			chunk - матрица с id блоков
-			slice - слой на котором должен находиться чанк (1..10]
-			light - освещённость слоя [0..1]
-			xc, yc - координаты чанка
+	time - время прошедшее с начала работы игры (или с какого-то определённого момента, главное, что оно не обнуляется
+		во время игры
+	deltaTime - время прошедшее между отрисовкой предыдущего и текущего кадра в секундах
+	lightOfDay - освещение фона [0..1]
+	lightOfPlayer - освещение игрового персонажа [0..1]
+	slicePlayer - 1 = игрок перед передним слоем, 2 = игрок за передним слоем
+	rotatePlayer - если значение положительное, то игровой персонаж повёрнут направо, если отрицательное, то игровой
+		персонаж повёрнут налево
 
-Полный рабочий пример:
+Полный рабочий пример (на данный момент не актуален):
 
 const image = new Image();
 image.src = 'Images/image.png';
@@ -90,12 +104,12 @@ image.onload = () => {
 			}
 			requestAnimationFrame(update);
 		};
-    };
+	};
 };
 
 Чего-то непонятно?
 Обращаться к Надиму
-*/
+***********************************************************************************************************************/
 
 /*
 Не трограть! Это важно!
@@ -114,10 +128,9 @@ a_position: 0
 a_texCoord: 1
 
 SHADER 3:
-a_positionPlayer: 0
-a_texCoordPlayer: 1
+нет зависимостей
 
-SHADER 4:
+SHADER 4 (находится в ветке Interface):
 позиция: 0
 текстура: 1
 
@@ -262,17 +275,13 @@ class Render {
 		// SHADER PROGRAM 3
 		const vertexShader3 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[3]);
 		const fragmentShader3 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[3]);
-		const linker3 = [
-			{
-				'id': _positionAttributeLocation,
-				'name': 'a_position'
-			},
-			{
-				'id': _texCoordAttributeLocation,
-				'name': 'a_texCoord'
-			}];
-		this.program[3] = this.createProgram(vertexShader3, fragmentShader3, linker3);
+		this.program[3] = this.createProgram(vertexShader3, fragmentShader3);
 		this.gl.useProgram(this.program[3]);
+		
+		this.attribute[3] = this.createAttributeLocation(this.program[3], [
+				'a_position',
+				'a_texCoord'
+			]); // получение атрибутов из шейдеров
 		
 		/* ПОЖАЛУЙСТА, НЕ СЛИВАЙТЕ ИЗ Interface В Player САМОСТОЯТЕЛЬНО!!! */
 		
@@ -571,12 +580,12 @@ class Render {
 	}
 	
 	getPlayerParts(head, body, legs) {
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		
 		this.gl.useProgram(this.program[3]);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
+		this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
+		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
+		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
 			this.texturePlayer, 0);
@@ -691,10 +700,10 @@ class Render {
 			
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[i]);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.STREAM_DRAW);
-			this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[i]);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.STREAM_DRAW);
-			this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 		}
 		
@@ -926,7 +935,7 @@ class Render {
 				this.weather[2] -= deltaTime * speedRain * 1.5;
 			}
 			if (!this.rain) {
-				this.weather[3] -= deltaTime * 2;
+				this.weather[3] -= deltaTime;
 			}
 		}
 	}

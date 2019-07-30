@@ -299,8 +299,7 @@ class Render {
 				'u_translate',
 				'u_resolution',
 				'u_number',
-				'u_time',
-				'u_elevation'
+				'u_time'
 			]); // получение uniform-переменных из шейдеров
 		
 		// используем шейдерную программу
@@ -921,36 +920,36 @@ class Render {
 			const h = 2 / this.gl.canvas.height;
 			
 			this.gl.uniform1f(this.uniform[5].u_time, time * speedRain * 0.0001);
-			this.gl.uniform1f(this.uniform[5].u_resolution, w);
-			console.log(xh);
+			this.gl.uniform2f(this.uniform[5].u_resolution, w, h);
+			
 			if (num == 1) {
 				const t = Math.ceil(Math.log(1 / raw) / Math.log(2));
 				for (let i = 0; i < xh; i += t) {
 					const yt = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-					this.gl.uniform1f(this.uniform[5].u_translate, (xt - i) * w);
-					this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt, this.weather[2]) * h);
+					this.gl.uniform2f(this.uniform[5].u_translate, (xt - i) * w, Math.max(yt, this.weather[2]) * h);
 					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
 					
 					const yt2 = (this.elevationMap[Math.floor(xc + i + t)] + 1 - yc) * this.size;
-					this.gl.uniform1f(this.uniform[5].u_translate, Math.floor(i + t + xt) * w);
-					this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt2, this.weather[2]) * h);
+					this.gl.uniform2f(this.uniform[5].u_translate, Math.floor(xt + i + t) * w, 
+						Math.max(yt2, this.weather[2]) * h);
 					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
 				}
 			} else {
 				for (let i = 0; i < xh; i++) {
 					const yt = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-					this.gl.uniform1f(this.uniform[5].u_translate, (xt - i) * w);
-					this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt, this.weather[2]) * h);
+					this.gl.uniform2f(this.uniform[5].u_translate, (xt - i) * w, Math.max(yt, this.weather[2]) * h);
 					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
 					
 					const yt2 = (this.elevationMap[Math.floor(xc + i + 1)] + 1 - yc) * this.size;
-					this.gl.uniform1f(this.uniform[5].u_translate, (i + 1 + xt) * w);
-					this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt2, this.weather[2]) * h);
+					this.gl.uniform2f(this.uniform[5].u_translate, (xt + i + 1) * w,
+						Math.max(yt2, this.weather[2]) * h);
 					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
 				}
 			}
-			this.weather[2] -= deltaTime * speedRain * 95;
-			if (!this.rain) {
+			this.weather[2] -= deltaTime * speedRain * 92;
+			if (this.rain) {
+				this.weather[3] = Math.min(this.weather[3] + deltaTime * speedRain / 6, this.size);
+			} else {
 				this.weather[3] -= deltaTime * speedRain / 6;
 			}
 		}
@@ -959,7 +958,7 @@ class Render {
 	startRain() {
 		if (!this.rain) {
 			this.weather[2] = this.gl.canvas.height / 2;
-			this.weather[3] = this.size;
+			this.weather[3] = 1;
 		}
 		this.rain = true;
 	}

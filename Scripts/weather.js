@@ -26,10 +26,13 @@ const elevationUpdate = (x, y) => {
 
 const initRain = () => {
 	render.elevationMap = _elevationMap;
-	setTimeout(startRain, 30000 + 10000 * Math.random);
+	setTimeout(startRain, 30000 + 10000 * Math.random());
 }
 
 const startRain = () => {
+	if (!render.rain) {
+		render.weather[2] = render.gl.canvas.height / 2;
+	}
 	render.rain = true;
 	setTimeout(stopRain, 30000 + 10000 * Math.random());
 }

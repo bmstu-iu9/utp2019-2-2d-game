@@ -332,6 +332,7 @@ class Render {
 		this.weather = [];
 		this.weather[0] = this.gl.createBuffer();
 		this.weather[1] = 0;
+		this.weather[2] = 0;
 	}
 	
 	init(image, background, playerImage) {
@@ -723,7 +724,7 @@ class Render {
 		return this.arrayOfChunks[`${x}x${y}`] != undefined;
 	}
 	
-	render(xc, yc, xp, yp, scale, time, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer) {
+	render(xc, yc, xp, yp, scale, time, deltaTime, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer) {
 		this.resizeCanvas(this.gl.canvas); // подгоняем канвас под экран
 		
 		// "вырезаем" кусок экрана для отображения
@@ -884,6 +885,8 @@ class Render {
 		
 		// дождь
 		if (this.rain) {
+			const speedRain = 4;
+			
 			this.gl.useProgram(this.program[5]);
 			const xh = Math.round(this.gl.canvas.width / this.size / 2 + 1);
 			const num = Math.round(this.size * this.gl.canvas.height / 1000);
@@ -905,19 +908,20 @@ class Render {
 			const w = this.size / this.gl.canvas.width;
 			const h = 2 / this.gl.canvas.height;
 			
-			this.gl.uniform1f(this.uniform[5].u_time, time * 0.0004);
+			this.gl.uniform1f(this.uniform[5].u_time, time * speedRain * 0.0001);
 			this.gl.uniform1f(this.uniform[5].u_resolution, w);
 			
 			for (let i = 0; i < xh; i++) {
 				const yt = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
 				this.gl.uniform1f(this.uniform[5].u_translate, (xt - i) * w);
-				this.gl.uniform1f(this.uniform[5].u_elevation, yt * h);
+				this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt, this.weather[2]) * h);
 				this.gl.drawArrays(this.gl.POINTS, num * i * 2, num);
 				
 				const yt2 = (this.elevationMap[Math.floor(xc + i + 1)] + 1 - yc) * this.size;
 				this.gl.uniform1f(this.uniform[5].u_translate, (i + 1 + xt) * w);
-				this.gl.uniform1f(this.uniform[5].u_elevation, yt2 * h);
+				this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt2, this.weather[2]) * h);
 				this.gl.drawArrays(this.gl.POINTS, num * i * 2 + num, num);
+				this.weather[2] -= deltaTime * speedRain * 1.5;
 			}
 		}
 	}

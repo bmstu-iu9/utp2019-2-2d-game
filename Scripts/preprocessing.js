@@ -235,8 +235,8 @@ image.onload = () => {
 				gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
 				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 				const lightOfPlayer = player.getLight(); // освещённость игрока
-				render.render(cameraX, cameraY, player.x, player.y, cameraScale, oldTime, lightOfDay, lightOfPlayer,
-					slicePlayer, player.direction);
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale, oldTime, deltaTime, lightOfDay,
+					lightOfPlayer, slicePlayer, player.direction);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}

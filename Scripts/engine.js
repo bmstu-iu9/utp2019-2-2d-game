@@ -890,8 +890,9 @@ class Render {
 			
 			this.gl.useProgram(this.program[5]);
 			const xh = Math.round(this.gl.canvas.width / this.size / 2 + 1);
+			const maxnum = Math.round(this.size * this.gl.canvas.height / 1000);
 			const num = Math.round(this.weather[3] * this.gl.canvas.height / 1000);
-			const max = num * xh * 2;
+			const max = maxnum * xh * 2;
 			const xt = -(xc % 1);
 			
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.weather[0]);
@@ -916,12 +917,12 @@ class Render {
 				const yt = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
 				this.gl.uniform1f(this.uniform[5].u_translate, (xt - i) * w);
 				this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt, this.weather[2]) * h);
-				this.gl.drawArrays(this.gl.POINTS, num * i * 2, num);
+				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
 				
 				const yt2 = (this.elevationMap[Math.floor(xc + i + 1)] + 1 - yc) * this.size;
 				this.gl.uniform1f(this.uniform[5].u_translate, (i + 1 + xt) * w);
 				this.gl.uniform1f(this.uniform[5].u_elevation, Math.max(yt2, this.weather[2]) * h);
-				this.gl.drawArrays(this.gl.POINTS, num * i * 2 + num, num);
+				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
 				this.weather[2] -= deltaTime * speedRain * 1.5;
 			}
 			if (!this.rain) {

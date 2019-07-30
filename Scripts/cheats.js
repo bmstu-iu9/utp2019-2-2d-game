@@ -1,5 +1,5 @@
-var __cheat_fullbright = false;
-var __cheat_spectator = false;
+var __cheat_fullbright = true;
+var __cheat_spectator = true;
 var __cheat_seed = undefined;
 
 const cheat = {

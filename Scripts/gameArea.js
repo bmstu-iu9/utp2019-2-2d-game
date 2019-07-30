@@ -57,6 +57,8 @@ class GameArea{
         this.chunkWidth = 1;
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
+            if (__cheat_fullbright)
+                return 1;
             let grad = (y > this.elevationMap[x])
                 ? 1
                 : ((y < 0.9 * this.elevationMap[x])

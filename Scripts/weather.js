@@ -30,14 +30,11 @@ const initRain = () => {
 }
 
 const startRain = () => {
-	if (!render.rain) {
-		render.weather[2] = render.gl.canvas.height / 2;
-	}
-	render.rain = true;
+	render.startRain();
 	setTimeout(stopRain, 30000 + 10000 * Math.random());
 }
 
 const stopRain = () => {
-	render.rain = false;
+	render.stopRain();
 	setTimeout(startRain, 60000 + 60000 * Math.random());
 }

@@ -333,6 +333,7 @@ class Render {
 		this.weather[0] = this.gl.createBuffer();
 		this.weather[1] = 0;
 		this.weather[2] = 0;
+		this.weather[3] = 0;
 	}
 	
 	init(image, background, playerImage) {
@@ -884,12 +885,12 @@ class Render {
 		this.gl.flush(); // очистка данных
 		
 		// дождь
-		if (this.rain) {
+		if (this.weather[3] > 0) {
 			const speedRain = 4;
 			
 			this.gl.useProgram(this.program[5]);
 			const xh = Math.round(this.gl.canvas.width / this.size / 2 + 1);
-			const num = Math.round(this.size * this.gl.canvas.height / 1000);
+			const num = Math.round(this.weather[3] * this.gl.canvas.height / 1000);
 			const max = num * xh * 2;
 			const xt = -(xc % 1);
 			
@@ -923,7 +924,22 @@ class Render {
 				this.gl.drawArrays(this.gl.POINTS, num * i * 2 + num, num);
 				this.weather[2] -= deltaTime * speedRain * 1.5;
 			}
+			if (!this.rain) {
+				this.weather[3] -= deltaTime * 2;
+			}
 		}
+	}
+	
+	startRain() {
+		if (!this.rain) {
+			this.weather[2] = this.gl.canvas.height / 2;
+			this.weather[3] = this.size;
+		}
+		this.rain = true;
+	}
+	
+	stopRain() {
+		this.rain = false;
 	}
 	
 	createShader(type, source) {

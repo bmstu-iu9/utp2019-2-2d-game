@@ -35,17 +35,26 @@
 
 // Игровое пространство
 class GameArea{
-    constructor(map, elevationMap, shadowMap, width, height){
+    constructor(map, elevationMap, shadowMap, width, height) {
         // map  - двумерная карта, состоящая из id блоков
         this.map = map;
         this.elevationMap = elevationMap;
         this.shadowMap = shadowMap;
         this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
 
+        // Ассоциативный массив inventoryBlocks[[x, y, layout]] -> [ ] инвентарь блока
+        this.inventoryBlocks = new Map();
+
         // Ширина и высота игрового пространства
         this.width = width;
         this.height = height;
 
+        // Отслеживание изменений для engine.js
+        this.chunkDifferList = {};  // Хранит объекты изменения чанков
+        // Размеры чанка для engine.js.
+        //TODO: Откорректировать как нужно
+        this.chunkHeight = 1;
+        this.chunkWidth = 1;
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
             let grad = (y > this.elevationMap[x])
@@ -56,7 +65,7 @@ class GameArea{
             let k = Math.min(1 / 3 + this.timeOfDay * 3 / 2, grad);
 
             // Берем наибольший свет из естественный и искусственного
-            if(this.getArtificalLight(x, y) > this.getNaturalLight(x, y) * k){
+            if (this.getArtificalLight(x, y) > this.getNaturalLight(x, y) * k) {
                 return this.getArtificalLight(x, y) / 9;
             } else {
                 // Естественный свет с шагом в 5 (чтобы не изменялся каждый кадр)
@@ -66,7 +75,7 @@ class GameArea{
 
         // Естественный свет в точке (без времени суток и высоты)
         this.getNaturalLight = (x, y) => {
-            if(shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
+            if (shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
                 return undefined;
             }
             return shadowMap[x][y] % 1000;
@@ -74,7 +83,7 @@ class GameArea{
 
         // Искусственный свет в точке
         this.getArtificalLight = (x, y) => {
-            if(shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
+            if (shadowMap === undefined || shadowMap[x] === undefined || shadowMap[x][y] === undefined) {
                 return undefined;
             }
             return Math.floor(shadowMap[x][y] / 1000);
@@ -96,17 +105,17 @@ class GameArea{
                     || (isNatural && this.getNaturalLight(x, y) < n)
                     || (!isNatural && this.getArtificalLight(x, y) < n)))) {
 
-                if(isNatural){
-                    if(shadowMap[x][y] === undefined){
-                        shadowMap[x][y] = n;
+                if (isNatural) {
+                    if (shadowMap[x][y] === undefined) {
+                        this.gameAreaShadowMapSet(x, y, n);
                     } else {
-                        shadowMap[x][y] = this.getArtificalLight(x, y) * 1000 + n;
+                        this.gameAreaShadowMapSet(x, y, this.getArtificalLight(x, y) * 1000 + n);
                     }
-                } else{
-                    if(shadowMap[x][y] === undefined){
-                        shadowMap[x][y] = n * 1000;
+                } else {
+                    if (shadowMap[x][y] === undefined) {
+                        this.gameAreaShadowMapSet(x, y, n * 1000)
                     } else {
-                        shadowMap[x][y] = n * 1000 + this.getNaturalLight(x, y);
+                        this.gameAreaShadowMapSet(x, y, n * 1000 + this.getNaturalLight(x, y));
                     }
                 }
                 step(x + 1, y, n - 1);
@@ -122,13 +131,13 @@ class GameArea{
 
             const deleteLightNoUpdateRound = (startX, startY, x, y, n, isNatural) => {
                 const step = (nextX, nextY, n) => {
-                    if(n > 0 && vectorLengthSqr(x, y, startX, startY) < vectorLengthSqr(startX, startY, nextX, nextY)
+                    if (n > 0 && vectorLengthSqr(x, y, startX, startY) < vectorLengthSqr(startX, startY, nextX, nextY)
                             && inRange(nextX, 0, width) && inRange(nextY, 0, height)) {
 
-                        if(isNatural && this.getNaturalLight(nextX, nextY) > n) {
+                        if (isNatural && this.getNaturalLight(nextX, nextY) > n) {
                             lights.push([nextX, nextY, this.getNaturalLight(nextX, nextY), isNatural]);
                             return;
-                        } else if(!isNatural && this.getArtificalLight(nextX, nextY) > n) {
+                        } else if (!isNatural && this.getArtificalLight(nextX, nextY) > n) {
                             lights.push([nextX, nextY, this.getArtificalLight(nextX, nextY), isNatural]);
                             return;
                         }
@@ -139,10 +148,10 @@ class GameArea{
                     && ((isNatural && this.getNaturalLight(x, y) === n)
                         || (!isNatural && this.getArtificalLight(x, y) === n))) {
 
-                    if(isNatural){
-                        shadowMap[x][y] = this.getArtificalLight(x, y) * 1000;
-                    }else{
-                        shadowMap[x][y] = this.getNaturalLight(x, y);
+                    if (isNatural) {
+                        this.gameAreaShadowMapSet(x, y, this.getArtificalLight(x, y) * 1000);
+                    } else {
+                        this.gameAreaShadowMapSet(x, y, this.getNaturalLight(x, y));
                     }
                     step(x + 1, y, n - 1);
                     step(x - 1, y, n - 1);
@@ -151,7 +160,7 @@ class GameArea{
                 }
             };
             deleteLightNoUpdateRound(startX, startY, x, y, n, isNatural);
-            for(let i = 0; i < lights.length; i++){
+            for (let i = 0; i < lights.length; i++) {
                 this.addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3],
                     true);
             }
@@ -174,11 +183,11 @@ class GameArea{
 
         // Есть ли коллизия с этим блоком
         this.hasCollision = (x, y, layout) => {
-            if(x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
+            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
             let block = this.map[x][y][layout];
 
             // Если это не блок воздуха и если он имеет коллизию или не найден в таблице => есть коллизия
-            if(block != undefined && (items[block] === undefined || items[block].isCollissed)) {
+            if (block != undefined && (items[block] === undefined || items[block].isCollissed)) {
                 return true;
             }
             return false;
@@ -192,7 +201,7 @@ class GameArea{
 
             if (block.hasGravity) {
                 // Если нет блока снизу
-                if ((y - 1) >=0 && items[this.map[x][y - 1][layout]] === undefined) {
+                if ((y - 1) >= 0 && items[this.map[x][y - 1][layout]] === undefined) {
                     let block_id = this.map[x][y][layout];
                     this.destroyBlock(x, y, layout);
                     this.placeBlock(x, y - 1, layout, block_id);
@@ -204,16 +213,17 @@ class GameArea{
                     // Если блок дерева не видит под собой опоры в нижнем блоке, либо стоит на листве, плюс
                     // крайние нижние блоки - это не блоки дерева, то оно рушится
                 {
-
-                    if (y - 1 >= 0 && this.map[x][y - 1][GameArea.MAIN_LAYOUT] === undefined) {
-                        for (let i = x - 1; i <= x + 1; i++) {
-                            if (i >=0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
-                                items[this.map[x][y - 1][layout]].type !== "wood")) {}
-                            else {
-                                return;
+                    if(block.id === '17'){
+                        if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
+                            for (let i = x - 1; i <= x + 1; i++) {
+                                if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
+                                    items[this.map[x][y - 1][layout]].type !== "wood")) {
+                                } else {
+                                    return;
+                                }
                             }
+                            this.goodDestroy(x, y, layout, player);
                         }
-                        this.goodDestroy(x, y, layout, player);
                     }
                 }
                 break;
@@ -222,18 +232,19 @@ class GameArea{
                     // дерева или листвы или же в левом или правом, в виде дерева, то он рушится
                 {
                     for (let i = x - 1; i <= x + 1; i++) {
-                        if (i >=0 && i < this.width)
+                        if (i >= 0 && i < this.width) {
                             for (let j = y - 1; j <= y; j++) {
                                 if (i !== x && j !== y)
-                                    if (y - 1 >= 0 && j === y - 1)
+                                    if (y - 1 >= 0 && j === y - 1) {
                                         if (this.map[i][j][layout] === undefined ||
                                             items[this.map[i][j][layout]].type !== "leaf" &&
-                                            items[this.map[i][j][layout]].type !== "wood"){}
-                                        else return;
-                                    else if (this.map[i][j][layout] === undefined ||
-                                        items[this.map[i][j][layout]].type !== "wood") {}
-                                    else return;
+                                            items[this.map[i][j][layout]].type !== "wood") {
+                                        } else return;
+                                    } else if (this.map[i][j][layout] === undefined ||
+                                        items[this.map[i][j][layout]].type !== "wood") {
+                                    } else return;
                             }
+                        }
                     }
                     this.destroyBlock(x, y, layout);
                 }
@@ -296,19 +307,21 @@ class GameArea{
                             }, 50);
                         } else if (this.map[x][y - 1][layout] !== undefined
                             && items[this.map[x][y - 1][layout]].type !== "flowingWater"
-                            && +block.id !== 1000 * LIQUID_TYPE + 23 && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
+                            && +block.id !== 1000 * LIQUID_TYPE + 23
+                            && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
 
                             if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
 
-                                if (direction === 0) setTimeout(() => {
-                                    if (this.map[x][y][layout] === +block.id
-                                        && this.map[x - 1][y][layout] === undefined) {
+                                if (direction === 0) {
+                                    setTimeout(() => {
+                                        if (this.map[x][y][layout] === +block.id
+                                            && this.map[x - 1][y][layout] === undefined) {
 
-                                        this.placeBlock(x - 1, y,
-                                            layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                                    }
-                                }, 200);
-                                else {
+                                            this.placeBlock(x - 1, y,
+                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+                                        }
+                                    }, 200);
+                                } else {
                                     setTimeout(() => {
                                         if (this.map[x][y][layout] === +block.id
                                             && this.map[x - 1][y][layout] === undefined) {
@@ -355,7 +368,7 @@ class GameArea{
                 for (let j = y - 1; j <= y + 1; j++) {
                     if (i !== x || y !== j) {
                         this.updateBlock(i, j, layout, player);
-                        if (layout === GameArea.MAIN_LAYOUT) this.updateBlock(i, j, GameArea.BACK_LAYOUT, player);
+                        if (layout === GameArea.FIRST_LAYOUT) this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player);
                     }
                 }
             }
@@ -363,57 +376,60 @@ class GameArea{
 
         // Действие при разрушении блока
         this.destroyBlock = (x, y, layout, player) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
+            if (!this.exist(x, y)) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
-            this.map[x][y][layout] = this.makeAirBlock();
-            if(layout === GameArea.MAIN_LAYOUT) {
+            this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
+            if (lastBlock !== undefined && layout === GameArea.FIRST_LAYOUT) {
                 this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
                     items[lastBlock].isNaturalLight === true);
+                this.addLightRound(x, y, x, y, 9, true, false);
             }
-            this.addLightRound(x, y, x, y, 9, true, false);
+            if (items[lastBlock].destroyFunction) {
+                items[lastBlock].destroyFunction(x, y, layout);
+            }
             this.updateRadius(x, y, layout, player);
         };
 
         // Можно ставить блок на (x, y, layout)
         this.canPlace = (x, y, layout) => {
-            if(layout === GameArea.MAIN_LAYOUT) {
+            if (layout < GameArea.BACK_LAYOUT) {
                 let startX = Math.floor(player.x - Player.WIDTH / 2);
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
                 let endY = Math.floor(player.y + Player.HEIGHT);
-                return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
+                return this.exist(x, y) // Пределы мира
                     && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
-                    && (this.map[x][y][GameArea.MAIN_LAYOUT] == undefined
-                    || this.map[x][y][GameArea.MAIN_LAYOUT].type == "water");
+                    && (this.map[x][y][layout] === undefined
+                    || this.map[x][y][layout].type === "water");
             } else {
-                return x >= 0 && y >= 0 && x < this.width && y < this.height // Пределы мира
-                    && this.map[x][y][layout] == undefined;
+                return this.exist(x, y) // Пределы мира
+                    && this.map[x][y][layout] === undefined;
             }
         }
 
         // Можно ли ломать блок на (x, y, layout)
         this.canDestroy = (x, y, layout) => {
-            // Если не основной слой, можно ломать только с краёв
-            if(layout != GameArea.MAIN_LAYOUT
-                && (this.canDestroy(x, y, GameArea.MAIN_LAYOUT)
+            // Если задний слой, то можно ломать только с краёв
+            if (layout === GameArea.BACK_LAYOUT
+                && (this.canDestroy(x, y, GameArea.SECOND_LAYOUT)
                 || !this.canPlace(x, y + 1, layout)
                 && !this.canPlace(x + 1, y, layout)
                 && !this.canPlace(x - 1, y, layout)
                 && !this.canPlace(x, y - 1, layout))) return false;
 
-            return inRange(x, 0 ,this.width) && inRange(y, 0, this.height) // Пределы мира
+            return this.exist(x, y) // Пределы мира
                 && this.map[x][y][layout] != undefined
                 && this.map[x][y][layout].type != "water";
         }
 
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
-            if (!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
+            if(!this.exist(x, y)) return; // проверка на выход из карты
+            if(!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
                 let lastBlock = this.map[x][y][layout];
-                this.map[x][y][layout] = id;
-                if(layout === GameArea.MAIN_LAYOUT) {
-                    if(lastBlock == undefined){
+                this.gameAreaMapSet(x, y, layout, id);
+                if (layout === GameArea.FIRST_LAYOUT) {
+                    if (lastBlock == undefined) {
                         this.deleteLightRound(x, y, x, y, 9, true);
                     } else {
                         this.deleteLightRound(x, y, x, y, items[lastBlock].brightness,
@@ -428,11 +444,10 @@ class GameArea{
 
         // Функция взаимодействия с блоком
         this.interactWithBlock = (x, y, layout) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
-            console.log("Interaction with block on coordinates : [${x} ${y} ${layout}]");
+            if(!this.exist(x, y)) return; // проверка на выход из карты
             let block = items[this.map[x][y][layout]];
-            if (block.isClickable) {
-                block.interactFunction();
+            if(block !== undefined && block.isClickable) {
+                block.interactFunction(x, y, layout);
             }
         };
 
@@ -445,7 +460,6 @@ class GameArea{
             }
         };
 
-
         // Функция разрушения блока со сбросом лута
         this.goodDestroy = (x, y, layout, player) => {
             let block = items[this.map[x][y][layout]];
@@ -455,6 +469,58 @@ class GameArea{
             } else this.destroyBlock(x, y, layout, player);
         };
 
+        // Находится ли точка в мире
+        this.exist = (x, y) => {
+            return inRange(x, 0, this.width) && inRange(y, 0, this.height);
+        }
+
+        // Получить id блока если он внутри границ мира
+        this.get = (x, y, layout) => {
+            if (this.exist(x, y)) {
+                return gameArea.map[x][y][layout];
+            } else {
+                return undefined;
+            }
+        }
+
+        // Необходим для отслеживания изменений
+        this.gameAreaMapSet = (x, y, layout, id) => {
+            let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+            if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+                this.chunkDifferList[chunkX + "x" + chunkY] = {};
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
+            } else {
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
+                    x: x,
+                    y: y,
+                    layout: layout,
+                    newValue: id
+                }
+            }
+
+            this.map[x][y][layout] = id;
+			
+			// обновляем карту высот для погоды
+			if (layout == GameArea.FIRST_LAYOUT) {
+				elevationUpdate(x, y);
+			}
+        }
+
+        // Отслеживание изменений света
+        this.gameAreaShadowMapSet = (x, y, n) => {
+            let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
+            if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+                this.chunkDifferList[chunkX + "x" + chunkY] = {};
+                this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + "L"] = true;
+            }
+
+            this.shadowMap[x][y] = n;
+        }
     }
 }
 
@@ -465,7 +531,7 @@ const vectorLengthSqr = (x, y, x1, y1) => {
 }
 
 const inRange = (n, start, length) => {
-    return n >= start && n < length - start;
+    return n >= start && n < length + start;
 }
 
 const between = (n, a, b) => {
@@ -480,13 +546,14 @@ const hypotenuse = (x, y) => {
 const roundToFunc = (x, fraction, roundFunction) => {
     return roundFunction(x * fraction) / fraction;
 }
+
 const roundTo = (x, fraction) => {
     return roundToFunc(x, fraction, Math.floor);
 }
 
 // Меньший угол
 const angleMin = (a1, a2) => {
-    if(((Math.PI * 2 - a1) + a2) % (Math.PI * 2) < Math.PI) {
+    if (((Math.PI * 2 - a1) + a2) % (Math.PI * 2) < Math.PI) {
         return a1;
     } else {
         return a2;
@@ -494,17 +561,24 @@ const angleMin = (a1, a2) => {
 }
 // Больший угол
 const angleMax = (a1, a2) => {
-    if(((Math.PI * 2 - a1) + a2) % (Math.PI * 2) > Math.PI) {
+    if (((Math.PI * 2 - a1) + a2) % (Math.PI * 2) > Math.PI) {
         return a1;
     } else {
         return a2;
     }
 }
 
+// Для копирования gameArea из indexedDB
+const gameAreaCopy = (gameArea, obj) => {
+    gameArea.width = obj.width;
+    gameArea.height = obj.height;
+}
+
 // Константы уровня
 GameArea.FORWARD_LAYOUT = 1;
-GameArea.MAIN_LAYOUT = 2;
-GameArea.BACK_LAYOUT = 3;
+GameArea.FIRST_LAYOUT = 2;
+GameArea.SECOND_LAYOUT = 3;
+GameArea.BACK_LAYOUT = 4;
 
 // Константы поведения игрового пространства
 

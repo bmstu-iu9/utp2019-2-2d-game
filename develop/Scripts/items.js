@@ -14,6 +14,8 @@ const DIAMOND_DURABILITY = 300;
 
 
 let items = { 
+    undefined: {},
+
     '1':
     {
         id: '1',
@@ -110,7 +112,8 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
-        hasGravity: false,
+        isCanInteractThrow: true,
+        hasGravity: true,
         density: 0.5,
         isNaturalLight: true
     },
@@ -121,6 +124,7 @@ let items = {
         type: 'flowingWater',
         durability: 1,
         brightness: 6,
+        isCanInteractThrow: true,
         isCollissed: false,
         isNaturalLight: true,
         name: 'flowing-water-image'
@@ -135,8 +139,9 @@ let items = {
         type: 'water',
         durability: 1,
         brightness: 8,
+        isCanInteractThrow: true,
         isCollissed: false,
-        hasGravity: false,
+        hasGravity: true,
         density: 0.9
     },
 
@@ -146,6 +151,7 @@ let items = {
         type: 'flowingWater',
         durability: 1,
         brightness: 8,
+        isCanInteractThrow: true,
         isCollissed: false,
         name: 'flowing-lava-image'
     },
@@ -218,7 +224,7 @@ let items = {
         costOfMelting: '100',
         durability: 4,
         brightness: 0,
-        isCollissed: false,
+        isCollissed: true,
         isSolid: true
     },
 
@@ -252,6 +258,171 @@ let items = {
         isBlock: true,
         dropId: '264',
         weight: WEIGHT_OF_BLOCKS
+    },
+
+    '60':
+    {
+        id: '60',
+        name: 'Closed Trapdoor',
+        type: 'wood',
+        isBlock: true,
+        dropId: '61',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 61);
+
+            if (inRange(x + 1, 0, gameArea.height)
+                    && gameArea.map[x + 1][y][layout] === 60) gameArea.interactWithBlock(x + 1, y, layout);
+            if (inRange(x - 1, 0, gameArea.height)
+                    && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.get(x + 1, y, layout) !== undefined
+                    && (gameArea.map[x + 1][y][layout] === 61
+                        || gameArea.map[x + 1][y][layout] === 60
+                        || (items[gameArea.map[x + 1][y][layout]].isSolid
+                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
+                || (gameArea.get(x - 1, y, layout) !== undefined
+                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.map[x - 1][y][layout] === 60
+                        || (items[gameArea.map[x - 1][y][layout]].isSolid
+                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 61 || gameArea.get(x + 1, y, layout) === 60) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+        }
+    },
+
+    '61':
+    {
+        id: '61',
+        name: 'Trapdoor',
+        type: 'wood',
+        isBlock: true,
+        dropId: '61',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: true,
+        isCollissed: false,
+        isClickable: true,
+        isCanInteractThrow: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 60);
+
+            if (inRange(x + 1, 0, gameArea.height)
+                    && gameArea.map[x + 1][y][layout] === 61) gameArea.interactWithBlock(x + 1, y, layout);
+            if (inRange(x - 1, 0, gameArea.height)
+                    && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.get(x + 1, y, layout) !== undefined
+                    && (gameArea.map[x + 1][y][layout] === 61
+                        || gameArea.map[x + 1][y][layout] === 60
+                        || (items[gameArea.map[x + 1][y][layout]].isSolid
+                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
+                || (gameArea.get(x - 1, y, layout) !== undefined
+                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.map[x - 1][y][layout] === 60
+                        || (items[gameArea.map[x - 1][y][layout]].isSolid
+                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 61 || gameArea.get(x + 1, y, layout) === 60) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+        }
+    },
+
+    '62':
+    {
+        id: '62',
+        name: 'Closed Door',
+        type: 'wood',
+        isBlock: true,
+        dropId: '63',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 63);
+
+            if (inRange(y + 1, 0, gameArea.height)
+                    && gameArea.map[x][y + 1][layout] === 62) gameArea.interactWithBlock(x, y + 1, layout);
+            if (inRange(y - 1, 0, gameArea.height)
+                    && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
+                    && (gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.map[x][y - 1][layout] === 62
+                        || (items[gameArea.map[x][y - 1][layout]].isSolid
+                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 63 || gameArea.get(x, y + 1, layout) === 62) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
+            }
+        }
+    },
+
+    '63':
+    {
+        id: '63',
+        name: 'Door',
+        type: 'wood',
+        isBlock: true,
+        dropId: '63',
+        durability: 3,
+        isAlwaysGoodDestroy: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: true,
+        isCollissed: false,
+        isClickable: true,
+        isCanInteractThrow: true,
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 62);
+
+
+            if (inRange(y + 1, 0, gameArea.height)
+                    && gameArea.map[x][y + 1][layout] === 63) gameArea.interactWithBlock(x, y + 1, layout);
+            if (inRange(y - 1, 0, gameArea.height)
+                    && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
+        },
+        canPlace: (x, y, layout) => {
+            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
+                    && (gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.map[x][y - 1][layout] === 62
+                        || (items[gameArea.map[x][y - 1][layout]].isSolid
+                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+        },
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 63 || gameArea.get(x, y + 1, layout) === 62) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
+            }
+        }
     },
 
     '256':
@@ -687,270 +858,5 @@ let items = {
         isCollissed: false,
         isNaturalLight: true,
         name: 'flowing-water-23'
-    },
-
-    '11000':
-        {
-            id: '11000',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-0'
-        },
-
-    '11001':
-        {
-            id: '11001',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-1'
-        },
-
-    '11002':
-        {
-            id: '11002',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-2'
-        },
-
-    '11003':
-        {
-            id: '11003',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-3'
-        },
-
-    '11004':
-        {
-            id: '11004',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-4'
-        },
-
-    '11005':
-        {
-            id: '11005',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-5'
-        },
-
-    '11006':
-        {
-            id: '11006',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-6'
-        },
-
-    '11007':
-        {
-            id: '11007',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-7'
-        },
-
-    '11008':
-        {
-            id: '11008',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-8'
-        },
-
-    '11009':
-        {
-            id: '11009',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-9'
-        },
-
-    '11010':
-        {
-            id: '11010',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-10'
-        },
-
-    '11011':
-        {
-            id: '11011',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-11'
-        },
-
-    '11012':
-        {
-            id: '11012',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-12'
-        },
-
-    '11013':
-        {
-            id: '11013',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-13'
-        },
-
-    '11014':
-        {
-            id: '11014',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-14'
-        },
-
-    '11015':
-        {
-            id: '11015',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-15'
-        },
-
-    '11016':
-        {
-            id: '11016',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-16'
-        },
-
-    '11017':
-        {
-            id: '11017',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-17'
-        },
-
-    '11018':
-        {
-            id: '11018',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-18'
-        },
-
-    '11019':
-        {
-            id: '11019',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-19'
-        },
-
-    '11020':
-        {
-            id: '11020',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-20'
-        },
-
-    '11021':
-        {
-            id: '11021',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-21'
-        },
-
-    '11022':
-        {
-            id: '11022',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-22'
-        },
-
-    '11023':
-        {
-            id: '11023',
-            type: 'flowingWater',
-            durability: 1,
-            brightness: 6,
-            isCollissed: false,
-            isNaturalLight: true,
-            name: 'flowing-lava-23'
-        }
+    }
 }
-

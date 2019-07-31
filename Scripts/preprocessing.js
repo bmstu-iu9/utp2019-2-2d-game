@@ -39,7 +39,6 @@ const preprocessing = () => {
 	render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
 	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);
 	_textureItems = render.createTexture(_Items, _Items.width, _Items.height);
-	console.log(_textureItems);
 	initUI();
 
 	// Отправка образцов объектов

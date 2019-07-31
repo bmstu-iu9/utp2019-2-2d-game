@@ -402,11 +402,6 @@ class Player {
                     UISetFastInvItem(undefined, i);
                 }
             }
-            if (this.hand.item) {
-                console.log(this.hand.info.name);
-            } else {
-                console.log("Empty hand");
-            }
         }
 
         // Респаун игрока

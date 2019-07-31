@@ -101,6 +101,11 @@ class Player {
             if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)
                     && (!items[this.hand.item].canPlace || items[this.hand.item].canPlace(x, y, layout))) {
                 gameArea.placeBlock(x, y, layout, this.hand.item);
+
+                // Уменьшение выносливости
+                player.updateSP(player.sp - this.hand.info.weight);
+                staminaNotUsed = false;
+
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
             }
         };
@@ -376,20 +381,26 @@ class Player {
         this.setHand = (index) => {
             this.hand.index = index;
             this.hand.item = this.inv.items[this.fastInv[index]];
-            if (this.hand.item == undefined) {
+            if (this.hand.item === undefined) {
                 this.hand.info = undefined;
             } else {
-                if (this.hand.item.id == undefined) {
+                if (this.hand.item.id === undefined) {
                     this.hand.info = items[this.hand.item];
                 } else {
                     this.hand.info = items[this.hand.item.id];
                 }
             }
             UISetActiveSlot(index);
-            if (this.hand.item) {
-                console.log(this.hand.info.name);
-            } else {
-                console.log("Empty hand");
+            for (let i = 0; i < this.fastInv.length; i++) {
+                if (this.inv.items[this.fastInv[i]]) {
+                    if (this.inv.items[this.fastInv[i]].id) {
+                        UISetFastInvItem(this.inv.items[this.fastInv[i]].id, i);
+                    } else {
+                        UISetFastInvItem(this.inv.items[this.fastInv[i]], i);
+                    }
+                } else {
+                    UISetFastInvItem(undefined, i);
+                }
             }
         }
 
@@ -453,15 +464,17 @@ class Player {
         }
 
         this.updateSP = (count) => {
-            this.sp = count;
+            this.sp = Math.max(0, count);
             if (count >= this.maxSP) {
                 this.sp = this.maxSP;
                 UIMap.barsPanel.deleteChild(UIMap.staminaBar.id);
                 UIMap.barsPanel.deleteChild(UIMap.staminaBarEmpty.id);
-            } else if (!UIMap.barsPanel.get(UIMap.staminaBar.id)) {
-                UIMap.barsPanel.add(UIMap.staminaBar);
-                UIMap.barsPanel.add(UIMap.staminaBarEmpty);
-            }
+            } else {
+                if (!UIMap.barsPanel.get(UIMap.staminaBar.id)) {
+                    UIMap.barsPanel.add(UIMap.staminaBar);
+                    UIMap.barsPanel.add(UIMap.staminaBarEmpty);
+                }
+            } 
             UISetBar(this.sp / this.maxSP, UIMap.staminaBar, 202, 16, 1, 1);
         }
 

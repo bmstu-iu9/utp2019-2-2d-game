@@ -13,6 +13,8 @@
 let fullUI;  // Якорь в % + размер в пикселях
 let screenUI;
 let _array;
+let defaultWeight = 1920;
+let defaultHeight = 1080;
 
 let UIMap = new Map();
 
@@ -34,10 +36,13 @@ class Sprite {
             if (parent === undefined) {
                 parent = {
                     'pa': [0, 0],
-                    'pb': render.getCanvasSize()
+                    'pb': render.getCanvasSize(),
+                    'ca': [0, 0],
+                    'cb': render.getCanvasSize()
                 };
                 isScreenUI = true;
             }
+
             const pa = [
                 parent.pa[0] + (parent.pb[0] - parent.pa[0]) * rect.pa.x + indent.pa.x * Sprite.pixelScale,
                 parent.pa[1] + (parent.pb[1] - parent.pa[1]) * rect.pa.y + indent.pa.y * Sprite.pixelScale
@@ -52,13 +57,18 @@ class Sprite {
                     'pa': pa,
                     'pb': pb,
                     'ta': this.image[0],
-                    'tb': this.image[1]
+                    'tb': this.image[1],
+                    'ca': parent.ca,
+                    'cb': parent.cb,
+                    'tex': image[2]
                 };
             }
             for (let i = 0; i < this.children.length; i++) {
                 ans = ans.concat(this.children[i].draw({
                     'pa': pa,
-                    'pb': pb
+                    'pb': pb,
+                    'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ]
                 }));
             }
             return ans;
@@ -88,7 +98,7 @@ class Sprite {
 }
 
 Sprite.counter = 1;
-Sprite.pixelScale = 1;
+Sprite.pixelScale = (render.getCanvasSize()[0] / defaultWeight + render.getCanvasSize()[1] / defaultHeight) / 2;
 
 // Инициализация интерфейса
 const initUI = () => {
@@ -115,7 +125,7 @@ const initUI = () => {
         });
         // Инвентарь
         let invPanel = new Sprite(
-            [ [0.25, 0], [0.5, 0.25] ],
+            [ [0, 0.51], [0.125, 0.615] ],
             {
                 pa: {
                     x: 0,
@@ -140,10 +150,39 @@ const initUI = () => {
             rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         }
         UIMap.invPanel = invPanel;
+       
+        let invScrollPanel = new Sprite(
+            undefined,
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 1,
+                    y: 1
+                }
+            },
+            {
+                pa: {
+                    x: 5,
+                    y: 10
+                },
+                pb: {
+                    x: -5,
+                    y: -5
+                }
+            });
+        for (let i = 0; i < 10; i++) {
+            invScrollPanel.add(createItemCard(i, 1));
+        }
+        invPanel.add(invScrollPanel);
+        UIMap.invScrollPanel = invScrollPanel;
+        
         //screenUI.add(invPanel);
         // Кастомное окно по середине
         let actionPanel = new Sprite(
-            [ [0.25, 0], [0.5, 0.25] ],
+            [ [0, 0.5], [0.125, 0.625] ],
             {
                 pa: {
                     x: 1 / 3,
@@ -458,6 +497,7 @@ let needUIRedraw = false;
 let lastCanvasSize = [ 0, 0 ];
 const drawUI = () => {
     const _size = render.getCanvasSize();
+    Sprite.pixelScale = (_size[0] / defaultWeight + _size[1] / defaultHeight) / 2;
 
     if (lastCanvasSize[0] !== _size[0] || lastCanvasSize[1] !== _size[1] || needUIRedraw) {
         _array = screenUI.draw();
@@ -493,5 +533,120 @@ const UISetBar = (count, bar, length, height, padding, number) => {
         rect.pa.y = number * (image[1][1] - image[0][1]) / (image[1][0] - image[0][0]) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         indent.pa.y = 5 * number;
         indent.pb.y = 5 * number;
+    }
+}
+
+const createItemCard = (number, id) => {
+    let card = new Sprite(
+        [ [0.125, 0.51], [0.250, 0.615] ],
+        {
+            pa: {
+                x: 0,
+                y: undefined
+            },
+            pb: {
+                x: 1,
+                y: undefined
+            }
+        },
+        {
+            pa: {
+                x: 5,
+                y: 5
+            },
+            pb: {
+                x: -5,
+                y: -5
+            }
+        });
+    card.recountRect = (rect, indent, parent, image) => {
+        let height = 1 / 4 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        rect.pa.y = 1 - (number + 1) * height;
+        rect.pb.y = 1 - number * height;
+    }
+
+    let slot = new Sprite(
+        [ [0.250, 0.51], [0.375, 0.615] ],
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: undefined,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 15,
+                y: 15
+            },
+            pb: {
+                x: -15,
+                y: -15
+            }
+        });
+    slot.recountRect = (rect, indent, parent, image) => {
+        rect.pb.x = (parent.pb[1] - parent.pa[1]) / (parent.pb[0] - parent.pa[0]);
+    }
+    card.add(slot);
+
+    if (id) {
+        let item = new Sprite(
+        items[id].texture(),
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 15,
+                y: 15
+            },
+            pb: {
+                x: -15,
+                y: -15
+            }
+        });
+        slot.add(item);
+    }
+
+    return card;
+}
+
+const UISetFastInvItem = (id, index) => {
+    needUIRedraw = true;
+    let slot = UIMap.fastInv[index];
+    slot.children = [];
+    if (id) {
+        slot.add(new Sprite(
+        items[id].texture(),
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 15,
+                y: 15
+            },
+            pb: {
+                x: -15,
+                y: -15
+            }
+        }));
     }
 }

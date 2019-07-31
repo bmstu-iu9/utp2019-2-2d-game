@@ -16,7 +16,6 @@ let key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
-let layoutSwitcher = false;
 let BlocksGlobalChange = {};
 let staminaNotUsed = true;
 
@@ -161,11 +160,44 @@ const worldChange = () => {
 
 // Действия при нажатии клавиш действия
 const playerActionButtons = () => {
+	let layout = player.layout;
+    if(controller.shift.active) {
+    	if(player.layout === GameArea.FIRST_LAYOUT) {
+    		layout = GameArea.SECOND_LAYOUT;
+    	} else {
+    		layout = GameArea.BACK_LAYOUT;
+    	}
+    }
+
 	if (controller.f.active) {  // Сохранение
 		saveWorld('world');
 	}
 	if (controller.g.active) { // Удалить сохранение
 		deleteDatabase();
+	}
+
+	// Нажата E
+	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
+		player.interactWithNearest(layout);
+		lastPlaceBlockTime = currentTime;
+	}
+
+	// Нажата клавиша I
+	if(controller.inv.active) {
+		 if(!controller.invClick) {
+		 	controller.invClick = true;
+		 	if (inventoryOpened) {
+		 		UICloseInv();
+		 	} else {
+		 		UIOpenInv();
+		 	}
+		 }
+	} else {
+		controller.invClick = false;
+	}
+
+	if (staminaNotUsed) {
+    	player.updateSP(player.sp + 4 * deltaTime);
 	}
 }
 
@@ -173,8 +205,8 @@ const playerActionButtons = () => {
 const playerMovement = () => {
 
 	if(controller.down.active) {
-		 if(!layoutSwitcher) {
-		 	layoutSwitcher = true;
+		 if(!controller.downClick) {
+		 	controller.downClick = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
 		 	if(player.canStay(player.fx, player.fy, layout)) {
 		 		player.layout = layout;
@@ -182,7 +214,7 @@ const playerMovement = () => {
 		 	}
 		 }
 	} else {
-		layoutSwitcher = false;
+		controller.downClick = false;
 	}
 
 	// Координаты блока, в котором голова
@@ -377,12 +409,23 @@ const mouseControl = () => {
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
 
+		// Нажатие по интерфейсу
+		for (let i = _array.length - 1; i > 0; i--) {
+			if (Math.max(_array[i].pa[0], _array[i].ca[0]) < controller.mouse.x
+				&& Math.min(_array[i].pb[0], _array[i].cb[0]) > controller.mouse.x
+				&& Math.max(_array[i].pa[1], _array[i].ca[1]) < render.getCanvasSize()[1] - controller.mouse.y
+				&& Math.min(_array[i].pb[1], _array[i].cb[1]) > render.getCanvasSize()[1] - controller.mouse.y) {
+					// action to click
+					console.log(_array[i]);
 
-    	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
+					break;
+				}
+		}
+
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
-    		&& player.sp > 0) {
+      		&& player.sp > 0) {
             // Анимация
             player.setAnimation("body", "kick");
 
@@ -439,15 +482,5 @@ const mouseControl = () => {
             // Анимация
             player.setAnimation("body", "kick");
 		}
-	}
-
-	// Нажата E
-	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
-		player.interactWithNearest(layout);
-		lastPlaceBlockTime = currentTime;
-	}
-
-	if (staminaNotUsed) {
-    	player.updateSP(player.sp + 4 * deltaTime);
 	}
 }

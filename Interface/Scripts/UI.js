@@ -60,7 +60,8 @@ class Sprite {
                     'tb': this.image[1],
                     'ca': parent.ca,
                     'cb': parent.cb,
-                    'tex': image[2]
+                    'tex': image[2],
+                    'id': this.id
                 };
             }
             for (let i = 0; i < this.children.length; i++) {
@@ -68,7 +69,8 @@ class Sprite {
                     'pa': pa,
                     'pb': pb,
                     'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
-                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ]
+                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                    'id': this.id
                 }));
             }
             return ans;
@@ -123,63 +125,7 @@ const initUI = () => {
                 y: 0
             }
         });
-        // Инвентарь
-        let invPanel = new Sprite(
-            [ [0, 0.51], [0.125, 0.615] ],
-            {
-                pa: {
-                    x: 0,
-                    y: undefined
-                },
-                pb: {
-                    x: 1 / 3,
-                    y: 1
-                }
-            },
-            {
-                pa: {
-                    x: 20,
-                    y: 40
-                },
-                pb: {
-                    x: 10,
-                    y: - 20
-                }
-            });
-        invPanel.recountRect = (rect, indent, parent, image) => {
-            rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
-        }
-        UIMap.invPanel = invPanel;
-       
-        let invScrollPanel = new Sprite(
-            undefined,
-            {
-                pa: {
-                    x: 0,
-                    y: 0
-                },
-                pb: {
-                    x: 1,
-                    y: 1
-                }
-            },
-            {
-                pa: {
-                    x: 5,
-                    y: 10
-                },
-                pb: {
-                    x: -5,
-                    y: -5
-                }
-            });
-        for (let i = 0; i < 10; i++) {
-            invScrollPanel.add(createItemCard(i, 1));
-        }
-        invPanel.add(invScrollPanel);
-        UIMap.invScrollPanel = invScrollPanel;
         
-        //screenUI.add(invPanel);
         // Кастомное окно по середине
         let actionPanel = new Sprite(
             [ [0, 0.5], [0.125, 0.625] ],
@@ -488,12 +434,12 @@ const initUI = () => {
         UIMap.barsPanel.add(UIMap.staminaBar);
 
 
-
         screenUI.add(UIMap.barsPanel);
 }
 
 // Вызывается каждый кадр после EventTick
 let needUIRedraw = false;
+let inventoryOpened = false;
 let lastCanvasSize = [ 0, 0 ];
 const drawUI = () => {
     const _size = render.getCanvasSize();
@@ -503,6 +449,10 @@ const drawUI = () => {
         _array = screenUI.draw();
         needUIRedraw = false;
         lastCanvasSize = _size;
+    }
+
+    if (inventoryOpened) {
+        UIOpenInv();
     }
 }
 
@@ -536,7 +486,7 @@ const UISetBar = (count, bar, length, height, padding, number) => {
     }
 }
 
-const createItemCard = (number, id) => {
+const createItemCard = (number, id, text) => {
     let card = new Sprite(
         [ [0.125, 0.51], [0.250, 0.615] ],
         {
@@ -618,6 +568,36 @@ const createItemCard = (number, id) => {
         slot.add(item);
     }
 
+    if (text) {
+        let textCard = new Sprite(
+            undefined,
+            {
+                pa: {
+                    x: undefined,
+                    y: 0
+                },
+                pb: {
+                    x: 1,
+                    y: 1
+                }
+            },
+            {
+                pa: {
+                    x: 15,
+                    y: 20
+                },
+                pb: {
+                    x: -15,
+                    y: -20
+                }
+            });
+        textCard.recountRect = (rect, indent, parent, image) => {
+            rect.pa.x = (parent.pb[1] - parent.pa[1]) / (parent.pb[0] - parent.pa[0]);
+        }
+        textCard.add(createText(text));
+        card.add(textCard);
+    }
+
     return card;
 }
 
@@ -649,4 +629,272 @@ const UISetFastInvItem = (id, index) => {
             }
         }));
     }
+}
+
+const getLetterTexture = (s) => {
+    s = s.toUpperCase();
+    if (s >= 'A' && s <= 'Z') {
+        let x = (s.charCodeAt(0) - 'A'.charCodeAt(0)) % 8;
+        let y = Math.floor((s.charCodeAt(0) - 'A'.charCodeAt(0)) / 8);
+        return [
+            [ (x + 0.015) / 8, y / 8 ],
+            [ (x + 0.97) / 8, (y + 1) / 8 ],
+            _fontUI
+        ];
+    } else if (s >= '0' && s <= '9') {
+        let x = (s.charCodeAt(0) - '0'.charCodeAt(0) + 26) % 8;
+        let y = Math.floor((s.charCodeAt(0) - '0'.charCodeAt(0) + 26) / 8);
+        return [
+            [ (x + 0.015) / 8, y / 8 ],
+            [ (x + 0.97) / 8, (y + 1) / 8 ],
+            _fontUI
+        ];
+    } else switch (s) {
+        case ':':
+            return [
+                [ (4 + 0.015) / 8, 4 / 8 ],
+                [ (4 + 0.97) / 8, (4 + 1) / 8 ],
+                _fontUI
+            ];
+        case '-':
+            return [
+                [ (5 + 0.015) / 8, 4 / 8 ],
+                [ (5 + 0.97) / 8, (4 + 1) / 8 ],
+                _fontUI
+            ];
+        case '.':
+            return [
+                [ (6 + 0.015) / 8, 4 / 8 ],
+                [ (6 + 0.97) / 8, (4 + 1) / 8 ],
+                _fontUI
+            ];
+        case ',':
+            return [
+                [ (7 + 0.015) / 8, 4 / 8 ],
+                [ (7 + 0.97) / 8, (4 + 1) / 8 ],
+                _fontUI
+            ];
+        case '/':
+            return [
+                [ (0 + 0.015) / 8, 5 / 8 ],
+                [ (0 + 0.97) / 8, (5 + 1) / 8 ],
+                _fontUI
+            ];
+        case '!':
+            return [
+                [ (1 + 0.015) / 8, 5 / 8 ],
+                [ (1 + 0.97) / 8, (5 + 1) / 8 ],
+                _fontUI
+            ];
+        case '?':
+            return [
+                [ (2 + 0.015) / 8, 5 / 8 ],
+                [ (2 + 0.97) / 8, (5 + 1) / 8 ],
+                _fontUI
+            ];
+        case ';':
+            return [
+                [ (3 + 0.015) / 8, 5 / 8 ],
+                [ (3 + 0.97) / 8, (5 + 1) / 8 ],
+                _fontUI
+            ];
+        case ' ':
+            return [
+                [ (4 + 0.015) / 8, 5 / 8 ],
+                [ (4 + 0.97) / 8, (5 + 1) / 8 ],
+                _fontUI
+            ];
+        default: 
+            throw new Error("Can not transform letter " + s + " to our font");
+    }
+}
+
+const createText = (word) => {
+    word = word.toUpperCase();
+    let strings = word.split('\n');
+    let stringHeight = 1 / strings.length;
+    let textCard = new Sprite(
+            undefined,
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 1,
+                    y: stringHeight * strings.length
+                }
+            },
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 0,
+                    y: 0
+                }
+            });
+    for(let n = 0; n < strings.length; n++) {
+        let wordCard = new Sprite(
+            undefined,
+            {
+                pa: {
+                    x: 0,
+                    y: n * stringHeight
+                },
+                pb: {
+                    x: undefined,
+                    y: (n + 1) * stringHeight
+                }
+            },
+            {
+                pa: {
+                    x: 0,
+                    y: 3
+                },
+                pb: {
+                    x: 0,
+                    y: -3
+                }
+            });
+        wordCard.recountRect = (rect, indent, parent, image) => {
+            rect.pb.x = 2 / 3 * strings[n].length / strings.length * (parent.pb[1] - parent.pa[1]) / (parent.pb[0] - parent.pa[0]);
+            if (rect.pb.x > 1) {
+                rect.pb.y = (n + 1) * stringHeight - 1 / rect.pb.x * (parent.pb[1] - parent.pa[1]) / (parent.pb[0] - parent.pa[0]);
+                rect.pb.x = 1;
+            }
+        }
+
+        for(let i = 0; i < strings[n].length; i++) {
+            wordCard.add(new Sprite(
+            getLetterTexture(strings[n][i]),
+            {
+                pa: {
+                    x: i / strings[n].length,
+                    y: 0
+                },
+                pb: {
+                    x: (i + 1) / strings[n].length,
+                    y: 1
+                }
+            },
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 0,
+                    y: 0
+                }
+            }));
+        }
+        textCard.add(wordCard);
+    }
+    return textCard;
+}
+
+const UIOpenInv = () => {
+    inventoryOpened = true;
+    if (UIMap.invPanel) screenUI.deleteChild(UIMap.invPanel.id);
+    // Инвентарь
+    let invPanel = new Sprite(
+        [ [0, 0.51], [0.125, 0.615] ],
+        {
+            pa: {
+                x: 0,
+                y: undefined
+            },
+            pb: {
+                x: 1 / 3,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 20,
+                y: 40
+            },
+            pb: {
+                x: 10,
+                y: -20
+            }
+        });
+    invPanel.recountRect = (rect, indent, parent, image) => {
+        rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+    }
+    UIMap.invPanel = invPanel;
+    
+    let invScrollPanel = new Sprite(
+        undefined,
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 5,
+                y: 10
+            },
+            pb: {
+                x: -5,
+                y: -60
+            }
+        });
+    let label = new Sprite(
+        undefined,
+        {
+            pa: {
+                x: 0,
+                y: 1
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 15,
+                y: -50
+            },
+            pb: {
+                x: -5,
+                y: -10
+            }
+        });
+    label.add(createText("Inventory " + player.inv.weight + "/" + player.inv.capacity));
+    UIMap.invPanel.add(label);
+    for (let i = 0; i < player.inv.items.length; i++) {
+        if (player.inv.items[i]) {
+            if (player.inv.items[i].id) {
+                invScrollPanel.add(createItemCard(i, player.inv.items[i].id,
+                     "Weight: " + items[player.inv.items[i].id].weight + "\n"
+                    + "\nDurability: " + player.inv.items[i].durability
+                    + "\n" +items[player.inv.items[i].id].name));
+            } else {
+                 invScrollPanel.add(createItemCard(i, player.inv.items[i],
+                    "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
+                    + "\n\n" + "Count: " + player.inv.count[i]
+                    + "\n"+items[player.inv.items[i]].name));
+            }
+        }
+    }
+    invPanel.add(invScrollPanel);
+    UIMap.invScrollPanel = invScrollPanel;
+    needUIRedraw = true;
+    screenUI.add(invPanel);
+}
+
+const UICloseInv = () => {
+    inventoryOpened = false;
+    screenUI.deleteChild(UIMap.invPanel.id);
+    needUIRedraw = true;
 }

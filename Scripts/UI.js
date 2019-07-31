@@ -622,6 +622,7 @@ const createItemCard = (number, id) => {
 }
 
 const UISetFastInvItem = (id, index) => {
+    needUIRedraw = true;
     let slot = UIMap.fastInv[index];
     slot.children = [];
     if (id) {

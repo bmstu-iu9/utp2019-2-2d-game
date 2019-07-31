@@ -152,6 +152,7 @@ class Render {
 			alert(ErrorMsg);
 			throw new Error(ErrorMsg);
 		}
+		this.resizeCanvas();
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		
@@ -939,39 +940,49 @@ class Render {
 	drawObjects(texture, array) {
 		this.gl.useProgram(this.program[3]);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, texture[0]);
-		
+		//this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		let arrayOfBuffer = [];
 		let textureOfBuffer = [];
 		let v = 0;
 		
-		const w = 1 / this.gl.canvas.width;
-		const h = 1 / this.gl.canvas.height;
-		
+		let w, h;
+		let a, b;
 		for (let i in array) {
-			arrayOfBuffer.push(
-				array[i].pa[0] * w, array[i].pa[1] * h,
-				array[i].pb[0] * w, array[i].pa[1] * h,
-				array[i].pa[0] * w, array[i].pb[1] * h,
-				array[i].pa[0] * w, array[i].pb[1] * h,
-				array[i].pb[0] * w, array[i].pa[1] * h,
-				array[i].pb[0] * w, array[i].pb[1] * h);
-			textureOfBuffer.push(
+			if (array[i].ca === undefined || array[i].cb === undefined) {
+				w = 1 / this.gl.canvas.width;
+				h = 1 / this.gl.canvas.height;
+				this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+				a = 0, b = 0;
+			} else {
+				a = array[i].ca[0], b = array[i].ca[1];
+				w = 1 / (array[i].cb[0] - a);
+				h = 1 / (array[i].cb[1] - b);
+				this.gl.viewport(a, b, array[i].cb[0] - a, array[i].cb[1] - b);
+			}
+			
+			arrayOfBuffer = [
+				(array[i].pa[0] - a) * w, (array[i].pa[1] - b) * h,
+				(array[i].pb[0] - a) * w, (array[i].pa[1] - b) * h,
+				(array[i].pa[0] - a) * w, (array[i].pb[1] - b) * h,
+				(array[i].pa[0] - a) * w, (array[i].pb[1] - b) * h,
+				(array[i].pb[0] - a) * w, (array[i].pa[1] - b) * h,
+				(array[i].pb[0] - a) * w, (array[i].pb[1] - b) * h];
+			textureOfBuffer = [
 				array[i].ta[0], array[i].tb[1],
 				array[i].tb[0], array[i].tb[1],
 				array[i].ta[0], array[i].ta[1],
 				array[i].ta[0], array[i].ta[1],
 				array[i].tb[0], array[i].tb[1],
-				array[i].tb[0], array[i].ta[1]);
-			v += 6;
+				array[i].tb[0], array[i].ta[1]];
+			//v += 6;
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[1]);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
+			this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[2]);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
+			this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
-		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[1]);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[2]);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 	}
 	
 	// array: {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY], 'hor': true/false, 'status': 0..1}

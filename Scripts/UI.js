@@ -36,7 +36,9 @@ class Sprite {
             if (parent === undefined) {
                 parent = {
                     'pa': [0, 0],
-                    'pb': render.getCanvasSize()
+                    'pb': render.getCanvasSize(),
+                    'ca': [0, 0],
+                    'cb': render.getCanvasSize()
                 };
                 isScreenUI = true;
             }
@@ -56,14 +58,16 @@ class Sprite {
                     'pb': pb,
                     'ta': this.image[0],
                     'tb': this.image[1],
-                    'ca': parent.pa,
-                    'cb': parent.pb
+                    'ca': parent.ca,
+                    'cb': parent.cb
                 };
             }
             for (let i = 0; i < this.children.length; i++) {
                 ans = ans.concat(this.children[i].draw({
                     'pa': pa,
-                    'pb': pb
+                    'pb': pb,
+                    'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ]
                 }));
             }
             return ans;
@@ -120,7 +124,7 @@ const initUI = () => {
         });
         // Инвентарь
         let invPanel = new Sprite(
-            [ [0, 0.5], [0.125, 0.625] ],
+            [ [0, 0.51], [0.125, 0.615] ],
             {
                 pa: {
                     x: 0,
@@ -144,10 +148,36 @@ const initUI = () => {
         invPanel.recountRect = (rect, indent, parent, image) => {
             rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         }
-        for (let i = 0; i < 5; i++) {
-            invPanel.add(createItemCard(i));
-        }
         UIMap.invPanel = invPanel;
+       
+        let invScrollPanel = new Sprite(
+            undefined,
+            {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 1,
+                    y: 1
+                }
+            },
+            {
+                pa: {
+                    x: 5,
+                    y: 10
+                },
+                pb: {
+                    x: -5,
+                    y: -5
+                }
+            });
+        for (let i = 0; i < 10; i++) {
+            invScrollPanel.add(createItemCard(i));
+        }
+        invPanel.add(invScrollPanel);
+        UIMap.invScrollPanel = invScrollPanel;
+        
         screenUI.add(invPanel);
         // Кастомное окно по середине
         let actionPanel = new Sprite(

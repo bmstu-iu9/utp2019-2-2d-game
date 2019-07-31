@@ -167,6 +167,16 @@ const playerActionButtons = () => {
 	if (controller.g.active) { // Удалить сохранение
 		deleteDatabase();
 	}
+
+	// Нажата E
+	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
+		player.interactWithNearest(layout);
+		lastPlaceBlockTime = currentTime;
+	}
+
+	if (staminaNotUsed) {
+    	player.updateSP(player.sp + 4 * deltaTime);
+	}
 }
 
 // Движение игрока
@@ -377,12 +387,23 @@ const mouseControl = () => {
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
 
+		// Нажатие по интерфейсу
+		for (let i = _array.length - 1; i > 0; i--) {
+			if (Math.max(_array[i].pa[0], _array[i].ca[0]) < controller.mouse.x
+				&& Math.min(_array[i].pb[0], _array[i].cb[0]) > controller.mouse.x
+				&& Math.max(_array[i].pa[1], _array[i].ca[1]) < render.getCanvasSize()[1] - controller.mouse.y
+				&& Math.min(_array[i].pb[1], _array[i].cb[1]) > render.getCanvasSize()[1] - controller.mouse.y) {
+					// action to click
+					console.log('click on the id: ', _array[i].id);
 
-    	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
+					break;
+				}
+		}
+
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
-    		&& player.sp > 0) {
+      		&& player.sp > 0) {
             // Анимация
             player.setAnimation("body", "kick");
 
@@ -439,15 +460,5 @@ const mouseControl = () => {
             // Анимация
             player.setAnimation("body", "kick");
 		}
-	}
-
-	// Нажата E
-	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
-		player.interactWithNearest(layout);
-		lastPlaceBlockTime = currentTime;
-	}
-
-	if (staminaNotUsed) {
-    	player.updateSP(player.sp + 4 * deltaTime);
 	}
 }

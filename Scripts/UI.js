@@ -60,7 +60,8 @@ class Sprite {
                     'tb': this.image[1],
                     'ca': parent.ca,
                     'cb': parent.cb,
-                    'tex': image[2]
+                    'tex': image[2],
+                    'id': this.id
                 };
             }
             for (let i = 0; i < this.children.length; i++) {
@@ -68,7 +69,8 @@ class Sprite {
                     'pa': pa,
                     'pb': pb,
                     'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
-                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ]
+                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                    'id': this.id
                 }));
             }
             return ans;
@@ -179,7 +181,7 @@ const initUI = () => {
         invPanel.add(invScrollPanel);
         UIMap.invScrollPanel = invScrollPanel;
         
-        //screenUI.add(invPanel);
+        // screenUI.add(invPanel);
         // Кастомное окно по середине
         let actionPanel = new Sprite(
             [ [0, 0.5], [0.125, 0.625] ],

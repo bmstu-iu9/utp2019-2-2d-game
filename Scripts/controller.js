@@ -9,12 +9,16 @@ class Controller {
         this.shift  = new ButtonInput();
         this.f      = new ButtonInput();
         this.g      = new ButtonInput();
+        this.inv    = new ButtonInput();
         this.interact      = new ButtonInput();
 
         this.numbers = [];
         for (let i = 0; i < 10; i++) {
             this.numbers[i] = new ButtonInput();
         }
+
+        this.invClick = false;
+        this.downClick = false;
     }
 
     keyDownUp(event) {
@@ -49,6 +53,9 @@ class Controller {
                 break;
             case 69:
                 this.interact.getInput(down);
+                break;
+            case 73: 
+                this.inv.getInput(down);
                 break;
         }
     }

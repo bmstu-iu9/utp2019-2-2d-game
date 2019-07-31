@@ -16,7 +16,6 @@ let key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
-let layoutSwitcher = false;
 let BlocksGlobalChange = {};
 let staminaNotUsed = true;
 
@@ -161,6 +160,15 @@ const worldChange = () => {
 
 // Действия при нажатии клавиш действия
 const playerActionButtons = () => {
+	let layout = player.layout;
+    if(controller.shift.active) {
+    	if(player.layout === GameArea.FIRST_LAYOUT) {
+    		layout = GameArea.SECOND_LAYOUT;
+    	} else {
+    		layout = GameArea.BACK_LAYOUT;
+    	}
+    }
+
 	if (controller.f.active) {  // Сохранение
 		saveWorld('world');
 	}
@@ -174,6 +182,20 @@ const playerActionButtons = () => {
 		lastPlaceBlockTime = currentTime;
 	}
 
+	// Нажата клавиша I
+	if(controller.inv.active) {
+		 if(!controller.invClick) {
+		 	controller.invClick = true;
+		 	if (inventoryOpened) {
+		 		UICloseInv();
+		 	} else {
+		 		UIOpenInv();
+		 	}
+		 }
+	} else {
+		controller.invClick = false;
+	}
+
 	if (staminaNotUsed) {
     	player.updateSP(player.sp + 4 * deltaTime);
 	}
@@ -183,8 +205,8 @@ const playerActionButtons = () => {
 const playerMovement = () => {
 
 	if(controller.down.active) {
-		 if(!layoutSwitcher) {
-		 	layoutSwitcher = true;
+		 if(!controller.downClick) {
+		 	controller.downClick = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
 		 	if(player.canStay(player.fx, player.fy, layout)) {
 		 		player.layout = layout;
@@ -192,7 +214,7 @@ const playerMovement = () => {
 		 	}
 		 }
 	} else {
-		layoutSwitcher = false;
+		controller.downClick = false;
 	}
 
 	// Координаты блока, в котором голова
@@ -394,7 +416,7 @@ const mouseControl = () => {
 				&& Math.max(_array[i].pa[1], _array[i].ca[1]) < render.getCanvasSize()[1] - controller.mouse.y
 				&& Math.min(_array[i].pb[1], _array[i].cb[1]) > render.getCanvasSize()[1] - controller.mouse.y) {
 					// action to click
-					console.log('click on the id: ', _array[i].id);
+					console.log(_array[i]);
 
 					break;
 				}

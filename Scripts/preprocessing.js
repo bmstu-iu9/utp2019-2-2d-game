@@ -14,6 +14,7 @@ const playerResolutionX = 48, playerResolutionY = 96;
 let loadingResult = undefined;
 const render = new Render();
 let _textureUI;
+let _fontUI;
 
 const loadImage = (source) => {
 	totalImages++;
@@ -29,7 +30,8 @@ const loadImage = (source) => {
 }
 
 const _UI = loadImage('Images/UI.png'),  // Загрузка текстур
-	_Items = loadImage('Images/Items.png'),
+	_Items = loadImage('Images/items.png'),
+	_Font = loadImage('Images/font.png'),
 	image = loadImage('Images/blocks.png'),
 	background = loadImage('Images/background.png'),
 	playerImage = loadImage('Images/player.png');
@@ -38,6 +40,7 @@ const preprocessing = () => {
 	render.init(image, background, playerImage);
 	render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
 	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);
+	_fontUI = render.createTexture(_Font, _Font.width, _Font.height);
 	_textureItems = render.createTexture(_Items, _Items.width, _Items.height);
 	initUI();
 

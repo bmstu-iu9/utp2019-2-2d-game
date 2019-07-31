@@ -13,6 +13,7 @@ let slicePlayer = 1; // 1 - игрок на переднем слое, 2 - за 
 const playerResolutionX = 48, playerResolutionY = 96;
 let loadingResult = undefined;
 const render = new Render();
+let _textureUI;
 
 const loadImage = (source) => {
 	totalImages++;
@@ -28,6 +29,7 @@ const loadImage = (source) => {
 }
 
 const _UI = loadImage('Images/UI.png'),  // Загрузка текстур
+	_Items = loadImage('Images/Items.png'),
 	image = loadImage('Images/blocks.png'),
 	background = loadImage('Images/background.png'),
 	playerImage = loadImage('Images/player.png');
@@ -35,7 +37,9 @@ const _UI = loadImage('Images/UI.png'),  // Загрузка текстур
 const preprocessing = () => {
 	render.init(image, background, playerImage);
 	render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
-	const _texture = render.createTexture(_UI, _UI.width, _UI.height);
+	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);
+	_textureItems = render.createTexture(_Items, _Items.width, _Items.height);
+	console.log(_textureItems);
 	initUI();
 
 	// Отправка образцов объектов
@@ -252,7 +256,7 @@ const preprocessing = () => {
 			player.direction);
 		
 		drawUI();
-		render.drawObjects(_texture, _array);
+		render.drawObjects(_textureUI, _array);
 		
 		fpsUpdate();
 		requestAnimationFrame(update);

@@ -59,7 +59,8 @@ class Sprite {
                     'ta': this.image[0],
                     'tb': this.image[1],
                     'ca': parent.ca,
-                    'cb': parent.cb
+                    'cb': parent.cb,
+                    'tex': image[2]
                 };
             }
             for (let i = 0; i < this.children.length; i++) {
@@ -173,12 +174,12 @@ const initUI = () => {
                 }
             });
         for (let i = 0; i < 10; i++) {
-            invScrollPanel.add(createItemCard(i));
+            invScrollPanel.add(createItemCard(i, 1));
         }
         invPanel.add(invScrollPanel);
         UIMap.invScrollPanel = invScrollPanel;
         
-        screenUI.add(invPanel);
+        //screenUI.add(invPanel);
         // Кастомное окно по середине
         let actionPanel = new Sprite(
             [ [0, 0.5], [0.125, 0.625] ],
@@ -203,7 +204,7 @@ const initUI = () => {
                 }
             });
         UIMap.actionPanel = actionPanel;
-        screenUI.add(actionPanel);
+        //screenUI.add(actionPanel);
 
         // Быстрый инвентарь
         let fastInvPanel = new Sprite(
@@ -535,7 +536,7 @@ const UISetBar = (count, bar, length, height, padding, number) => {
     }
 }
 
-const createItemCard = (number) => {
+const createItemCard = (number, id) => {
     let card = new Sprite(
         [ [0.125, 0.51], [0.250, 0.615] ],
         {
@@ -565,7 +566,7 @@ const createItemCard = (number) => {
     }
 
     let slot = new Sprite(
-        [ [0, 0.51], [0.125, 0.615] ],
+        [ [0.250, 0.51], [0.375, 0.615] ],
         {
             pa: {
                 x: 0,
@@ -578,12 +579,12 @@ const createItemCard = (number) => {
         },
         {
             pa: {
-                x: 10,
-                y: 10
+                x: 15,
+                y: 15
             },
             pb: {
-                x: -10,
-                y: -10
+                x: -15,
+                y: -15
             }
         });
     slot.recountRect = (rect, indent, parent, image) => {
@@ -591,5 +592,60 @@ const createItemCard = (number) => {
     }
     card.add(slot);
 
+    if (id) {
+        let item = new Sprite(
+        items[id].texture(),
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 15,
+                y: 15
+            },
+            pb: {
+                x: -15,
+                y: -15
+            }
+        });
+        slot.add(item);
+    }
+
     return card;
+}
+
+const UISetFastInvItem = (id, index) => {
+    let slot = UIMap.fastInv[index];
+    slot.children = [];
+    if (id) {
+        slot.add(new Sprite(
+        items[id].texture(),
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 15,
+                y: 15
+            },
+            pb: {
+                x: -15,
+                y: -15
+            }
+        }));
+    }
 }

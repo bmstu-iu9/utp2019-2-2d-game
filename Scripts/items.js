@@ -13,11 +13,13 @@ const IRON_DURABILITY = 200;
 const DIAMOND_DURABILITY = 300;
 const textureSize = 512;
 const itemSize = 32;
+let _textureItems;
 
 const getTextureCoordinates = (x, y) => {
     return [
-        [ x * itemsSize / textureSize + 0.0001, y * itemsSize / textureSize + 0.0001],
-        [ (x + 1) * itemsSize / textureSize - 0.0001, (y + 1) * itemsSize / textureSize - 0.0001]
+        [ x * itemSize / textureSize + 0.0001, y * itemSize / textureSize + 0.0001],
+        [ (x + 1) * itemSize / textureSize - 0.0001, (y + 1) * itemSize / textureSize - 0.0001],
+        _textureItems
     ];
 }
 
@@ -37,7 +39,9 @@ let items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
-        texture: getTextureCoordinates(0, 0)
+        texture: () => {
+            return getTextureCoordinates(0, 0)
+        }
     },
 
     '2':
@@ -53,7 +57,9 @@ let items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
-        texture: getTextureCoordinates(1, 0)
+        texture: () => {
+            return getTextureCoordinates(1, 0)
+        }
     },
 
     '3':
@@ -69,7 +75,9 @@ let items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
-        texture: getTextureCoordinates(2, 0)
+        texture: () => {
+            return getTextureCoordinates(2, 0)
+        }
     },
 
     '4':
@@ -86,7 +94,9 @@ let items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
-        texture: getTextureCoordinates(3, 0)
+        texture: () => {
+            return getTextureCoordinates(3, 0)
+        }
     },
 
     '5':
@@ -100,7 +110,9 @@ let items = {
         weight: WEIGHT_OF_BLOCKS,
         meltingId: '263',
         costOfMelting: '50',
-        texture: getTextureCoordinates(4, 0)
+        texture: () => {
+            return getTextureCoordinates(4, 0)
+        }
     },
 
     '7':
@@ -114,7 +126,9 @@ let items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
-        texture: getTextureCoordinates(6, 0)
+        texture: () => {
+            return getTextureCoordinates(6, 0)
+        }
     },
 
     '8':
@@ -186,7 +200,9 @@ let items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
-        texture: getTextureCoordinates(5, 0)
+        texture: () => {
+            return getTextureCoordinates(5, 0)
+        }
     },
 
     '14':
@@ -199,7 +215,9 @@ let items = {
         weight: WEIGHT_OF_BLOCKS,
         meltingId: '266',
         costOfMelting: '100',
-        texture: getTextureCoordinates(7, 0)
+        texture: () => {
+            return getTextureCoordinates(7, 0)
+        }
     },
 
     '15':
@@ -212,7 +230,9 @@ let items = {
         weight: WEIGHT_OF_BLOCKS,
         meltingId: '265',
         costOfMelting: '100',
-        texture: getTextureCoordinates(8, 0)
+        texture: () => {
+            return getTextureCoordinates(8, 0)
+        }
     },
 
     '16':
@@ -244,7 +264,9 @@ let items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
-        texture: getTextureCoordinates(9, 0)
+        texture: () => {
+            return getTextureCoordinates(9, 0)
+        }
     },
 
     '18':
@@ -259,7 +281,9 @@ let items = {
         brightness: 0,
         isCollissed: false,
         isSolid: true,
-        texture: getTextureCoordinates(10, 0)
+        texture: () => {
+            return getTextureCoordinates(10, 0)
+        }
     },
 
     '20': 
@@ -337,7 +361,9 @@ let items = {
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,
-        texture: getTextureCoordinates(12, 0),
+        texture: () => {
+            return getTextureCoordinates(12, 0)
+        },
         interactFunction: (x, y, layout) => {
             gameArea.gameAreaMapSet(x, y, layout, 60);
 
@@ -420,7 +446,9 @@ let items = {
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,
-        texture: getTextureCoordinates(11, 0),
+        texture: () => {
+            return getTextureCoordinates(11, 0)
+        },
         interactFunction: (x, y, layout) => {
             gameArea.gameAreaMapSet(x, y, layout, 62);
 
@@ -456,7 +484,9 @@ let items = {
         durability: IRON_DURABILITY,
         efficiency: IRON_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(7, 1)
+        texture: () => {
+            return getTextureCoordinates(7, 1)
+        }
     },
 
     '257':
@@ -468,7 +498,9 @@ let items = {
         durability: IRON_DURABILITY,
         efficiency: IRON_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(8, 1)
+        texture: () => {
+            return getTextureCoordinates(8, 1)
+        }
     },
 
     '258':
@@ -480,7 +512,9 @@ let items = {
         durability: IRON_DURABILITY,
         efficiency: IRON_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(9, 1)
+        texture: () => {
+            return getTextureCoordinates(9, 1)
+        }
     },
 
     '263':
@@ -520,7 +554,9 @@ let items = {
         durability: WOODEN_DURABILITY,
         efficiency: WOODEN_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(1, 1)
+        texture: () => {
+            return getTextureCoordinates(1, 1)
+        }
     },
 
     '270':
@@ -532,7 +568,9 @@ let items = {
         durability: WOODEN_DURABILITY,
         efficiency: WOODEN_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(2, 1)
+        texture: () => {
+            return getTextureCoordinates(2, 1)
+        }
     },
 
     '271':
@@ -544,7 +582,9 @@ let items = {
         durability: WOODEN_DURABILITY,
         efficiency: WOODEN_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(3, 1)
+        texture: () => {
+            return getTextureCoordinates(3, 1)
+        }
     },
 
     '273':
@@ -556,7 +596,9 @@ let items = {
         durability: STONE_DURABILITY,
         efficiency: STONE_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(4, 1)
+        texture: () => {
+            return getTextureCoordinates(4, 1)
+        }
     },
 
     '274':
@@ -568,7 +610,9 @@ let items = {
         durability: STONE_DURABILITY,
         efficiency: STONE_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(5, 1)
+        texture: () => {
+            return getTextureCoordinates(5, 1)
+        }
     },
 
     '275':
@@ -580,7 +624,9 @@ let items = {
         durability: STONE_DURABILITY,
         efficiency: STONE_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(6, 1)
+        texture: () => {
+            return getTextureCoordinates(6, 1)
+        }
     },
 
     '277':
@@ -592,7 +638,9 @@ let items = {
         durability: DIAMOND_DURABILITY,
         efficiency: DIAMOND_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(10, 1)
+        texture: () => {
+            return getTextureCoordinates(10, 1)
+        }
     },
 
     '278':
@@ -604,7 +652,9 @@ let items = {
         durability: DIAMOND_DURABILITY,
         efficiency: DIAMOND_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(11, 1)
+        texture: () => {
+            return getTextureCoordinates(11, 1)
+        }
     },
 
     '279':
@@ -616,7 +666,9 @@ let items = {
         durability: DIAMOND_DURABILITY,
         efficiency: DIAMOND_EFFICIENCY,
         weight: WEIGHT_OF_INSTRUMENTS,
-        texture: getTextureCoordinates(12, 1)
+        texture: () => {
+            return getTextureCoordinates(12, 1)
+        }
     },
 
     '370':

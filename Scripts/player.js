@@ -381,16 +381,27 @@ class Player {
         this.setHand = (index) => {
             this.hand.index = index;
             this.hand.item = this.inv.items[this.fastInv[index]];
-            if (this.hand.item == undefined) {
+            if (this.hand.item === undefined) {
                 this.hand.info = undefined;
             } else {
-                if (this.hand.item.id == undefined) {
+                if (this.hand.item.id === undefined) {
                     this.hand.info = items[this.hand.item];
                 } else {
                     this.hand.info = items[this.hand.item.id];
                 }
             }
             UISetActiveSlot(index);
+            for (let i = 0; i < this.fastInv.length; i++) {
+                if (this.inv.items[this.fastInv[i]]) {
+                    if (this.inv.items[this.fastInv[i]].id) {
+                        UISetFastInvItem(this.inv.items[this.fastInv[i]].id, i);
+                    } else {
+                        UISetFastInvItem(this.inv.items[this.fastInv[i]], i);
+                    }
+                } else {
+                    UISetFastInvItem(undefined, i);
+                }
+            }
             if (this.hand.item) {
                 console.log(this.hand.info.name);
             } else {

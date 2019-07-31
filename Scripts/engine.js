@@ -267,6 +267,10 @@ class Render {
 		this.program[3] = this.createProgram(vertexShader3, fragmentShader3, linker3);
 		this.gl.useProgram(this.program[3]);
 		
+		this.uniform[3] = this.createUniformLocation(this.program[3], [
+				'u_texture'
+			]); // получение uniform-переменных из шейдеров
+		
 		// SHADER PROGRAM 4
 		const vertexShader4 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[4]);
 		const fragmentShader4 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[4]);
@@ -283,14 +287,10 @@ class Render {
 		this.gl.useProgram(this.program[4]);
 		
 		this.uniform[4] = this.createUniformLocation(this.program[4], [
-				'u_progress'
+				'u_progress',
+				'u_texture0',
+				'u_texture1'
 			]); // получение uniform-переменных из шейдеров
-		
-		// привязка текстур к текстурным блокам
-		const texture0UniformLocation4 = this.gl.getUniformLocation(this.program[4], 'u_texture0');
-		const texture1UniformLocation4 = this.gl.getUniformLocation(this.program[4], 'u_texture1');
-		this.gl.uniform1i(texture0UniformLocation4, 0);
-		this.gl.uniform1i(texture1UniformLocation4, 1);
 		
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
@@ -307,6 +307,10 @@ class Render {
 			0.0, 2.0, 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
 			-1.0, -1.0, (far + near) / (near - far), 1.0]);
+		
+		this.textureID = 8;
+		this.buffer0 = this.gl.createBuffer();
+		this.buffer1 = this.gl.createBuffer();
 	}
 	
 	init(image, background, playerImage) {
@@ -916,6 +920,8 @@ class Render {
 	// отрисовка
 	createTexture(image, width, height) {
 		const texture = this.gl.createTexture();
+		this.textureID--;
+		this.gl.activeTexture(this.gl.TEXTURE0 + this.textureID);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			
 		// задание параметров текстуры
@@ -925,10 +931,9 @@ class Render {
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
 		this.gl.generateMipmap(this.gl.TEXTURE_2D);
+		this.gl.activeTexture(this.gl.TEXTURE0);
 		
-		const buffer0 = this.gl.createBuffer();
-		const buffer1 = this.gl.createBuffer();
-		return [texture, buffer0, buffer1];
+		return this.textureID;
 	}
 	
 	getCanvasSize() {
@@ -936,10 +941,10 @@ class Render {
 		return [this.gl.canvas.width, this.gl.canvas.height];
 	}
 	
-	// array: {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY]}
+	// array: { 'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY], 'ca': [caX, caY],
+	//			'cb': [cbX, cbY], 'tex': textureID }
 	drawObjects(texture, array) {
 		this.gl.useProgram(this.program[3]);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, texture[0]);
 		//this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		let arrayOfBuffer = [];
 		let textureOfBuffer = [];
@@ -959,6 +964,11 @@ class Render {
 				h = 1 / (array[i].cb[1] - b);
 				this.gl.viewport(a, b, array[i].cb[0] - a, array[i].cb[1] - b);
 			}
+			if (array[i].tex === undefined) {
+				this.gl.uniform1i(this.uniform[3].u_texture, texture);
+			} else {
+				this.gl.uniform1i(this.uniform[3].u_texture, array[i].tex);
+			}
 			
 			arrayOfBuffer = [
 				(array[i].pa[0] - a) * w, (array[i].pa[1] - b) * h,
@@ -975,23 +985,22 @@ class Render {
 				array[i].tb[0], array[i].tb[1],
 				array[i].tb[0], array[i].ta[1]];
 			//v += 6;
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[1]);
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer0);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture[2]);
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer1);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
+		this.gl.uniform1i(this.uniform[3].u_texture, 0);
 	}
 	
 	// array: {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY], 'hor': true/false, 'status': 0..1}
 	drawProgressBars(texture0, texture1, array) {
 		this.gl.useProgram(this.program[4]);
-		this.gl.activeTexture(this.gl.TEXTURE1);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, texture1[0]);
-		this.gl.activeTexture(this.gl.TEXTURE0);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, texture0[0]);
+		this.gl.uniform1i(this.gl.uniform[4].u_texture0, texture0);
+		this.gl.uniform1i(this.gl.uniform[4].u_texture1, texture1);
 		
 		let arrayOfBuffer = [];
 		let textureOfBuffer = [];
@@ -1016,10 +1025,10 @@ class Render {
 				array[i].tb[0], array[i].ta[1]);
 		}
 		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture0[1]);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer0);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
 		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texture0[2]);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer1);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
 		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 		
@@ -1033,5 +1042,7 @@ class Render {
 			}
 			this.gl.drawArrays(this.gl.TRIANGLES, i * 6, 6);
 		}
+		this.gl.uniform1i(this.gl.uniform[4].u_texture0, 0);
+		this.gl.uniform1i(this.gl.uniform[4].u_texture1, 1);
 	}
 }

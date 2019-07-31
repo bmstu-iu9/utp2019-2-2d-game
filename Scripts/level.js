@@ -18,6 +18,7 @@ let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
 let layoutSwitcher = false;
 let BlocksGlobalChange = {};
+let staminaNotUsed = true;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
@@ -107,6 +108,7 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
+	staminaNotUsed = true;
 	playerMovement();
 	mouseControl();
 	UI();
@@ -202,18 +204,36 @@ const playerMovement = () => {
 			player.vy = Math.max(player.vy, 0);
 			if (controller.up.active) {
 				if (controller.shift.active) {
-					player.vy = Player.JUMP_SPEED * 2 / 3;
+					if (player.sp >= Player.JUMP_SPEED * 2 / 3 / 10) {
+						player.vy = Player.JUMP_SPEED * 2 / 3;
+
+						// Уменьшение выносливости
+	                	player.updateSP(player.sp - Player.JUMP_SPEED * 2 / 3 / 10);
+	                	staminaNotUsed = false;
+					}
 				} else {
-					player.vy = Player.JUMP_SPEED;
+					if (player.sp >= Player.JUMP_SPEED / 5) {
+						player.vy = Player.JUMP_SPEED;
+
+						// Уменьшение выносливости
+	                	player.updateSP(player.sp - Player.JUMP_SPEED / 10);
+	                	staminaNotUsed = false;
+	                }
 				}
 			}
 		} else {
-			if (controller.up.active && player.vy > 0) { //.............................. Удержание прыжка
+			if (controller.up.active && player.vy > 0 && player.sp >= 3 * deltaTime) { // Удержание прыжка
 				player.vy -= GameArea.GRAVITY * deltaTime * 2 / 3;
+
+				// Уменьшение выносливости
+	            player.updateSP(player.sp - 3 * deltaTime);
+                staminaNotUsed = false;
 			} else {
+				player.vy -= Math.max(- Player.JUMP_SPEED * 4, GameArea.GRAVITY * deltaTime);
 				if (player.vy > - Player.JUMP_SPEED * 4) {
-					player.vy -= GameArea.GRAVITY * deltaTime;
+					
 				}
+				staminaNotUsed = false;
 			}
 		}
 		if (controller.shift.active) { // На шифте
@@ -366,7 +386,10 @@ const mouseControl = () => {
             // Анимация
             player.setAnimation("body", "kick");
 
+            // Уменьшение выносливости
             player.updateSP(player.sp - 4 * deltaTime);
+            staminaNotUsed = false;
+
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
     			currentBlock = {
@@ -390,7 +413,6 @@ const mouseControl = () => {
     	}
     } else {
     	currentBlock = undefined;
-    	player.updateSP(player.sp + 2 * deltaTime);
     }
 
 	// Когда зажата ПКМ
@@ -423,5 +445,9 @@ const mouseControl = () => {
 	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
 		player.interactWithNearest(layout);
 		lastPlaceBlockTime = currentTime;
+	}
+
+	if (staminaNotUsed) {
+    	player.updateSP(player.sp + 4 * deltaTime);
 	}
 }

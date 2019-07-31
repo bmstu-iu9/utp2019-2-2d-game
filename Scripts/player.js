@@ -101,6 +101,11 @@ class Player {
             if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)
                     && (!items[this.hand.item].canPlace || items[this.hand.item].canPlace(x, y, layout))) {
                 gameArea.placeBlock(x, y, layout, this.hand.item);
+
+                // Уменьшение выносливости
+                player.updateSP(player.sp - this.hand.info.weight);
+                staminaNotUsed = false;
+
                 this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
             }
         };
@@ -453,15 +458,17 @@ class Player {
         }
 
         this.updateSP = (count) => {
-            this.sp = count;
+            this.sp = Math.max(0, count);
             if (count >= this.maxSP) {
                 this.sp = this.maxSP;
                 UIMap.barsPanel.deleteChild(UIMap.staminaBar.id);
                 UIMap.barsPanel.deleteChild(UIMap.staminaBarEmpty.id);
-            } else if (!UIMap.barsPanel.get(UIMap.staminaBar.id)) {
-                UIMap.barsPanel.add(UIMap.staminaBar);
-                UIMap.barsPanel.add(UIMap.staminaBarEmpty);
-            }
+            } else {
+                if (!UIMap.barsPanel.get(UIMap.staminaBar.id)) {
+                    UIMap.barsPanel.add(UIMap.staminaBar);
+                    UIMap.barsPanel.add(UIMap.staminaBarEmpty);
+                }
+            } 
             UISetBar(this.sp / this.maxSP, UIMap.staminaBar, 202, 16, 1, 1);
         }
 

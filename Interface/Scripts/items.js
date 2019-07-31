@@ -521,7 +521,10 @@ let items = {
     { 
         id: '263',
         name: 'Coal', 
-        weight: WEIGHT_OF_ORES
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(0, 2)
+        }
     },
 
     '264': 

@@ -862,7 +862,7 @@ const UIOpenInv = () => {
         {
             pa: {
                 x: 5,
-                y: 10
+                y: 100
             },
             pb: {
                 x: -5,
@@ -918,11 +918,63 @@ const UIOpenInv = () => {
         {
             scrollX: 0
         });
-    setOnClickListener(scrollingContent, () => {
-        scrollingContent.props.scrollX += 5;
-    });
     UIMap.invScrollingContent = scrollingContent;
     reloadInv();
+
+    let downButton = new Sprite(
+        [ [0.4375, 0.5625], [0.376, 0.501] ],
+        {
+            pa: {
+                x: 1,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 0
+            }
+        },
+        {
+            pa: {
+                x: -200,
+                y: 0
+            },
+            pb: {
+                x: -100,
+                y: 100
+            }
+        });
+    setOnClickListener(downButton, () => {
+        scrollingContent.props.scrollX -= 10;
+    });
+
+    let upButton = new Sprite(
+        [ [0.376, 0.501], [0.4375, 0.5625] ],
+        {
+            pa: {
+                x: 1,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 0
+            }
+        },
+        {
+            pa: {
+                x: -100,
+                y: 0
+            },
+            pb: {
+                x: 0,
+                y: 100
+            }
+        });
+    setOnClickListener(upButton, () => {
+        scrollingContent.props.scrollX += 10;
+    });
+
+    invPanel.add(downButton);
+    invPanel.add(upButton);
 
     invScrollPanel.add(scrollingContent);
     invPanel.add(invScrollPanel);

@@ -410,13 +410,57 @@ const mouseControl = () => {
     if (controller.mouse.click === 1) {
 
 		// Нажатие по интерфейсу
-		for (let i = _array.length - 1; i > 0; i--) {
-			if (Math.max(_array[i].pa[0], _array[i].ca[0]) < controller.mouse.x
-				&& Math.min(_array[i].pb[0], _array[i].cb[0]) > controller.mouse.x
-				&& Math.max(_array[i].pa[1], _array[i].ca[1]) < render.getCanvasSize()[1] - controller.mouse.y
-				&& Math.min(_array[i].pb[1], _array[i].cb[1]) > render.getCanvasSize()[1] - controller.mouse.y) {
+		for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
+			if (_interactiveUIArr[i].pa[0] < controller.mouse.x
+				&& _interactiveUIArr[i].pb[0] > controller.mouse.x
+				&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+				&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
 					// action to click
-					console.log(_array[i]);
+					let sprite = _interactiveUIArr[i].sprite;
+					let lastButton = UIMap.lastButton;
+					let activeElement = UIMap.activeElement;
+					if (sprite.props.type === 'button') {
+						sprite.click();
+					} else if (sprite.props.type === 'invSlot') {
+						sprite.click();
+					}
+
+					if (lastButton !== undefined && lastButton !== sprite && lastButton.onRelease) {
+						lastButton.onRelease();
+					}
+
+					if (activeElement && sprite !== activeElement && activeElement.clickAnother) {
+						activeElement.clickAnother();
+					}
+
+
+					if (lastButton === undefined) {
+						if (activeElement === undefined) {
+							if (sprite.props && sprite.props.type === 'invSlot') {
+								UIMap.activeElement = sprite;
+							}
+						} else {
+							if (activeElement.props && activeElement.props.type === 'invSlot') {
+								if (sprite.props) {
+									if (activeElement.props.invIndex === sprite.props.invIndex) {
+										UIMap.activeElement = undefined;
+									} else {
+										// Действия
+										if (sprite.props.type === 'invSlot') {
+											player.invSwapByIndex(activeElement.props.invIndex, sprite.props.invIndex);
+											needUIRedraw = true;
+										}
+
+										UIMap.activeElement = undefined;
+									}
+								}
+							}
+						} 
+					}
+
+					console.log(activeElement)
+
+					UIMap.lastButton = sprite;
 
 					break;
 				}
@@ -456,6 +500,12 @@ const mouseControl = () => {
     	}
     } else {
     	currentBlock = undefined;
+
+    	let lastButton = UIMap.lastButton;
+		if (lastButton !== undefined && lastButton.onRelease) {
+			lastButton.onRelease();
+		}
+		UIMap.lastButton = undefined;
     }
 
 	// Когда зажата ПКМ

@@ -93,7 +93,7 @@ image.onload = () => {
 				[{'id':1, 'a':[32.5/128, 32.5/128], 'b':[63.5/128, 63.5/128]},
 				{'id':3, 'a':[0.5/128, 0.5/128], 'b':[31.5/128, 31.5/128]}]);
 			
-			let arrayOfChunk = [{
+			const arrayOfChunk = [{
 				'chunk':
 					[[1,1,1,1],
 					[1,1,3,3],
@@ -154,31 +154,23 @@ const _texCoordAttributeLocation = 1;
 class Render {
 	constructor() {
 		const canvas = document.getElementById('canvas'); // получаем канвас
-		let webglver = '2';
-		this.gl = canvas.getContext('webgl2', {
+		this.gl = canvas.getContext('webgl', {
 				premultipliedAlpha: false,
 				alpha: false
-			}); // получаем доступ к webgl2
+			}); // получаем доступ к webgl
 		if (!this.gl) {
-			webglver = '1';
-			this.gl = canvas.getContext('webgl', {
+			this.gl = canvas.getContext('experimental-webgl', {
 					premultipliedAlpha: false,
 					alpha: false
-				}); // получаем доступ к webgl
+				}); // иначе получаем доступ к experimental-webgl
 			if (!this.gl) {
-				webglver = 'exp'
-				this.gl = canvas.getContext('experimental-webgl', {
-						premultipliedAlpha: false,
-						alpha: false
-					}); // получаем доступ к experimental-webgl
-				if (!this.gl) {
-					const ErrorMsg = 'Browser is very old';
-					stop();
-					alert(ErrorMsg);
-					throw new Error(ErrorMsg);
-				}
+				const ErrorMsg = 'Browser is very old';
+				stop();
+				alert(ErrorMsg);
+				throw new Error(ErrorMsg);
 			}
 		}
+		// ANGLE_instanced_arrays
 		
 		this.resizeCanvas(canvas);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
@@ -314,12 +306,16 @@ class Render {
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
 		
-		//stat
+		// сбор статистики
+		const ext = this.gl.getExtension('ANGLE_instanced_arrays');
+		const debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+		const vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+		const renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
 		const dpr = window.devicePixelRatio;
-		_params += 'webgl=' + encodeURIComponent(webglver);
+		_params += 'webgl=' + encodeURIComponent(vendor + "|||" + renderer);
 		_params += '&context=' + encodeURIComponent(JSON.stringify(this.gl.getContextAttributes()));
 		_params += '&p01=' + encodeURIComponent(this.gl.getParameter(this.gl.CULL_FACE));
-		_params += '&p02=' + encodeURIComponent(this.gl.getParameter(this.gl.DEPTH_TEST));
+		_params += '&p02=' + encodeURIComponent(ext == null);
 		_params += '&p03=' + encodeURIComponent(this.gl.getParameter(this.gl.BLEND));
 		_params += '&p04=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
 		_params += '&p05=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE));
@@ -402,7 +398,7 @@ class Render {
 		
 		const l = 0, h = this.size;
 		
-		let arrayOfPosition = [
+		const arrayOfPosition = [
 			0, 0, // ID: 0
 			backgroundAsp, 0,
 			0, 1,
@@ -445,7 +441,7 @@ class Render {
 			h * this.widthChunk, l,
 			h * this.widthChunk, h * this.heightChunk];
 		
-		let arrayOfTexCoord = [
+		const arrayOfTexCoord = [
 			0, 1, // ID: 0
 			1, 1,
 			0, 0,
@@ -509,8 +505,8 @@ class Render {
 	
 	createAnimations(playerResolutionX, playerResolutionY, playerAnims) {
 		this.playerResolution = [playerResolutionX, playerResolutionY];
-		let arrayOfPosition = [];
-		let arrayOfTexCoord = [];
+		const arrayOfPosition = [];
+		const arrayOfTexCoord = [];
 		
 		for (let i in playerAnims) {
 			arrayOfPosition.push(
@@ -619,7 +615,7 @@ class Render {
 		
 		// буфер кадров
 		if (this.arrayOfChunks[c] === undefined) {
-			let texture = [], blockBuffer = [], texBuffer = [];
+			const texture = [], blockBuffer = [], texBuffer = [];
 			for (let i in blocksOfChunk) {
 				texture[i] = this.gl.createTexture();
 				this.gl.bindTexture(this.gl.TEXTURE_2D, texture[i]);
@@ -634,7 +630,7 @@ class Render {
 				texBuffer[i] = this.gl.createBuffer();
 			}
 			
-			let light = this.gl.createTexture();
+			const light = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, light);
 			
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
@@ -670,8 +666,8 @@ class Render {
 		
 		// Отрисовка слоёв
 		for (let i in this.arrayOfChunks[c].tex) {
-			let arrayOfBuffer = [];
-			let textureOfBuffer = [];
+			const arrayOfBuffer = [];
+			const textureOfBuffer = [];
 			
 			this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
 				this.arrayOfChunks[c].tex[i], 0);
@@ -895,12 +891,6 @@ class Render {
 			}
 		}
 		
-		this.gl.uniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, [
-			2.0, 0.0, 0.0, 0.0,
-			0.0, 2.0, 0.0, 0.0,
-			0.0, 0.0, -2.0 / (far - near), 0.0,
-			-1.0, -1.0, (far + near) / (near - far), 1.0]);
-		
 		this.gl.flush(); // очистка данных
 		
 		// дождь
@@ -967,7 +957,7 @@ class Render {
 	}
 	
 	startRain() {
-		if (!this.rain) {
+		if (this.weather[3] <= 0) {
 			this.weather[2] = this.gl.canvas.height / 2;
 			this.weather[3] = 1;
 		}
@@ -1000,7 +990,7 @@ class Render {
 	}
 	
 	createAttributeLocation(program, params) {
-		let attributeLocation = {};
+		const attributeLocation = {};
 		for (let i in params) {
 			attributeLocation[params[i]] = this.gl.getAttribLocation(program, params[i]);
 		}
@@ -1008,7 +998,7 @@ class Render {
 	}
 	
 	createUniformLocation(program, params) {
-		let uniformLocation = {};
+		const uniformLocation = {};
 		for (let i in params) {
 			uniformLocation[params[i]] = this.gl.getUniformLocation(program, params[i]);
 		}

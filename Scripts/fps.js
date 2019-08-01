@@ -1,22 +1,36 @@
 'use strict';
 
-let _fps_time = performance.now();
-let _fps_countner = 0;
+let _fpsTime = performance.now();
+let _fpsCountner = 0;
+let _startFps = _fpsTime;
+let _fpsCountnerAVG = 0;
 
 const fpsUpdate = () => {
-	const nowtime = performance.now();
-	const delta = nowtime - _fps_time;
+	const nowTime = performance.now();
+	const delta = nowTime - _fpsTime;
+	const deltaAvg = nowTime - _startFps;
+	_fpsCountnerAVG++;
 	if (delta < 1000) {
-		_fps_countner++;
+		_fpsCountner++;
 	} else {
-		if (_fps_countner < 100) {
-			document.getElementById('fps').innerHTML = ' ';
-			if (_fps_countner < 10) {
-				document.getElementById('fps').innerHTML += ' ';
+		let text = '';
+		if (_fpsCountner < 100) {
+			text = ' ';
+			if (_fpsCountner < 10) {
+				text += ' ';
 			}
 		}
-		document.getElementById('fps').innerHTML += _fps_countner + ' FPS';
-		_fps_time = nowtime;
-		_fps_countner = 0;
+		document.getElementById('fps').innerHTML = text + _fpsCountner;
+		text = '';
+		const AVG = Math.floor(_fpsCountnerAVG / deltaAvg * 1000);
+		if (AVG < 100) {
+			text = ' ';
+			if (AVG < 10) {
+				text += ' ';
+			}
+		}
+		document.getElementById('avg').innerHTML = text + AVG;
+		_fpsTime += delta - (delta % 1000);
+		_fpsCountner = 0;
 	}
 }

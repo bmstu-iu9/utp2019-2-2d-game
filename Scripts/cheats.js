@@ -15,8 +15,14 @@ const cheat = {
         console.log(`Seed: ${__cheat_seed}`);
     },
     tp(x, y) {
-        player.fx = x;
-        player.fy = y;
+        if (arguments.length == 2) {
+            player.fx = x;
+            player.fy = y;
+        }
+        else if (arguments.length == 1) {
+            player.fx = x.x;
+            player.fy = x.y;
+        } 
     },
     mv(x, y) {
         player.fx += x;

@@ -1,7 +1,9 @@
+var __observe = [];
+
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
     console.time('World generation');
-    // seed = 1564182166636;
+    // seed = 1564585243337;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -17,11 +19,17 @@ const generate = (width, height, seed, changes) => {
             this.x = x;
             this.y = y;
         }
-        add(oth) {
-            return new Point(this.x + oth.x, this.y + oth.y);
+        add(a, b) {
+            if (arguments.length === 1)
+                return new Point(this.x + a.x, this.y + a.y);
+            else
+                return new Point(this.x + a, this.y + b);
         }
-        sub(oth) {
-            return new Point(this.x - oth.x, this.y - oth.y);
+        sub(a, b) {
+            if (arguments.length === 1)
+                return new Point(this.x - a.x, this.y - a.y);
+            else
+                return new Point(this.x - a, this.y - b);
         }
     }  
     class Interval { //Одномерный интервал
@@ -58,6 +66,7 @@ const generate = (width, height, seed, changes) => {
     const CAVE_ZONE = 2;
     const LAVA_LAKE_ZONE = 3;
     const ORE_ZONE = 4;
+    const CAVE_SPECIAL_ZONE = 5; //Зона пещеры, не предназначенная для переопределения
     //#endregion
 
     //Методы для установки/чтения блоков/зон на карте
@@ -435,7 +444,7 @@ const generate = (width, height, seed, changes) => {
                     startPoint = stopPoint;
                     stopPoint = t;
                 }
-                let interval = stopPoint.sub(startPoint);
+                let interval = stopPoint.sub(startPoint).add(1, 0);
                 let theta = Math.atan2(interval.y, interval.x);
                 let curH = startPoint.y;
                 let lastR = random() < 0.25 ? 3 : 2;
@@ -461,7 +470,7 @@ const generate = (width, height, seed, changes) => {
                     startPoint = stopPoint;
                     stopPoint = t;
                 }
-                let interval = stopPoint.sub(startPoint);
+                let interval = stopPoint.sub(startPoint).add(0, 1);
                 let theta = Math.atan2(interval.x, interval.y);
                 let curW = startPoint.x;
                 let lastR = random() < 0.25 ? 3 : 2;
@@ -571,8 +580,253 @@ const generate = (width, height, seed, changes) => {
             }
         }
 
+        // Создание особых подхемных пещер 1 типа (временное название)
+        const underSpecial1Gen = (points) => {
+            const setCaveBlock = (x, y) => {
+                setZone(x, y, CAVE_ZONE);
+                setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                // setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+            }
+            const fillEllipse = (center, xr, yr, setf) => {
+                //setf - функция установки точки
+                let xr_2 = xr * xr;
+                let yr_2 = yr * yr;
+                let xr1_2 = (xr - 2) * (xr - 1);
+                let yr1_2 =  (yr - 2) * (yr - 1);
+                for (let x = -xr; x < xr; x++) {
+                    let x_2 = x * x;
+                    for (let y = -yr; y < yr; y++) {
+                        let tx = random() < 0.4 ? xr1_2 : xr_2;
+                        let ty = random() < 0.4 ? yr1_2 : yr_2;
+                        if (x * x / tx + y * y / ty < 1)
+                            setf(center.x + x, center.y + y);
+                    }
+                }
+            }
+            const checkEllipse = (center, xr, yr) => {
+                let xr_2 = xr * xr;
+                let yr_2 = yr * yr;
+                for (let x = -xr; x < xr; x++) {
+                    let x_2 = x * x;
+                    for (let y = -yr; y < yr; y++) {
+                        if (x * x / xr_2 + y * y / yr_2 < 1)
+                            if (getZone(center.x + x, center.y + y) === CAVE_ZONE
+                                || getZone(center.x + x, center.y + y) === CAVE_SPECIAL_ZONE)    
+                                return false;
+                    }
+                }
+                return true;
+            }
+
+            const findCaveNear = (loc, xradius, yradius) => {
+                let flag = false;
+                for (let i = 6; i < yradius + 25; i += 4) { //Справа
+                    for (let j = 0; j < 4; j++) {
+                        let curx = loc.x + xradius + j * 3;
+                        let cury = loc.y + i;
+                        if (getZone(curx, cury) === CAVE_ZONE) {
+                            createCaveSeg(new Point(curx, cury), loc);
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if (flag)
+                        break;
+                }
+                flag = false;
+                for (let i = 6; i < yradius + 25; i += 4) { //Слева
+                    for (let j = 0; j < 4; j++) {
+                        let curx = loc.x - xradius - j * 3;
+                        let cury = loc.y + i;
+                        if (getZone(curx, cury) === CAVE_ZONE) {
+                            createCaveSeg(new Point(curx, cury), loc);
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if (flag)
+                        break;
+                }
+                for (let i = yradius + 4; i < yradius + 25; i += 3) {
+                    let curx = loc.x;
+                    let cury = loc.y + i;
+                    if (getZone(curx, cury) === CAVE_ZONE) {
+                        createCaveSeg(new Point(curx, cury), loc);
+                        break;
+                    }
+                }
+            }
+
+            const create = (loc) => {
+                let xradius = 13 + Math.floor(random() * 5);
+                let yradius = 20 + Math.floor(random() * 5);
+                let dirtLevel = random() < 0.2 ? 5 : 6;
+                dirtLevel += random() < 0.2 ? 1 : 2;
+                dirtLevel += random() < 0.2 ? 0 : 1;
+                let center = loc.add(new Point(0, yradius - dirtLevel)); //Смещение центра эллипса, чтобы координата отражала корень дерева
+                //Проверяем, не мешает ли ничего
+                if (!checkEllipse(center, xradius, yradius))
+                    return;
+                //Выкапываем пещеруa
+                fillEllipse(center, xradius, yradius, setCaveBlock);
+                //Ищем рядом пещеру для присоединения
+                findCaveNear(loc, xradius, yradius);
+                //Насыпаем землю
+                const fillSideByDirt = (side) => {
+                    let sh = 0;
+                    let dirtSh = 1;
+                    for (let i = 0; side * i < xradius; i += side) {
+                        setZone(loc.x + i, loc.y + sh, CAVE_SPECIAL_ZONE);
+                        if (getZone(loc.x + i, loc.y + sh + 2) !== CAVE_ZONE) {
+                            setZone(loc.x + i, loc.y + sh + 1, CAVE_SPECIAL_ZONE);
+                            setBlock(loc.x + i, loc.y + sh + 1, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                            setBlock(loc.x + i, loc.y + sh + 1, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                        }
+                        if (getZone(loc.x + i, loc.y + sh + 1) !== CAVE_ZONE) {
+                            setBlock(loc.x + i, loc.y + sh, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                            setBlock(loc.x + i, loc.y + sh, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                        }
+                        else {
+                            setBlock(loc.x + i, loc.y + sh, GameArea.FIRST_LAYOUT, GRASS_BKOCK);
+                            setBlock(loc.x + i, loc.y + sh, GameArea.SECOND_LAYOUT, GRASS_BKOCK);
+                        }
+                        let j = 1;
+                        while (getZone(loc.x + i, loc.y + sh - j) === CAVE_ZONE
+                            || getZone(loc.x + i, loc.y + sh - j - 1) === CAVE_ZONE
+                            || getZone(loc.x + i, loc.y + sh - j - 2) === CAVE_ZONE) {
+                            setZone(loc.x + i, loc.y + sh - j, CAVE_SPECIAL_ZONE);
+                            setBlock(loc.x + i, loc.y + sh - j, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                            setBlock(loc.x + i, loc.y + sh - j, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                            j++;
+                        }
+                        for (let k = 0; k < dirtSh; k++) {
+                            setZone(loc.x + i, loc.y + sh - j - k, CAVE_SPECIAL_ZONE);
+                            setBlock(loc.x + i, loc.y + sh - j - k, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                            setBlock(loc.x + i, loc.y + sh - j - k, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                        }
+                        if (getZone(loc.x + i + side, loc.y + sh) !== CAVE_ZONE)
+                            break; 
+                        let rand = random();
+                        if (rand < 0.3)
+                            sh += 1;
+                        else if (rand < 0.5)
+                            sh -= 1;
+                        rand = random();
+                        if (rand < 0.5)
+                            dirtSh = 1;
+                        else if (rand < 0.9)
+                            dirtSh = 2;
+                        else
+                            dirtSh = 3;
+                    }
+                }
+                fillSideByDirt(+1);
+                fillSideByDirt(-1);
+                //Устанавливаем дерево
+                const setTree = (loc, width, height) => {
+                    //width - максимальное отклонение от цента по x
+                    const maxDepth = 4;
+
+                    const setLeafBlock = (x, y) => {
+                        if (getBlock(x, y, GameArea.FIRST_LAYOUT) !== WOOD_BLOCK) {
+                            setZone(x, y, CAVE_SPECIAL_ZONE);
+                            setBlock(x, y, GameArea.FIRST_LAYOUT, LEAVES_BLOCK);
+                            setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                        }
+                    };
+
+                    const setLine = (startPoint, stopPoint) => {
+                        if (Math.abs(stopPoint.x - startPoint.x) >= Math.abs(stopPoint.y - startPoint.y)) {
+                            if (startPoint.x > stopPoint.x) {
+                                let t = startPoint;
+                                startPoint = stopPoint;
+                                stopPoint = t;
+                            }
+                            let interval = stopPoint.sub(startPoint).add(1, 0);
+                            let theta = Math.atan2(interval.y, interval.x);
+                            let curH = startPoint.y;
+                            for (let x = 0; x < Math.abs(interval.x); x++) {
+                                setBlock(startPoint.x + x, Math.floor(curH), GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                                curH += theta;
+                            }
+                        }
+                        else {
+                            if (startPoint.y > stopPoint.y) {
+                                let t = startPoint;
+                                startPoint = stopPoint;
+                                stopPoint = t;
+                            }
+                            let interval = stopPoint.sub(startPoint).add(0, 1);
+                            let theta = Math.atan2(interval.x, interval.y);
+                            let curW = startPoint.x;
+                            for (let y = 0; y < Math.abs(interval.y); y++) {
+                                setBlock(Math.floor(curW), startPoint.y + y, GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                                curW += theta;
+                            }
+                        }
+                    }
+
+                    const createBranch = (start, depth)=> {
+                        //TODO: красивые деревья
+                        if (random() < 0.3) { //Две ветки
+                            let rand = random();
+                            let dy = Math.floor(height / maxDepth);
+                            dy += Math.floor(random() * 4) - 2;
+                            if (start.y + dy > loc.y + height)
+                                return;
+                            let dx = Math.floor(random() * 4);
+                            if (start.x + dx <= loc.x + width) {
+                                let nextP = start.add(dx, dy);
+                                setLine(start, nextP);
+                                fillEllipse(nextP, 4, dy, setLeafBlock);
+                                if (depth != maxDepth && rand < 0.49)
+                                    createBranch(nextP, depth + 1);
+                            }
+                            dy = Math.floor(height / maxDepth);
+                            dy += Math.floor(random() * 4) - 2;
+                            if (start.y + dy > loc.y + height)
+                                return;
+                            dx = Math.floor(random() * 4);
+                            if (start.x + dx <= loc.x + width) {
+                                let nextP = start.add(dx, dy);
+                                setLine(start, nextP);
+                                fillEllipse(nextP, 4, dy, setLeafBlock);
+                                if (depth != maxDepth && rand > 0.51)
+                                    createBranch(nextP, depth + 1);
+                            }
+                        }
+                        else { //Одна ветка
+                            let dy = Math.floor(height / maxDepth);
+                            dy += Math.floor(random() * 4) - 2;
+                            if (start.y + dy > loc.y + height)
+                                return;
+                            let dx = Math.floor(random() * 4);
+                            dx *= loc.x !== start.x ? Math.sign(loc.x - start.x) : (random() < 0.5 ? -1 : 1);
+                            if (start.x + dx > loc.x + width || start.x + dx < loc.x - width)
+                                dx = -dx;
+                            let nextP = start.add(dx, dy);
+                            setLine(start, nextP);
+                            fillEllipse(nextP, 5, dy, setLeafBlock);
+                            if (depth != maxDepth)
+                                createBranch(nextP, depth + 1);
+                        }
+                    }
+
+                    setLine(loc, loc.add(0, 3));
+                    createBranch(loc.add(0, 3));
+                }
+                setTree(loc.add(0, 1), xradius - 4, 2 * yradius - dirtLevel - 10);
+                __observe.push(loc);
+            }
+
+            for (let i = 0; i < points.length; i++)
+                create(points[i]);
+        }
+
+        let spec1_pts = [];
+
         //Процесс выбора точек старта
-        let seqStart = Math.floor(random() * 100);
+        let seqStart = Math.floor(random() * 90);
         for (let i = seqStart; i < seqStart + count; i++) {
             let g = 1.32471795724474602596;
             let a1 = 1.0 / g;
@@ -596,9 +850,15 @@ const generate = (width, height, seed, changes) => {
             //Добавим случайное смещение к выбранной точке
             xi += Math.floor(random() * 50) - 25;
             yi += Math.floor(random() * 50) - 25;
-            //(xi, yi) - точка старта горизонтальной пещеры
-            createHorCave(new Point(xi, yi));
+            let rand = random();
+            if (rand < 0.15) {   
+                spec1_pts.push(new Point(xi, yi));
+            }
+            else {
+                createHorCave(new Point(xi, yi));
+            }
         }
+        underSpecial1Gen(spec1_pts);
     }
 
     // Генерация руд
@@ -611,10 +871,14 @@ const generate = (width, height, seed, changes) => {
                     if (i >= 0 && i < width && j >= 0 && j < height &&
                         radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
                         if (random() > 0.3) {
-                            if (getBlock(i, j, GameArea.FIRST_LAYOUT) === STONE_BLOCK)
+                            if (getBlock(i, j, GameArea.FIRST_LAYOUT) === STONE_BLOCK) {
+                                setZone(i, j, ORE_ZONE);
                                 setBlock(i, j, GameArea.FIRST_LAYOUT, type);
-                            if (random() < 0.5 && getBlock(i, j, GameArea.SECOND_LAYOUT) === STONE_BLOCK)
+                            }
+                            if (random() < 0.5 && getBlock(i, j, GameArea.SECOND_LAYOUT) === STONE_BLOCK) {
+                                setZone(i, j, ORE_ZONE);
                                 setBlock(i, j, GameArea.SECOND_LAYOUT, type);
+                            }
                         }
                     }
                 }
@@ -641,10 +905,10 @@ const generate = (width, height, seed, changes) => {
     const lavaLakes = (minHeight, maxHeight, frequency) => {
         let curLake; //Точки озера
         const noCaveAround = (x, y) => {      
-            return isBlock(x + 1, y, GameArea.FIRST_LAYOUT)
-                && isBlock(x - 1, y, GameArea.FIRST_LAYOUT)
-                && isBlock(x, y + 1, GameArea.FIRST_LAYOUT)
-                && isBlock(x, y - 1, GameArea.FIRST_LAYOUT);
+            return (getZone(x + 1, y) === NONE_ZONE || getZone(x + 1, y) === ORE_ZONE)
+                && (getZone(x - 1, y) === NONE_ZONE || getZone(x - 1, y) === ORE_ZONE)
+                && (getZone(x, y + 1) === NONE_ZONE || getZone(x, y + 1) === ORE_ZONE)
+                && (getZone(x, y - 1) === NONE_ZONE || getZone(x, y - 1) === ORE_ZONE);
         }
         // Создать полость радиуса
         const createHole = (radius, x, y) => {
@@ -884,7 +1148,8 @@ const generate = (width, height, seed, changes) => {
     landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height); //elevationMap + озера
     surfaceGen();
     caveGen(width / 100, height / 3);
-    undergroundCavseGen(100, 50, 80);
+    undergroundCavseGen(100, 100, 80);
+    // underSpecial1Gen(200, 150, 15);
     oreGen();
     lavaLakes(20, height / 2, 1 / 4000);
     treeGen(16, 19, Math.floor(width * 2 / 3));

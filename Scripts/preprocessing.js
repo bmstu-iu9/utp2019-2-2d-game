@@ -168,20 +168,21 @@ image.onload = () => {
 						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
 					}
 				}
-				for (let i = 0; i < chunkWidth; i++) {
-					for (let j = 0; j < chunkHeight; j++) {
-						if (arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT]
-							.chunk[i][j] !== undefined) {
+				// TODO : Добавить учет прозрачности
+				// for (let i = 0; i < chunkWidth; i++) {
+				// 	for (let j = 0; j < chunkHeight; j++) {
+				// 		if (arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT]
+				// 			.chunk[i][j] !== undefined) {
 
-							arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT].chunk[i][j] = undefined;
-							arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk[i][j] = undefined;
-						} else if (arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT]
-						.chunk[i][j] !== undefined) {
+				// 			arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT].chunk[i][j] = undefined;
+				// 			arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk[i][j] = undefined;
+				// 		} else if (arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT]
+				// 		.chunk[i][j] !== undefined) {
 
-							arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk[i][j] = undefined;
-						}
-					}
-				}
+				// 			arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk[i][j] = undefined;
+				// 		}
+				// 	}
+				// }
 
 				render.drawChunk(xLocate, yLocate,
 					[

@@ -21,7 +21,7 @@ let BlocksGlobalChange = {};
 
 // Вызывается при запуске игры
 const beginPlay = () => {
-    // Управление
+	// Управление
     this.controller = new Controller();
     const KDU = (event) => {
     	controller.keyDownUp(event);
@@ -84,7 +84,7 @@ const beginPlay = () => {
 	elevationCalculate(); // расчитывает карту высот для погоды
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(300);
+	callSetTimeOfDay(30);
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {
@@ -108,6 +108,7 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 
 // Вызывается каждый кадр
 const eventTick = () => {
+	audio.newFrame();
 	currentTime += deltaTime;
 	playerMovement();
 	mouseControl();
@@ -327,8 +328,11 @@ const playerMovement = () => {
 	player.fx = newX;
 	player.fy = newY;
 
-	// Анимация падения
+	// Анимация + звук падения
 	if (!player.onGround()) {
+		try {
+		audio.smartPlay("jump");
+		} catch {}
 		player.setAnimation("legs", "jump");
 	}
 	
@@ -358,14 +362,13 @@ const mouseControl = () => {
 
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
-
-
     	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
     	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
     	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
             // Анимация
-            player.setAnimation("body", "kick");
+			player.setAnimation("body", "kick");
+			audio.smartPlay("destroyBlock");
 
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {

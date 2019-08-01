@@ -19,10 +19,13 @@ let defaultHeight = 1080;
 
 let UIMap = new Map();
 
-setOnClickListener = (sprite, action, releaseAction) => {
+setOnClickListener = (sprite, action, releaseAction, clickAnother) => {
     sprite.click = action;
     if (releaseAction) {
         sprite.onRelease = releaseAction;
+    }
+    if (clickAnother) {
+        sprite.clickAnother = clickAnother;
     }
     sprite.interactive = true;
 }
@@ -510,7 +513,7 @@ const UISetBar = (count, bar, length, height, padding, number) => {
     }
 }
 
-const createItemCard = (number, id, text) => {
+const createItemCard = (number, id, text, invIndex) => {
     let card = new Sprite(
         [ [0.125, 0.51], [0.250, 0.615] ],
         {
@@ -532,7 +535,19 @@ const createItemCard = (number, id, text) => {
                 x: -5,
                 y: -5
             }
+        },
+        {
+            type: 'invSlot',
+            invIndex: invIndex,
+            isEmpty: invIndex === undefined
         });
+    setOnClickListener(card, () => {
+        card.image = [ [0, 0.635], [0.125, 0.740] ];
+    },
+    undefined,
+    () => {
+        card.image = [ [0.125, 0.51], [0.250, 0.615] ];
+    });
     card.recountRect = (rect, indent, parent, image) => {
         let height = 1 / 4 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         rect.pa.y = 1 - (number + 1) * height;
@@ -628,7 +643,7 @@ const createItemCard = (number, id, text) => {
 const UISetFastInvItem = (id, index) => {
     needUIRedraw = true;
     let slot = UIMap.fastInv[index];
-    slot.deleteChildren = [];
+    slot.deleteChildren();
     if (id) {
         slot.add(new Sprite(
         items[id].texture(),
@@ -851,7 +866,7 @@ const UIOpenInv = () => {
     UIMap.invPanel = invPanel;
     
     let invScrollPanel = new Sprite(
-        undefined,
+        [ [0.250, 0.51], [0.375, 0.615] ],
         {
             pa: {
                 x: 0,
@@ -945,6 +960,9 @@ const UIOpenInv = () => {
                 x: -100,
                 y: 100
             }
+        },
+        {
+            type: 'button'
         });
     setOnClickListener(downButton, () => {
         downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
@@ -975,6 +993,9 @@ const UIOpenInv = () => {
                 x: 0,
                 y: 100
             }
+        },
+        {
+            type: 'button'
         });
     setOnClickListener(upButton, () => {
         upButton.image = [ [0.376 + 0.0625, 0.501], [0.4375 + 0.0625, 0.5625] ];
@@ -996,6 +1017,7 @@ const UIOpenInv = () => {
 
 const reloadInv = () => {
     let scrollingContent = UIMap.invScrollingContent;
+    let selected = UIMap.activeElement;
     scrollingContent.deleteChildren();
     for (let i = 0; i < player.inv.items.length; i++) {
         if (player.inv.items[i]) {
@@ -1003,18 +1025,24 @@ const reloadInv = () => {
                 let card = createItemCard(i, player.inv.items[i].id,
                      "Weight: " + items[player.inv.items[i].id].weight + "\n"
                     + "\nDurability: " + player.inv.items[i].durability
-                    + "\n" +items[player.inv.items[i].id].name);
+                    + "\n" +items[player.inv.items[i].id].name, i);
                 scrollingContent.add(card);
                 card.indent.pa.y += scrollingContent.props.scrollX;
                 card.indent.pb.y += scrollingContent.props.scrollX;
+                if (selected && selected.props.type === 'invSlot' && selected.props.invIndex === i) {
+                    card.click();
+                }
             } else {
                 let card = createItemCard(i, player.inv.items[i],
                     "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
                     + "\n\n" + "Count: " + player.inv.count[i]
-                    + "\n"+items[player.inv.items[i]].name);
+                    + "\n"+items[player.inv.items[i]].name, i);
                 scrollingContent.add(card);
                 card.indent.pa.y += scrollingContent.props.scrollX;
                 card.indent.pb.y += scrollingContent.props.scrollX;
+                if (selected && selected.props.type === 'invSlot' && selected.props.invIndex === i) {
+                    card.click();
+                }
             }
         }
     }

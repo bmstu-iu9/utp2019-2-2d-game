@@ -375,6 +375,8 @@ class Player {
             this.inv.count[i1] = this.inv.count[i2];
             this.inv.items[i2] = item;
             this.inv.count[i2] = count;
+
+            this.setHand(this.hand.index);
         }
 
         // Получение "руки" по индексу в быстром инвентаре

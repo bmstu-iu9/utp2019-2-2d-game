@@ -28,6 +28,10 @@ canvas {
 	text-align: center;
 }
 .loading-img {
-	width: 150px;
-	height: 150px;
+	width: 48px;
+	height: 96px;
+}
+
+body {
+  overflow: hidden;
 } 

@@ -968,6 +968,10 @@ class Render {
 		this.rain = false;
 	}
 	
+	strengthRain() {
+		return Math.max(this.weather[3] / this.size, 0);
+	}
+	
 	createShader(type, source) {
 		// создание шейдера
 		const shader = this.gl.createShader(type);

@@ -38,3 +38,7 @@ const stopRain = () => {
 	render.stopRain();
 	setTimeout(startRain, 60000 + 60000 * Math.random());
 }
+
+const strengthRain = () => {
+	return render.strengthRain();
+}

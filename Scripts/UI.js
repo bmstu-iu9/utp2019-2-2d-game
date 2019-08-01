@@ -19,8 +19,11 @@ let defaultHeight = 1080;
 
 let UIMap = new Map();
 
-setOnClickListener = (sprite, action) => {
+setOnClickListener = (sprite, action, releaseAction) => {
     sprite.click = action;
+    if (releaseAction) {
+        sprite.onRelease = releaseAction;
+    }
     sprite.interactive = true;
 }
 
@@ -922,7 +925,7 @@ const UIOpenInv = () => {
     reloadInv();
 
     let downButton = new Sprite(
-        [ [0.4375, 0.5625], [0.376, 0.501] ],
+        [ [0.4385, 0.5635], [0.375, 0.501] ],
         {
             pa: {
                 x: 1,
@@ -944,7 +947,11 @@ const UIOpenInv = () => {
             }
         });
     setOnClickListener(downButton, () => {
-        scrollingContent.props.scrollX -= 10;
+        downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
+        scrollingContent.props.scrollX -= 600 * deltaTime;
+    },
+    () => {
+        downButton.image = [ [0.4385, 0.5635], [0.375, 0.501] ];
     });
 
     let upButton = new Sprite(
@@ -970,7 +977,11 @@ const UIOpenInv = () => {
             }
         });
     setOnClickListener(upButton, () => {
-        scrollingContent.props.scrollX += 10;
+        upButton.image = [ [0.376 + 0.0625, 0.501], [0.4375 + 0.0625, 0.5625] ];
+        scrollingContent.props.scrollX += 600 * deltaTime;
+    },
+    () => {
+        upButton.image = [ [0.376, 0.501], [0.4375, 0.5625] ];
     });
 
     invPanel.add(downButton);

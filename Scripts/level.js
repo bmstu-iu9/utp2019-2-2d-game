@@ -418,7 +418,11 @@ const mouseControl = () => {
 					// action to click
 					let sprite = _interactiveUIArr[i].sprite;
 					sprite.click();
-
+					let lastButton = UIMap.lastButton;
+					if (lastButton !== undefined && lastButton !== sprite && lastButton.onRelease) {
+						lastButton.onRelease();
+					}
+					UIMap.lastButton = sprite;
 					break;
 				}
 		}
@@ -457,6 +461,12 @@ const mouseControl = () => {
     	}
     } else {
     	currentBlock = undefined;
+
+    	let lastButton = UIMap.lastButton;
+		if (lastButton !== undefined && lastButton.onRelease) {
+			lastButton.onRelease();
+		}
+		UIMap.lastButton = undefined;
     }
 
 	// Когда зажата ПКМ

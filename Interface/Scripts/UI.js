@@ -13,7 +13,7 @@
 let fullUI;  // Якорь в % + размер в пикселях
 let screenUI;
 let _array;
-let defaultWeight = 1920;
+let defaultWidth = 1920;
 let defaultHeight = 1080;
 
 let UIMap = new Map();
@@ -100,7 +100,7 @@ class Sprite {
 }
 
 Sprite.counter = 1;
-Sprite.pixelScale = (render.getCanvasSize()[0] / defaultWeight + render.getCanvasSize()[1] / defaultHeight) / 2;
+Sprite.pixelScale = render.getCanvasSize()[0] / defaultWidth;
 
 // Инициализация интерфейса
 const initUI = () => {
@@ -443,7 +443,7 @@ let inventoryOpened = false;
 let lastCanvasSize = [ 0, 0 ];
 const drawUI = () => {
     const _size = render.getCanvasSize();
-    Sprite.pixelScale = (_size[0] / defaultWeight + _size[1] / defaultHeight) / 2;
+    Sprite.pixelScale = _size[0] / defaultWidth;
 
     if (lastCanvasSize[0] !== _size[0] || lastCanvasSize[1] !== _size[1] || needUIRedraw) {
         _array = screenUI.draw();

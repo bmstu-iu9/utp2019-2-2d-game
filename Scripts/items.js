@@ -17,8 +17,8 @@ let _textureItems;
 
 const getTextureCoordinates = (x, y) => {
     return [
-        [ x * itemSize / textureSize + 0.0001, y * itemSize / textureSize + 0.0001],
-        [ (x + 1) * itemSize / textureSize - 0.0001, (y + 1) * itemSize / textureSize - 0.0001],
+        [ (x * itemSize + 0.5) / textureSize, (y * itemSize + 0.5) / textureSize],
+        [ ((x + 1) * itemSize - 0.5) / textureSize, ((y + 1) * itemSize - 0.5) / textureSize],
         _textureItems
     ];
 }

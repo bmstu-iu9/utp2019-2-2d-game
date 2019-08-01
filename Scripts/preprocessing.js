@@ -166,14 +166,6 @@ image.onload = () => {
 									? 0 : (j >= gameArea.height
 										? gameArea.height - 1 : j))));
 					}
-					for (let i = 0; i < chunkWidth - 2; i++) {
-						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-					}
-				}
-				for (let i = 0; i < chunkWidth * 2; i++) {
-					for (let j = 0; j < chunkHeight - 2; j++) {
-						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-					}
 				}
 				// TODO : Добавить учет прозрачности
 				// for (let i = 0; i < chunkWidth; i++) {

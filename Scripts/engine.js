@@ -331,6 +331,9 @@ class Render {
 		this.frameBufferTextures = {};
 		this.frameBuffer = this.gl.createFramebuffer();
 		
+		const alignment = 2;
+		this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, alignment);
+		
 		const near = 0.01;
 		const far = 11;
 		this.gl.uniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, [
@@ -341,6 +344,7 @@ class Render {
 		
 		// погода
 		this.rain = false;
+		this.speedRain = 4;
 		
 		this.weather = [];
 		this.weather[0] = this.gl.createBuffer();
@@ -638,6 +642,9 @@ class Render {
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 			
+			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
+				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, null);
+			
 			this.arrayOfChunks[c] = {
 				x: x,
 				y: y,
@@ -649,10 +656,10 @@ class Render {
 		}
 		
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
-		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
-			this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
-				return a * 255;
-			})));
+		this.gl.texSubImage2D(this.gl.TEXTURE_2D, 0, 0, 0, this.widthChunk + 2, this.heightChunk + 2, this.gl.LUMINANCE,
+			this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
+					return a * 255;
+				})));
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		
@@ -895,8 +902,6 @@ class Render {
 		
 		// дождь
 		if (this.weather[3] > 0) {
-			this.speedRain = 4;
-			
 			this.gl.useProgram(this.program[5]);
 			const xh = Math.round(this.gl.canvas.width / this.size / 2 + 1);
 			const maxnum = Math.ceil(this.size * this.gl.canvas.height / 1000);

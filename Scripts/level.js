@@ -410,13 +410,14 @@ const mouseControl = () => {
     if (controller.mouse.click === 1) {
 
 		// Нажатие по интерфейсу
-		for (let i = _array.length - 1; i > 0; i--) {
-			if (Math.max(_array[i].pa[0], _array[i].ca[0]) < controller.mouse.x
-				&& Math.min(_array[i].pb[0], _array[i].cb[0]) > controller.mouse.x
-				&& Math.max(_array[i].pa[1], _array[i].ca[1]) < render.getCanvasSize()[1] - controller.mouse.y
-				&& Math.min(_array[i].pb[1], _array[i].cb[1]) > render.getCanvasSize()[1] - controller.mouse.y) {
+		for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
+			if (_interactiveUIArr[i].pa[0] < controller.mouse.x
+				&& _interactiveUIArr[i].pb[0] > controller.mouse.x
+				&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+				&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
 					// action to click
-					console.log(_array[i]);
+					let sprite = _interactiveUIArr[i].sprite;
+					sprite.click();
 
 					break;
 				}

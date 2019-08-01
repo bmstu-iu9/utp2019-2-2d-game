@@ -258,7 +258,7 @@ const preprocessing = () => {
 			player.direction);
 		
 		drawUI();
-		render.drawObjects(_textureUI, _array);
+		render.drawObjects(_textureUI, _renderingUIArr);
 		
 		fpsUpdate();
 		requestAnimationFrame(update);

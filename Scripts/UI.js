@@ -12,19 +12,26 @@
 
 let fullUI;  // Якорь в % + размер в пикселях
 let screenUI;
-let _array;
+let _renderingUIArr;
+let _interactiveUIArr = [];
 let defaultWidth = 1920;
 let defaultHeight = 1080;
 
 let UIMap = new Map();
 
+setOnClickListener = (sprite, action) => {
+    sprite.click = action;
+    sprite.interactive = true;
+}
+
 class Sprite {
-    constructor(image, rect, indent) {
+    constructor(image, rect, indent, props) {
         this.recountRect = undefined;
         this.children = [];
         this.image = image;
         this.rect = rect;
         this.indent = indent;
+        this.props = props;
         this.id = Sprite.counter++;
 
         this.draw = (parent) => {
@@ -40,6 +47,7 @@ class Sprite {
                     'ca': [0, 0],
                     'cb': render.getCanvasSize()
                 };
+                _interactiveUIArr = [];
                 isScreenUI = true;
             }
 
@@ -64,6 +72,15 @@ class Sprite {
                     'id': this.id
                 };
             }
+            if (this.interactive) {
+                _interactiveUIArr.push({
+                    'sprite': this,
+                    'pa': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                    'pb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                    'id': this.id
+                });
+            }
+
             for (let i = 0; i < this.children.length; i++) {
                 ans = ans.concat(this.children[i].draw({
                     'pa': pa,
@@ -78,15 +95,19 @@ class Sprite {
 
         this.add = (obj) => {
             this.children.push(obj);
+            obj.parent = this;
         }
 
         this.deleteChild = (id) => {
             for (let i = 0; i < this.children.length; i++) {
                 if (this.children[i].id === id) {
                     this.children.splice(i, 1);
-                    //return;
                 }
             }
+        }
+
+        this.deleteChildren = () => {
+            this.children = [];
         }
 
         this.get = (id) => {
@@ -445,14 +466,14 @@ const drawUI = () => {
     const _size = render.getCanvasSize();
     Sprite.pixelScale = _size[0] / defaultWidth;
 
-    if (lastCanvasSize[0] !== _size[0] || lastCanvasSize[1] !== _size[1] || needUIRedraw) {
-        _array = screenUI.draw();
-        needUIRedraw = false;
-        lastCanvasSize = _size;
+    if (inventoryOpened) {
+        reloadInv();
     }
 
-    if (inventoryOpened) {
-        UIOpenInv();
+    if (lastCanvasSize[0] !== _size[0] || lastCanvasSize[1] !== _size[1] || needUIRedraw) {
+        _renderingUIArr = screenUI.draw();
+        needUIRedraw = false;
+        lastCanvasSize = _size;
     }
 }
 
@@ -604,7 +625,7 @@ const createItemCard = (number, id, text) => {
 const UISetFastInvItem = (id, index) => {
     needUIRedraw = true;
     let slot = UIMap.fastInv[index];
-    slot.children = [];
+    slot.deleteChildren = [];
     if (id) {
         slot.add(new Sprite(
         items[id].texture(),
@@ -872,25 +893,69 @@ const UIOpenInv = () => {
         });
     label.add(createText("Inventory " + player.inv.weight + "/" + player.inv.capacity));
     UIMap.invPanel.add(label);
-    for (let i = 0; i < player.inv.items.length; i++) {
-        if (player.inv.items[i]) {
-            if (player.inv.items[i].id) {
-                invScrollPanel.add(createItemCard(i, player.inv.items[i].id,
-                     "Weight: " + items[player.inv.items[i].id].weight + "\n"
-                    + "\nDurability: " + player.inv.items[i].durability
-                    + "\n" +items[player.inv.items[i].id].name));
-            } else {
-                 invScrollPanel.add(createItemCard(i, player.inv.items[i],
-                    "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
-                    + "\n\n" + "Count: " + player.inv.count[i]
-                    + "\n"+items[player.inv.items[i]].name));
+    let scrollingContent = new Sprite(
+        undefined,
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
             }
-        }
-    }
+        },
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 0,
+                y: 0
+            }
+        },
+        {
+            scrollX: 0
+        });
+    setOnClickListener(scrollingContent, () => {
+        scrollingContent.props.scrollX += 5;
+    });
+    UIMap.invScrollingContent = scrollingContent;
+    reloadInv();
+
+    invScrollPanel.add(scrollingContent);
     invPanel.add(invScrollPanel);
     UIMap.invScrollPanel = invScrollPanel;
     needUIRedraw = true;
     screenUI.add(invPanel);
+}
+
+const reloadInv = () => {
+    let scrollingContent = UIMap.invScrollingContent;
+    scrollingContent.deleteChildren();
+    for (let i = 0; i < player.inv.items.length; i++) {
+        if (player.inv.items[i]) {
+            if (player.inv.items[i].id) {
+                let card = createItemCard(i, player.inv.items[i].id,
+                     "Weight: " + items[player.inv.items[i].id].weight + "\n"
+                    + "\nDurability: " + player.inv.items[i].durability
+                    + "\n" +items[player.inv.items[i].id].name);
+                scrollingContent.add(card);
+                card.indent.pa.y += scrollingContent.props.scrollX;
+                card.indent.pb.y += scrollingContent.props.scrollX;
+            } else {
+                let card = createItemCard(i, player.inv.items[i],
+                    "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
+                    + "\n\n" + "Count: " + player.inv.count[i]
+                    + "\n"+items[player.inv.items[i]].name);
+                scrollingContent.add(card);
+                card.indent.pa.y += scrollingContent.props.scrollX;
+                card.indent.pb.y += scrollingContent.props.scrollX;
+            }
+        }
+    }
+    needUIRedraw = true;
 }
 
 const UICloseInv = () => {

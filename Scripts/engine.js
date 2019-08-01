@@ -895,7 +895,7 @@ class Render {
 		
 		// дождь
 		if (this.weather[3] > 0) {
-			const speedRain = 4;
+			this.speedRain = 4;
 			
 			this.gl.useProgram(this.program[5]);
 			const xh = Math.round(this.gl.canvas.width / this.size / 2 + 1);
@@ -920,7 +920,7 @@ class Render {
 			const w = this.size / this.gl.canvas.width;
 			const h = 2 / this.gl.canvas.height;
 			
-			this.gl.uniform1f(this.uniform[5].u_time, time * speedRain * 0.0001);
+			this.gl.uniform1f(this.uniform[5].u_time, time * this.speedRain * 0.0001);
 			this.gl.uniform2f(this.uniform[5].u_resolution, w, h);
 			
 			if (num == 1) {
@@ -947,11 +947,11 @@ class Render {
 					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
 				}
 			}
-			this.weather[2] -= deltaTime * speedRain * 92;
+			this.weather[2] -= deltaTime * this.speedRain * 92;
 			if (this.rain) {
-				this.weather[3] = Math.min(this.weather[3] + deltaTime * speedRain / 6, this.size);
+				this.weather[3] = Math.min(this.weather[3] + deltaTime * this.speedRain / 6, this.size);
 			} else {
-				this.weather[3] -= deltaTime * speedRain / 6;
+				this.weather[3] -= deltaTime * this.speedRain / 6;
 			}
 		}
 	}
@@ -966,10 +966,7 @@ class Render {
 	
 	stopRain() {
 		this.rain = false;
-	}
-	
-	strengthRain() {
-		return Math.max(this.weather[3] / this.size, 0);
+		return this.weather[3] / this.speedRain * 6;
 	}
 	
 	createShader(type, source) {

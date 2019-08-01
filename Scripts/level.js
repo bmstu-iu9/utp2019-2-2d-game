@@ -84,7 +84,7 @@ const beginPlay = () => {
 	elevationCalculate(); // расчитывает карту высот для погоды
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(30);
+	callSetTimeOfDay(40);
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {
@@ -98,8 +98,14 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	if (currentTime < Math.PI) { //................................................... День
 		gameArea.timeOfDay = 1;
 	} else if (currentTime < 2 * Math.PI) { //........................................ День -> Ночь
+		if (!audio.isPlaying("day->night")) {
+			audio.smoothPlay("day->night", 2, 0.2);
+		}
 		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
 	} else if (currentTime < 3 * Math.PI) { //........................................ Ночь
+		if (audio.isPlaying("day->night")) {
+			audio.smoothPause("day->night", 2);
+		}
 		gameArea.timeOfDay = 0;
 	} else { //....................................................................... Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;

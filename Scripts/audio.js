@@ -1,3 +1,20 @@
+/*
+Как использовать?
+
+методы:
+add(Имя, Путь, Громкость) - добавить новую аудиодорожку
+put(Имя, Путь, Громкость) - изменить аудиодорожку
+smartPlay(Имя) - вызывется каждый кадр, если звук должен воспроизводиться
+pause(Имя) - поставить на пуазу
+stop(Имя) - пауза + сброс дорожки на начало
+playLoop(Имя) - воспроизводить по кругу
+playOnce(Имя) - воспроизвести всю дорожку один раз
+getVol(Имя) \ setVol(Имя, Значение) - громкость
+smoothPause(Имя, ВремяВСек) - плавное затухание
+smoothPlay и smoothVolChange(name, time, beginVol, endVol, steps = 10) - аналогично
+*/
+
+
 class AudioStorage {
     constructor() {
         this.storage = {};
@@ -25,16 +42,21 @@ class AudioStorage {
             }
         }
 
-        this.add = (name, path) => {
+        this.add = (name, path, volume) => {
             if (this.storage[name] !== undefined) {
                 console.error('Sound "' + name + '" already exist');
             }
-            this.put(name, path);
+            this.put(name, path, volume);
         }
 
-        this.put = (name, path) => {
+        this.put = (name, path, vol) => {
             this.storage[name] = new Audio();
             this.storage[name].src = path;
+            this.storage[name].volume = vol;
+        }
+
+        this.isPlaying = (name) => {
+            return !this.storage[name].paused;
         }
 
         this.playLoop = (name) => {
@@ -54,6 +76,35 @@ class AudioStorage {
         this.stop = (name) => {
             this.storage[name].currentTime = 0;
             this.pause(name);
+        }
+
+        this.setVol = (name, vol) => {
+            this.storage[name].volume = vol;
+        }
+
+        this.getVol = (name) => {
+            return this.storage[name].volume;
+        }
+
+        this.smoothPause = (name, time) => {
+            const currentVol = this.getVol(name);
+            for (let i = 0.1; i <= 1; i += 0.1) {
+                setTimeout(this.setVol, i * time * 1000 , name, currentVol * (1 - i));
+            }
+        }
+
+        this.smoothPlay = (name, time, targetVol) => {
+            this.setVol(name, 0);
+            this.playLoop(name);
+            for (let i = 0.1; i <= 1; i += 0.1) {
+                setTimeout(this.setVol, i * time * 1000, name, targetVol * i);
+            }
+        }
+
+        this.smoothVolChange = (name, time, beginVol, endVol, steps = 10) => {
+            for (let i = 0; i <= steps; i++) {
+                setTimeout(this.setVol, i / steps * time * 1000, name, beginVol + i / steps * (endVol - beginVol));
+            }
         }
     }
 }

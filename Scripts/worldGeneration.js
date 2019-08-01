@@ -3,7 +3,7 @@ var __observe = [];
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
     console.time('World generation');
-    // seed = 1564585243337;
+    // seed = 1564681003620;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -65,7 +65,7 @@ const generate = (width, height, seed, changes) => {
     const LAKE_ZONE = 1;
     const CAVE_ZONE = 2;
     const LAVA_LAKE_ZONE = 3;
-    const ORE_ZONE = 4;
+    // const ORE_ZONE = 4;
     const CAVE_SPECIAL_ZONE = 5; //Зона пещеры, не предназначенная для переопределения
     //#endregion
 
@@ -272,6 +272,8 @@ const generate = (width, height, seed, changes) => {
     // Создание вертикальных пещер с поверхности
     const caveGen = (maxCount, maxLength) => {
         const setCaveBlock = (x, y) => {
+            if (getZone(x, y) === LAKE_ZONE || getZone(x, y + 1) === LAKE_ZONE)
+                return;
             setZone(x, y, CAVE_ZONE);
             setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
         }
@@ -279,7 +281,7 @@ const generate = (width, height, seed, changes) => {
         // Расширение пещеры по её "направляющей"
         const holeGen = (caveX, caveY, maxRadius, dontGenHereArr, dontGenCountX) => {
             // Выбор радиуса
-            let rand = random() , radius = 1;
+            let rand = random() , radius = 2;
             while (rand < 0.5) {
                 if (radius === maxRadius) {
                     break;
@@ -288,16 +290,21 @@ const generate = (width, height, seed, changes) => {
                 radius++;
             }
 
+            let r_2 = radius * radius;
+            let r1_2 = (radius - 1) * (radius - 1);
+
             // Очистка блоков в радиусе
-            for (let i = caveX - radius; i <= caveX + radius; i++) {
-                for (let j = caveY - radius; j <= caveY + radius; j++) {
-                    if (i >= 0 && i < width && j >= 0 && j < height &&
-                        radius * radius >= (i - caveX) * (i - caveX) + (j - caveY) * (j - caveY)) {
-                            setCaveBlock(i, j);
+            for (let i = -radius; i <= radius; i++) {
+                for (let j = -radius; j <= radius; j++) {
+                    if (caveX + i >= 0 && caveX + i < width && caveY + j >= 0 && caveY + j < height) {
+                        let t = random() < 0.3 ? r1_2 : r_2;
+                        if (t >= i * i + j * j) {
+                            setCaveBlock(caveX + i, caveY + j);
                             if (!dontGenHereArr[i]) {
                                 dontGenHereArr[i] = true;
                                 dontGenCountX++;
                             }
+                        }
                     }
                 }
             }
@@ -342,7 +349,6 @@ const generate = (width, height, seed, changes) => {
 
             // Ищем следующую координату
             let randK = (random() > 0.5) ? 1 : -1;
-            // while (caveArrX.length < length && y > 0 && x >= 0 && x < width && worldArr[x][y]) {
             while (caveArrX.length < length && y > 0 && x >= 0 && x < width && y <= elevationMap[x]) {
                 caveArrX.push(x);
                 caveArrY.push(y);
@@ -581,7 +587,7 @@ const generate = (width, height, seed, changes) => {
         }
 
         // Создание особых подхемных пещер 1 типа (временное название)
-        const underSpecial1Gen = (points) => {
+        const underSpecial1Gen = (minHeight, maxHeightShift) => {
             const setCaveBlock = (x, y) => {
                 setZone(x, y, CAVE_ZONE);
                 setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
@@ -609,10 +615,22 @@ const generate = (width, height, seed, changes) => {
                 for (let x = -xr; x < xr; x++) {
                     let x_2 = x * x;
                     for (let y = -yr; y < yr; y++) {
-                        if (x * x / xr_2 + y * y / yr_2 < 1)
+                        if (x * x / xr_2 + y * y / yr_2 < 1) {
+                            if (center.y + y < minHeight || center.y + y > elevationMap[x] - maxHeightShift)
+                                return false;
+                            if (center.x + x < 10 || center.x + x > width - 10)
+                                return false;
                             if (getZone(center.x + x, center.y + y) === CAVE_ZONE
                                 || getZone(center.x + x, center.y + y) === CAVE_SPECIAL_ZONE)    
                                 return false;
+                        }
+                    }
+                }
+                for (let i = -xr; i < xr; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        if (getZone(center.x + i, center.y - yr - j) === CAVE_ZONE
+                            || getZone(center.x + i, center.y - yr - j) === CAVE_SPECIAL_ZONE)
+                            return false;
                     }
                 }
                 return true;
@@ -620,12 +638,14 @@ const generate = (width, height, seed, changes) => {
 
             const findCaveNear = (loc, xradius, yradius) => {
                 let flag = false;
-                for (let i = 6; i < yradius + 25; i += 4) { //Справа
-                    for (let j = 0; j < 4; j++) {
-                        let curx = loc.x + xradius + j * 3;
+                for (let i = 3; i < yradius + 25; i += 3) { //Справа
+                    for (let j = 0; j < 15; j++) {
+                        let curx = loc.x + xradius + j * 2;
                         let cury = loc.y + i;
+                        if (curx < 5 || curx > width - 5)
+                            break;
                         if (getZone(curx, cury) === CAVE_ZONE) {
-                            createCaveSeg(new Point(curx, cury), loc);
+                            createCaveSeg(new Point(curx, cury).add(3, 3), loc);
                             flag = true;
                             break;
                         }
@@ -634,12 +654,14 @@ const generate = (width, height, seed, changes) => {
                         break;
                 }
                 flag = false;
-                for (let i = 6; i < yradius + 25; i += 4) { //Слева
-                    for (let j = 0; j < 4; j++) {
-                        let curx = loc.x - xradius - j * 3;
+                for (let i = 3; i < yradius + 25; i += 3) { //Слева
+                    for (let j = 0; j < 15; j++) {
+                        let curx = loc.x - xradius - j * 2;
                         let cury = loc.y + i;
+                        if (curx < 5 || curx > width - 5)
+                            break;
                         if (getZone(curx, cury) === CAVE_ZONE) {
-                            createCaveSeg(new Point(curx, cury), loc);
+                            createCaveSeg(new Point(curx, cury).add(-3, 3), loc.add());
                             flag = true;
                             break;
                         }
@@ -647,13 +669,21 @@ const generate = (width, height, seed, changes) => {
                     if (flag)
                         break;
                 }
+                flag = false;
                 for (let i = yradius + 4; i < yradius + 25; i += 3) {
-                    let curx = loc.x;
-                    let cury = loc.y + i;
-                    if (getZone(curx, cury) === CAVE_ZONE) {
-                        createCaveSeg(new Point(curx, cury), loc);
-                        break;
+                    for (let j = -1; j < 2; j++) {
+                        let curx = loc.x + j * 5;
+                        let cury = loc.y + i;
+                        if (curx < 5 || curx > width - 5)
+                            break;
+                        if (getZone(curx, cury) === CAVE_ZONE) {
+                            createCaveSeg(new Point(curx, cury).add(0, 4), loc);
+                            flag = true;
+                            break;
+                        }
                     }
+                    if (flag)
+                        break;
                 }
             }
 
@@ -665,12 +695,28 @@ const generate = (width, height, seed, changes) => {
                 dirtLevel += random() < 0.2 ? 0 : 1;
                 let center = loc.add(new Point(0, yradius - dirtLevel)); //Смещение центра эллипса, чтобы координата отражала корень дерева
                 //Проверяем, не мешает ли ничего
-                if (!checkEllipse(center, xradius, yradius))
+                let flag = false;
+                for (let i = 0; i < 15; i++) { //15 попыток
+                    if (!checkEllipse(center, xradius, yradius)) {
+                        dx = Math.floor(random() * 50 - 25);
+                        dy = Math.floor(random() * 50 - 25);
+                        loc = loc.add(dx, dy);
+                        center = center.add(dx, dy);
+                    }
+                    else {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (!flag)
                     return;
-                //Выкапываем пещеруa
+                //Выкапываем пещеру
                 fillEllipse(center, xradius, yradius, setCaveBlock);
+                fillEllipse(center, xradius - 4, yradius - 3, (x, y) => {
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                });
                 //Ищем рядом пещеру для присоединения
-                findCaveNear(loc, xradius, yradius);
+                findCaveNear(center, xradius, yradius);
                 //Насыпаем землю
                 const fillSideByDirt = (side) => {
                     let sh = 0;
@@ -704,8 +750,6 @@ const generate = (width, height, seed, changes) => {
                             setBlock(loc.x + i, loc.y + sh - j - k, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
                             setBlock(loc.x + i, loc.y + sh - j - k, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
                         }
-                        if (getZone(loc.x + i + side, loc.y + sh) !== CAVE_ZONE)
-                            break; 
                         let rand = random();
                         if (rand < 0.3)
                             sh += 1;
@@ -816,15 +860,15 @@ const generate = (width, height, seed, changes) => {
                     createBranch(loc.add(0, 3));
                 }
                 setTree(loc.add(0, 1), xradius - 4, 2 * yradius - dirtLevel - 10);
-                __observe.push(loc);
+                __observe.push(loc); //TEMP
             }
-
-            for (let i = 0; i < points.length; i++)
-                create(points[i]);
+            for (let i = 0; i < 8; i++) {
+                let x = Math.floor((i + 1) * width / 12 + 60);
+                x += Math.floor(random() * 70 - 35);
+                let y = Math.floor(random() * (elevationMap[x] - maxHeightShift - minHeight) + minHeight);
+                create(new Point(x, y));
+            }
         }
-
-        let spec1_pts = [];
-
         //Процесс выбора точек старта
         let seqStart = Math.floor(random() * 90);
         for (let i = seqStart; i < seqStart + count; i++) {
@@ -850,15 +894,9 @@ const generate = (width, height, seed, changes) => {
             //Добавим случайное смещение к выбранной точке
             xi += Math.floor(random() * 50) - 25;
             yi += Math.floor(random() * 50) - 25;
-            let rand = random();
-            if (rand < 0.15) {   
-                spec1_pts.push(new Point(xi, yi));
-            }
-            else {
-                createHorCave(new Point(xi, yi));
-            }
+            createHorCave(new Point(xi, yi));
         }
-        underSpecial1Gen(spec1_pts);
+        underSpecial1Gen(200, 100);
     }
 
     // Генерация руд
@@ -872,11 +910,11 @@ const generate = (width, height, seed, changes) => {
                         radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
                         if (random() > 0.3) {
                             if (getBlock(i, j, GameArea.FIRST_LAYOUT) === STONE_BLOCK) {
-                                setZone(i, j, ORE_ZONE);
+                                // setZone(i, j, ORE_ZONE);
                                 setBlock(i, j, GameArea.FIRST_LAYOUT, type);
                             }
                             if (random() < 0.5 && getBlock(i, j, GameArea.SECOND_LAYOUT) === STONE_BLOCK) {
-                                setZone(i, j, ORE_ZONE);
+                                // setZone(i, j, ORE_ZONE);
                                 setBlock(i, j, GameArea.SECOND_LAYOUT, type);
                             }
                         }
@@ -905,10 +943,10 @@ const generate = (width, height, seed, changes) => {
     const lavaLakes = (minHeight, maxHeight, frequency) => {
         let curLake; //Точки озера
         const noCaveAround = (x, y) => {      
-            return (getZone(x + 1, y) === NONE_ZONE || getZone(x + 1, y) === ORE_ZONE)
-                && (getZone(x - 1, y) === NONE_ZONE || getZone(x - 1, y) === ORE_ZONE)
-                && (getZone(x, y + 1) === NONE_ZONE || getZone(x, y + 1) === ORE_ZONE)
-                && (getZone(x, y - 1) === NONE_ZONE || getZone(x, y - 1) === ORE_ZONE);
+            return (getZone(x + 1, y) === NONE_ZONE)
+                && (getZone(x - 1, y) === NONE_ZONE)
+                && (getZone(x, y + 1) === NONE_ZONE)
+                && (getZone(x, y - 1) === NONE_ZONE);
         }
         // Создать полость радиуса
         const createHole = (radius, x, y) => {
@@ -1148,7 +1186,7 @@ const generate = (width, height, seed, changes) => {
     landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height); //elevationMap + озера
     surfaceGen();
     caveGen(width / 100, height / 3);
-    undergroundCavseGen(100, 100, 80);
+    undergroundCavseGen(100, 50, 60);
     // underSpecial1Gen(200, 150, 15);
     oreGen();
     lavaLakes(20, height / 2, 1 / 4000);

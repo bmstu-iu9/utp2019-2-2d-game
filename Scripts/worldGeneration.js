@@ -661,7 +661,7 @@ const generate = (width, height, seed, changes) => {
                         if (curx < 5 || curx > width - 5)
                             break;
                         if (getZone(curx, cury) === CAVE_ZONE) {
-                            createCaveSeg(new Point(curx, cury).add(-3, 3), loc.add());
+                            createCaveSeg(new Point(curx, cury).add(-3, 3), loc);
                             flag = true;
                             break;
                         }
@@ -693,7 +693,8 @@ const generate = (width, height, seed, changes) => {
                 let dirtLevel = random() < 0.2 ? 5 : 6;
                 dirtLevel += random() < 0.2 ? 1 : 2;
                 dirtLevel += random() < 0.2 ? 0 : 1;
-                let center = loc.add(new Point(0, yradius - dirtLevel)); //Смещение центра эллипса, чтобы координата отражала корень дерева
+                //Смещение центра эллипса, чтобы координата отражала корень дерева
+                let center = loc.add(new Point(0, yradius - dirtLevel));
                 //Проверяем, не мешает ли ничего
                 let flag = false;
                 for (let i = 0; i < 15; i++) { //15 попыток
@@ -863,7 +864,7 @@ const generate = (width, height, seed, changes) => {
                 __observe.push(loc); //TEMP
             }
             for (let i = 0; i < 8; i++) {
-                let x = Math.floor((i + 1) * width / 12 + 60);
+                let x = Math.floor((i + 1) * width / 9 + 60);
                 x += Math.floor(random() * 70 - 35);
                 let y = Math.floor(random() * (elevationMap[x] - maxHeightShift - minHeight) + minHeight);
                 create(new Point(x, y));

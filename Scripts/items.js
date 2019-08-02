@@ -329,7 +329,7 @@ const items = {
         name: 'Diamond Ore',
         type: 'stone',
         durability: 15,
-        isCollissed: true;
+        isCollissed: true,
         dropId: 264,
         isBlock: true,
         weight: WEIGHT_OF_BLOCKS
@@ -342,10 +342,10 @@ const items = {
         type: 'stone',
         durability: 15,
         isBlock: true,
-        isCollissed: true;
+        isCollissed: true,
         dropId: 15,
         weight: WEIGHT_OF_BLOCKS
-    }
+    },
 
     '58':
     {
@@ -356,10 +356,10 @@ const items = {
         dropId: 264,
         isBlock: true,
         brightness: 6,
-        isCollissed: true;
+        isCollissed: true,
         dropId: 14,
         weight: WEIGHT_OF_BLOCKS
-    }
+    },
 
     '60':
     {

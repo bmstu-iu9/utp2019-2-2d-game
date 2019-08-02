@@ -1082,29 +1082,63 @@ const reloadInv = () => {
     let insertIndex = 0;
     for (let i = 0; i < player.inv.items.length; i++) {
         if (player.inv.items[i]) {
+            let card;
             if (player.inv.items[i].id) {
-                let card = createItemCard(insertIndex, player.inv.items[i].id,
+                card = createItemCard(insertIndex, player.inv.items[i].id,
                      "Weight: " + items[player.inv.items[i].id].weight + "\n"
                     + "\nDurability: " + player.inv.items[i].durability
                     + "\n" +items[player.inv.items[i].id].name, i);
-                scrollingContent.add(card);
-                card.indent.pa.y += scrollingContent.props.scrollX;
-                card.indent.pb.y += scrollingContent.props.scrollX;
-                if (selected && selected.props.type === 'invSlot' && selected.props.invIndex === i) {
-                    card.image = card.props.selectedImage;
-                }
+
             } else {
-                let card = createItemCard(insertIndex, player.inv.items[i],
+                card = createItemCard(insertIndex, player.inv.items[i],
                     "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
                     + "\n\n" + "Count: " + player.inv.count[i]
                     + "\n"+items[player.inv.items[i]].name, i);
-                scrollingContent.add(card);
-                card.indent.pa.y += scrollingContent.props.scrollX;
-                card.indent.pb.y += scrollingContent.props.scrollX;
-                if (selected && selected.props.type === 'invSlot' && selected.props.invIndex === i) {
-                    card.image = card.props.selectedImage;
-                }
             }
+
+            card.indent.pa.y += scrollingContent.props.scrollX;
+            card.indent.pb.y += scrollingContent.props.scrollX;
+            if (selected && selected.props.type === 'invSlot' && selected.props.invIndex === i) {
+                card.image = card.props.selectedImage;
+            }
+            let deleteButton = new Sprite(
+                [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ],
+                {
+                    pa: {
+                        x: 1,
+                        y: 0
+                    },
+                    pb: {
+                        x: 1,
+                        y: 0
+                    }
+                },
+                {
+                    pa: {
+                        x: -50,
+                        y: 0
+                    },
+                    pb: {
+                        x: 0,
+                        y: 50
+                    }
+                });
+            setOnClickListener(deleteButton, () => {
+                player.deleteFromInvByIndex(i, 1);
+                needInvRedraw = true;
+
+                deleteButton.image = [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ];
+            },
+            () => {
+                deleteButton.image = [ [0.376 + 0.0625, 0.501 + 0.0625], [0.4375 + 0.0625, 0.5625 + 0.0625] ];
+                needInvRedraw = false;
+            },
+            () => {
+                deleteButton.image = [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ];
+                needInvRedraw = false;
+            });
+            card.add(deleteButton);
+            scrollingContent.add(card);
 
             insertIndex++;
         }
@@ -1116,4 +1150,16 @@ const UICloseInv = () => {
     inventoryOpened = false;
     screenUI.deleteChild(UIMap.invPanel.id);
     needUIRedraw = true;
+}
+
+
+// Меню крафтов
+let needCraftRedraw = false;
+let craftOpened = false;
+const UIOpenCraft = (isCraftingTable) => {
+
+}
+
+const UICloseCraft = () => {
+
 }

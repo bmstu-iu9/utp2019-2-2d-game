@@ -19,15 +19,34 @@ let defaultHeight = 1080;
 
 let UIMap = new Map();
 
-setOnClickListener = (sprite, action, releaseAction, clickAnother) => {
-    sprite.click = action;
-    if (releaseAction) {
-        sprite.onRelease = releaseAction;
-    }
-    if (clickAnother) {
-        sprite.clickAnother = clickAnother;
-    }
+setOnClickListener = (sprite, clickAction, holdAction, releaseAction) => {
+    sprite.click = clickAction;
+    sprite.hold = holdAction;
+    sprite.release = releaseAction;
     sprite.interactive = true;
+}
+
+const clickAction = (sprite) => {
+    if (!sprite) return;
+    if (sprite.click) {
+        sprite.click();
+    } else if (sprite.release) {
+        sprite.release();
+    }
+}
+
+const holdAction = (sprite) => {
+    if (!sprite) return;
+    if (sprite.hold) {
+        sprite.hold();
+    }
+}
+
+const releaseAction = (sprite) => {
+    if (!sprite) return;
+    if (sprite.release) {
+        sprite.release();
+    }
 }
 
 class Sprite {
@@ -232,6 +251,21 @@ const initUI = () => {
                         y: 0
                     }
                 });
+            setOnClickListener(slot, () => {
+                let activeElement = UIMap.activeElement;
+                if (activeElement && activeElement.props.type === 'invSlot') {
+                    for(let i = 0; i < player.fastInv.length; i++) {
+                        if (player.fastInv[i] === activeElement.props.invIndex) {
+                            player.fastInv[i] = undefined;
+                        }
+                    }
+                    player.fastInv[i] = activeElement.props.invIndex;
+                    player.setHand(player.hand.index);
+                    needInvRedraw = true;
+
+                    UIMap.activeElement = undefined;
+                }
+            });
             UIMap.fastInv[i] = slot;
             fastInvPanel.add(slot);
         }
@@ -542,14 +576,29 @@ const createItemCard = (number, id, text, invIndex) => {
         {
             type: 'invSlot',
             invIndex: invIndex,
-            isEmpty: invIndex === undefined
+            isEmpty: invIndex === undefined,
+            selectedImage: [ [0, 0.635], [0.125, 0.740] ],
+            unselectedImage: [ [0.125, 0.51], [0.250, 0.615] ]
         });
     setOnClickListener(card, () => {
-        card.image = [ [0, 0.635], [0.125, 0.740] ];
-    },
-    undefined,
-    () => {
-        card.image = [ [0.125, 0.51], [0.250, 0.615] ];
+        let activeElement = UIMap.activeElement;
+        if (activeElement) {
+            // Если дважды нажали на один предмет
+            if (activeElement.props.invIndex === card.props.invIndex) {
+                card.image = card.props.unselectedImage;
+                UIMap.activeElement = undefined;
+            } else {
+                if (activeElement.props.type === 'invSlot') {
+                    player.invSwapByIndex(activeElement.props.invIndex, card.props.invIndex);
+                    needUIRedraw = true;
+                }
+
+                UIMap.activeElement = undefined;
+            }
+        } else {
+            card.image = card.props.selectedImage;
+            UIMap.activeElement = card;
+        }
     });
     card.recountRect = (rect, indent, parent, image) => {
         let height = 1 / 4 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
@@ -967,7 +1016,9 @@ const UIOpenInv = () => {
         {
             type: 'button'
         });
-    setOnClickListener(downButton, () => {
+    setOnClickListener(downButton,
+    undefined,
+    () => {
         downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
         scrollingContent.props.scrollX -= 600 * deltaTime;
         needInvRedraw = true;
@@ -1002,7 +1053,9 @@ const UIOpenInv = () => {
         {
             type: 'button'
         });
-    setOnClickListener(upButton, () => {
+    setOnClickListener(upButton,
+    undefined,
+    () => {
         upButton.image = [ [0.376 + 0.0625, 0.501], [0.4375 + 0.0625, 0.5625] ];
         scrollingContent.props.scrollX += 600 * deltaTime;
         needInvRedraw = true;
@@ -1026,10 +1079,11 @@ const reloadInv = () => {
     let scrollingContent = UIMap.invScrollingContent;
     let selected = UIMap.activeElement;
     scrollingContent.deleteChildren();
+    let insertIndex = 0;
     for (let i = 0; i < player.inv.items.length; i++) {
         if (player.inv.items[i]) {
             if (player.inv.items[i].id) {
-                let card = createItemCard(i, player.inv.items[i].id,
+                let card = createItemCard(insertIndex, player.inv.items[i].id,
                      "Weight: " + items[player.inv.items[i].id].weight + "\n"
                     + "\nDurability: " + player.inv.items[i].durability
                     + "\n" +items[player.inv.items[i].id].name, i);
@@ -1037,10 +1091,10 @@ const reloadInv = () => {
                 card.indent.pa.y += scrollingContent.props.scrollX;
                 card.indent.pb.y += scrollingContent.props.scrollX;
                 if (selected && selected.props.type === 'invSlot' && selected.props.invIndex === i) {
-                    card.click();
+                    card.image = card.props.selectedImage;
                 }
             } else {
-                let card = createItemCard(i, player.inv.items[i],
+                let card = createItemCard(insertIndex, player.inv.items[i],
                     "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
                     + "\n\n" + "Count: " + player.inv.count[i]
                     + "\n"+items[player.inv.items[i]].name, i);
@@ -1048,9 +1102,11 @@ const reloadInv = () => {
                 card.indent.pa.y += scrollingContent.props.scrollX;
                 card.indent.pb.y += scrollingContent.props.scrollX;
                 if (selected && selected.props.type === 'invSlot' && selected.props.invIndex === i) {
-                    card.click();
+                    card.image = card.props.selectedImage;
                 }
             }
+
+            insertIndex++;
         }
     }
     needUIRedraw = true;

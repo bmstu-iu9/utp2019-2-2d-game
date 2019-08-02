@@ -28,6 +28,7 @@ for(let i in crafts) {
 	}
 }
 
+// Список того, что можно крафтить по инвентарю
 const getCrafts = (inventory, isCraftingTable) => {
 	let ready = [];
 	let notReady = [];

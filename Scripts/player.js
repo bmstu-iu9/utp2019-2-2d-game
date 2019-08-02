@@ -55,7 +55,7 @@ class Player {
         // Содержит индекс предмета в инвентаре
         this.fastInv = [];
         for (let i = 0; i < Player.FAST_INVENTORY_SIZE; i++) {
-            this.fastInv[i] = i;
+            this.fastInv[i] = undefined;
         }
 
         // Текущий индекс предмета из быстрого инвентаря
@@ -381,6 +381,23 @@ class Player {
             this.inv.count[i1] = this.inv.count[i2];
             this.inv.items[i2] = item;
             this.inv.count[i2] = count;
+
+            // Меняем местами слоты быстрого инвентаря
+            let fi1, fi2;
+            for(let i = 0; i < this.fastInv.length; i++) {
+                if (this.fastInv[i] === i1) {
+                    fi1 = i;
+                }
+                if (this.fastInv[i] === i2) {
+                    fi2 = i;
+                }
+            }
+            if (fi1 !== undefined) {
+                this.fastInv[fi1] = i2;
+            }
+            if (fi2 !== undefined) {
+                this.fastInv[fi2] = i1;
+            }
 
             this.setHand(this.hand.index);
             needInvRedraw = true;

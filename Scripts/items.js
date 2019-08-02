@@ -238,6 +238,7 @@ const items = {
         isBlock: true,
         dropId: '14',
         weight: WEIGHT_OF_BLOCKS,
+        isCollissed: true,
         durability: 10,
         meltingId: '266',
         costOfMelting: '100',
@@ -254,6 +255,7 @@ const items = {
         isBlock: true,
         dropId: '15',
         weight: WEIGHT_OF_BLOCKS,
+        isCollissed: true,
         durability: 12,
         meltingId: '265',
         costOfMelting: '100',
@@ -327,12 +329,10 @@ const items = {
         name: 'Diamond Ore',
         type: 'stone',
         durability: 15,
+        dropId: 264,
         isBlock: true,
         dropId: '264',
-        weight: WEIGHT_OF_BLOCKS,
-        texture: () => {
-            return getTextureCoordinates(1, 2)
-        }
+        weight: WEIGHT_OF_BLOCKS
     },
 
     '60':
@@ -562,7 +562,10 @@ const items = {
     { 
         id: '264',
         name: 'Diamond', 
-        weight: WEIGHT_OF_ORES
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(1, 2)
+        }
     },
 
     '265': 

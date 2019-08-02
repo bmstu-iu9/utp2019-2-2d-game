@@ -15,10 +15,10 @@ let loadingResult = undefined;
 
 const render = new Render();
 let audio = new AudioStorage();
-audio.add("destroyBlock", "Audio/test.mp3", 0.2);
-audio.add("jump", "Audio/test.mp3", 0.05);
+audio.add("destroyBlock", "Audio/destroy.mp3", 0.2);
+audio.add("jump", "Audio/jump.mp3", 0.05);
 audio.add("day->night", "Audio/test.mp3", 0.2);
-audio.add("rain", "Audio/test.mp3", 0.2);
+audio.add("rain", "Audio/rain.mp3", 0.2);
 
 const image = new Image();
 image.src = 'Images/blocks.png';

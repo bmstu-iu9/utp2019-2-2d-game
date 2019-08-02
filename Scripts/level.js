@@ -84,7 +84,7 @@ const beginPlay = () => {
 	elevationCalculate(); // расчитывает карту высот для погоды
 	
 	// Блок функций, которые не зависят от обновления кадров
-	callSetTimeOfDay(40);
+	callSetTimeOfDay(300);
 }
 
 const callSetTimeOfDay = (lengthOfDay) => {

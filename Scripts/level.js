@@ -173,8 +173,10 @@ const playerActionButtons = () => {
 		 	controller.invClick = true;
 		 	if (inventoryOpened) {
 		 		UICloseInv();
+		 		UICloseCraft();
 		 	} else {
 		 		UIOpenInv();
+		 		UIOpenCraft();
 		 	}
 		 }
 	} else {

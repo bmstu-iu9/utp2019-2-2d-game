@@ -1079,7 +1079,6 @@ const reloadInv = () => {
                     + "\n" +items[player.inv.items[i].id].name);
 
             } else {
-                console.log(player.inv.items[i])
                 card = createItemCard(insertIndex, player.inv.items[i],
                     "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
                     + "\n\n" + "Count: " + player.inv.count[i]

@@ -90,25 +90,23 @@ class AudioStorage {
             return this.storage[name].volume;
         }
 
-        this.smoothPause = (name, time) => {
-            const currentVol = this.getVol(name);
-            for (let i = 0.1; i <= 1; i += 0.1) {
-                setTimeout(this.setVol, i * time * 1000 , name, currentVol * (1 - i));
+        this.smoothVolChange = (name, time, beginVol, endVol, steps = 10) => {
+            for (let i = 0; i <= steps; i++) {
+                setTimeout(this.setVol, i / steps * time * 1000, name, beginVol + i / steps * (endVol - beginVol));
             }
+        }
+
+        this.smoothPause = (name, time) => {
+            const curVol = this.getVol(name);
+            this.smoothVolChange(name, time, curVol, 0);
+            setTimeout(this.stop, time * 1000, name);
+            setTimeout(this.setVol, time * 1000, name, curVol);
         }
 
         this.smoothPlay = (name, time, targetVol) => {
             this.setVol(name, 0);
             this.playLoop(name);
-            for (let i = 0.1; i <= 1; i += 0.1) {
-                setTimeout(this.setVol, i * time * 1000, name, targetVol * i);
-            }
-        }
-
-        this.smoothVolChange = (name, time, beginVol, endVol, steps = 10) => {
-            for (let i = 0; i <= steps; i++) {
-                setTimeout(this.setVol, i / steps * time * 1000, name, beginVol + i / steps * (endVol - beginVol));
-            }
+            this.smoothVolChange(name, time, 0, targetVol);
         }
     }
 }

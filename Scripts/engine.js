@@ -53,7 +53,7 @@ image.onload = () => {
 	x, y - координаты чанка
 
 Отрисовка:
-.render(xc, yc, xp, yp, scale, time, deltaTime, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer)
+.render(xc, yc, xp, yp, scale, time, deltaTime, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer, dynamicLight)
 	xc, yc - координаты камеры
 	xp, yp - координаты игрока
 	scale - масштаб экрана
@@ -65,6 +65,8 @@ image.onload = () => {
 	slicePlayer - 1 = игрок перед передним слоем, 2 = игрок за передним слоем
 	rotatePlayer - если значение положительное, то игровой персонаж повёрнут направо, если отрицательное, то игровой
 		персонаж повёрнут налево
+	dynamicLight - массив, состоящий из двух элементов, где первый элемент задаёт диаметр динамического освещения,
+		а второй параметр задаёт максимальное освещение в центральной точке (в месте, где находится игровой персонаж)
 
 	ПОГОДА
 Запуск дождя:

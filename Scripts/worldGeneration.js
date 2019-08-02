@@ -3,7 +3,7 @@ var __observe = [];
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
     console.time('World generation');
-    // seed = 1564681003620;
+    // seed = 1564694789830;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -586,290 +586,6 @@ const generate = (width, height, seed, changes) => {
             }
         }
 
-        // Создание особых подхемных пещер 1 типа (временное название)
-        const underSpecial1Gen = (minHeight, maxHeightShift) => {
-            const setCaveBlock = (x, y) => {
-                setZone(x, y, CAVE_ZONE);
-                setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
-                // setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
-            }
-            const fillEllipse = (center, xr, yr, setf) => {
-                //setf - функция установки точки
-                let xr_2 = xr * xr;
-                let yr_2 = yr * yr;
-                let xr1_2 = (xr - 2) * (xr - 1);
-                let yr1_2 =  (yr - 2) * (yr - 1);
-                for (let x = -xr; x < xr; x++) {
-                    let x_2 = x * x;
-                    for (let y = -yr; y < yr; y++) {
-                        let tx = random() < 0.4 ? xr1_2 : xr_2;
-                        let ty = random() < 0.4 ? yr1_2 : yr_2;
-                        if (x * x / tx + y * y / ty < 1)
-                            setf(center.x + x, center.y + y);
-                    }
-                }
-            }
-            const checkEllipse = (center, xr, yr) => {
-                let xr_2 = xr * xr;
-                let yr_2 = yr * yr;
-                for (let x = -xr; x < xr; x++) {
-                    let x_2 = x * x;
-                    for (let y = -yr; y < yr; y++) {
-                        if (x * x / xr_2 + y * y / yr_2 < 1) {
-                            if (center.y + y < minHeight || center.y + y > elevationMap[x] - maxHeightShift)
-                                return false;
-                            if (center.x + x < 10 || center.x + x > width - 10)
-                                return false;
-                            if (getZone(center.x + x, center.y + y) === CAVE_ZONE
-                                || getZone(center.x + x, center.y + y) === CAVE_SPECIAL_ZONE)    
-                                return false;
-                        }
-                    }
-                }
-                for (let i = -xr; i < xr; i++) {
-                    for (let j = 0; j < 4; j++) {
-                        if (getZone(center.x + i, center.y - yr - j) === CAVE_ZONE
-                            || getZone(center.x + i, center.y - yr - j) === CAVE_SPECIAL_ZONE)
-                            return false;
-                    }
-                }
-                return true;
-            }
-
-            const findCaveNear = (loc, xradius, yradius) => {
-                let flag = false;
-                for (let i = 3; i < yradius + 25; i += 3) { //Справа
-                    for (let j = 0; j < 15; j++) {
-                        let curx = loc.x + xradius + j * 2;
-                        let cury = loc.y + i;
-                        if (curx < 5 || curx > width - 5)
-                            break;
-                        if (getZone(curx, cury) === CAVE_ZONE) {
-                            createCaveSeg(new Point(curx, cury).add(3, 3), loc);
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (flag)
-                        break;
-                }
-                flag = false;
-                for (let i = 3; i < yradius + 25; i += 3) { //Слева
-                    for (let j = 0; j < 15; j++) {
-                        let curx = loc.x - xradius - j * 2;
-                        let cury = loc.y + i;
-                        if (curx < 5 || curx > width - 5)
-                            break;
-                        if (getZone(curx, cury) === CAVE_ZONE) {
-                            createCaveSeg(new Point(curx, cury).add(-3, 3), loc);
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (flag)
-                        break;
-                }
-                flag = false;
-                for (let i = yradius + 4; i < yradius + 25; i += 3) {
-                    for (let j = -1; j < 2; j++) {
-                        let curx = loc.x + j * 5;
-                        let cury = loc.y + i;
-                        if (curx < 5 || curx > width - 5)
-                            break;
-                        if (getZone(curx, cury) === CAVE_ZONE) {
-                            createCaveSeg(new Point(curx, cury).add(0, 4), loc);
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (flag)
-                        break;
-                }
-            }
-
-            const create = (loc) => {
-                let xradius = 13 + Math.floor(random() * 5);
-                let yradius = 20 + Math.floor(random() * 5);
-                let dirtLevel = random() < 0.2 ? 5 : 6;
-                dirtLevel += random() < 0.2 ? 1 : 2;
-                dirtLevel += random() < 0.2 ? 0 : 1;
-                //Смещение центра эллипса, чтобы координата отражала корень дерева
-                let center = loc.add(new Point(0, yradius - dirtLevel));
-                //Проверяем, не мешает ли ничего
-                let flag = false;
-                for (let i = 0; i < 15; i++) { //15 попыток
-                    if (!checkEllipse(center, xradius, yradius)) {
-                        dx = Math.floor(random() * 50 - 25);
-                        dy = Math.floor(random() * 50 - 25);
-                        loc = loc.add(dx, dy);
-                        center = center.add(dx, dy);
-                    }
-                    else {
-                        flag = true;
-                        break;
-                    }
-                }
-                if (!flag)
-                    return;
-                //Выкапываем пещеру
-                fillEllipse(center, xradius, yradius, setCaveBlock);
-                fillEllipse(center, xradius - 4, yradius - 3, (x, y) => {
-                    setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
-                });
-                //Ищем рядом пещеру для присоединения
-                findCaveNear(center, xradius, yradius);
-                //Насыпаем землю
-                const fillSideByDirt = (side) => {
-                    let sh = 0;
-                    let dirtSh = 1;
-                    for (let i = 0; side * i < xradius; i += side) {
-                        setZone(loc.x + i, loc.y + sh, CAVE_SPECIAL_ZONE);
-                        if (getZone(loc.x + i, loc.y + sh + 2) !== CAVE_ZONE) {
-                            setZone(loc.x + i, loc.y + sh + 1, CAVE_SPECIAL_ZONE);
-                            setBlock(loc.x + i, loc.y + sh + 1, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
-                            setBlock(loc.x + i, loc.y + sh + 1, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
-                        }
-                        if (getZone(loc.x + i, loc.y + sh + 1) !== CAVE_ZONE) {
-                            setBlock(loc.x + i, loc.y + sh, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
-                            setBlock(loc.x + i, loc.y + sh, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
-                        }
-                        else {
-                            setBlock(loc.x + i, loc.y + sh, GameArea.FIRST_LAYOUT, GRASS_BKOCK);
-                            setBlock(loc.x + i, loc.y + sh, GameArea.SECOND_LAYOUT, GRASS_BKOCK);
-                        }
-                        let j = 1;
-                        while (getZone(loc.x + i, loc.y + sh - j) === CAVE_ZONE
-                            || getZone(loc.x + i, loc.y + sh - j - 1) === CAVE_ZONE
-                            || getZone(loc.x + i, loc.y + sh - j - 2) === CAVE_ZONE) {
-                            setZone(loc.x + i, loc.y + sh - j, CAVE_SPECIAL_ZONE);
-                            setBlock(loc.x + i, loc.y + sh - j, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
-                            setBlock(loc.x + i, loc.y + sh - j, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
-                            j++;
-                        }
-                        for (let k = 0; k < dirtSh; k++) {
-                            setZone(loc.x + i, loc.y + sh - j - k, CAVE_SPECIAL_ZONE);
-                            setBlock(loc.x + i, loc.y + sh - j - k, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
-                            setBlock(loc.x + i, loc.y + sh - j - k, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
-                        }
-                        let rand = random();
-                        if (rand < 0.3)
-                            sh += 1;
-                        else if (rand < 0.5)
-                            sh -= 1;
-                        rand = random();
-                        if (rand < 0.5)
-                            dirtSh = 1;
-                        else if (rand < 0.9)
-                            dirtSh = 2;
-                        else
-                            dirtSh = 3;
-                    }
-                }
-                fillSideByDirt(+1);
-                fillSideByDirt(-1);
-                //Устанавливаем дерево
-                const setTree = (loc, width, height) => {
-                    //width - максимальное отклонение от цента по x
-                    const maxDepth = 4;
-
-                    const setLeafBlock = (x, y) => {
-                        if (getBlock(x, y, GameArea.FIRST_LAYOUT) !== WOOD_BLOCK) {
-                            setZone(x, y, CAVE_SPECIAL_ZONE);
-                            setBlock(x, y, GameArea.FIRST_LAYOUT, LEAVES_BLOCK);
-                            setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
-                        }
-                    };
-
-                    const setLine = (startPoint, stopPoint) => {
-                        if (Math.abs(stopPoint.x - startPoint.x) >= Math.abs(stopPoint.y - startPoint.y)) {
-                            if (startPoint.x > stopPoint.x) {
-                                let t = startPoint;
-                                startPoint = stopPoint;
-                                stopPoint = t;
-                            }
-                            let interval = stopPoint.sub(startPoint).add(1, 0);
-                            let theta = Math.atan2(interval.y, interval.x);
-                            let curH = startPoint.y;
-                            for (let x = 0; x < Math.abs(interval.x); x++) {
-                                setBlock(startPoint.x + x, Math.floor(curH), GameArea.FIRST_LAYOUT, WOOD_BLOCK);
-                                curH += theta;
-                            }
-                        }
-                        else {
-                            if (startPoint.y > stopPoint.y) {
-                                let t = startPoint;
-                                startPoint = stopPoint;
-                                stopPoint = t;
-                            }
-                            let interval = stopPoint.sub(startPoint).add(0, 1);
-                            let theta = Math.atan2(interval.x, interval.y);
-                            let curW = startPoint.x;
-                            for (let y = 0; y < Math.abs(interval.y); y++) {
-                                setBlock(Math.floor(curW), startPoint.y + y, GameArea.FIRST_LAYOUT, WOOD_BLOCK);
-                                curW += theta;
-                            }
-                        }
-                    }
-
-                    const createBranch = (start, depth)=> {
-                        //TODO: красивые деревья
-                        if (random() < 0.3) { //Две ветки
-                            let rand = random();
-                            let dy = Math.floor(height / maxDepth);
-                            dy += Math.floor(random() * 4) - 2;
-                            if (start.y + dy > loc.y + height)
-                                return;
-                            let dx = Math.floor(random() * 4);
-                            if (start.x + dx <= loc.x + width) {
-                                let nextP = start.add(dx, dy);
-                                setLine(start, nextP);
-                                fillEllipse(nextP, 4, dy, setLeafBlock);
-                                if (depth != maxDepth && rand < 0.49)
-                                    createBranch(nextP, depth + 1);
-                            }
-                            dy = Math.floor(height / maxDepth);
-                            dy += Math.floor(random() * 4) - 2;
-                            if (start.y + dy > loc.y + height)
-                                return;
-                            dx = Math.floor(random() * 4);
-                            if (start.x + dx <= loc.x + width) {
-                                let nextP = start.add(dx, dy);
-                                setLine(start, nextP);
-                                fillEllipse(nextP, 4, dy, setLeafBlock);
-                                if (depth != maxDepth && rand > 0.51)
-                                    createBranch(nextP, depth + 1);
-                            }
-                        }
-                        else { //Одна ветка
-                            let dy = Math.floor(height / maxDepth);
-                            dy += Math.floor(random() * 4) - 2;
-                            if (start.y + dy > loc.y + height)
-                                return;
-                            let dx = Math.floor(random() * 4);
-                            dx *= loc.x !== start.x ? Math.sign(loc.x - start.x) : (random() < 0.5 ? -1 : 1);
-                            if (start.x + dx > loc.x + width || start.x + dx < loc.x - width)
-                                dx = -dx;
-                            let nextP = start.add(dx, dy);
-                            setLine(start, nextP);
-                            fillEllipse(nextP, 5, dy, setLeafBlock);
-                            if (depth != maxDepth)
-                                createBranch(nextP, depth + 1);
-                        }
-                    }
-
-                    setLine(loc, loc.add(0, 3));
-                    createBranch(loc.add(0, 3));
-                }
-                setTree(loc.add(0, 1), xradius - 4, 2 * yradius - dirtLevel - 10);
-                __observe.push(loc); //TEMP
-            }
-            for (let i = 0; i < 8; i++) {
-                let x = Math.floor((i + 1) * width / 9 + 60);
-                x += Math.floor(random() * 70 - 35);
-                let y = Math.floor(random() * (elevationMap[x] - maxHeightShift - minHeight) + minHeight);
-                create(new Point(x, y));
-            }
-        }
         //Процесс выбора точек старта
         let seqStart = Math.floor(random() * 90);
         for (let i = seqStart; i < seqStart + count; i++) {
@@ -1183,15 +899,396 @@ const generate = (width, height, seed, changes) => {
     }
     //#endregion
 
+    //Методы генерации особых объектов
+    //#region specials
+    
+    // Создание особых подхемных пещер 1 типа (с деревом)
+    const underSpecial1Gen = (minHeight, maxHeightShift, count) => {
+        const fillCircle = (center, radius, setf) => {
+            //setf - функция установки точки
+            let r_2 = radius * radius;
+            let r1_2 = (radius - 1) * (radius - 1);
+            for (let x = -radius; x < radius; x++) {
+                let x_2 = x * x;
+                for (let y = -radius; y < radius; y++) {
+                    let t = random() < 0.3 ? r1_2 : r_2;
+                    if (t > x_2 + y * y)
+                        setf(center.x + x, center.y + y);
+                }
+            }
+        }
+        const fillEllipse = (center, xr, yr, setf) => {
+            //setf - функция установки точки
+            let xr_2 = xr * xr;
+            let yr_2 = yr * yr;
+            let xr1_2 = (xr - 2) * (xr - 1);
+            let yr1_2 =  (yr - 2) * (yr - 1);
+            for (let x = -xr; x < xr; x++) {
+                let x_2 = x * x;
+                for (let y = -yr; y < yr; y++) {
+                    let tx = random() < 0.4 ? xr1_2 : xr_2;
+                    let ty = random() < 0.4 ? yr1_2 : yr_2;
+                    if (x * x / tx + y * y / ty < 1)
+                        setf(center.x + x, center.y + y);
+                }
+            }
+        }
+
+        //Создает прямую пещеру между двумя точками
+        const createCaveSeg = (startPoint, stopPoint) => {
+            //Корректируем границы сегмента (с отступом от краев)
+            if (startPoint.x < 8)
+                startPoint.x = 9;
+            if (startPoint.x > width - 9)
+                startPoint.x = width - 10;
+            if (startPoint.y < 14)
+                startPoint.y = 15;
+            if (stopPoint.x < 8)
+                stopPoint.x = 9;
+            if (stopPoint.x > width - 9)
+                stopPoint.x = width - 10;
+            if (stopPoint.y < 14)
+                stopPoint.y = 15;
+            
+            if (Math.abs(stopPoint.x - startPoint.x) >= Math.abs(stopPoint.y - startPoint.y)) {
+                if (startPoint.x > stopPoint.x) {
+                    let t = startPoint;
+                    startPoint = stopPoint;
+                    stopPoint = t;
+                }
+                let interval = stopPoint.sub(startPoint).add(1, 0);
+                let theta = Math.atan2(interval.y, interval.x);
+                let curH = startPoint.y;
+                let lastR = random() < 0.25 ? 3 : 2;
+                lastR = random() < 0.25 ? lastR + 1 : lastR;
+                for (let x = 0; x < Math.abs(interval.x); x++) {
+                    let cr = lastR;
+                    let rand = random();
+                    if (rand < 0.15)
+                        cr += random() < 0.4 ? -2 : 2;
+                    else if (rand < 0.4)
+                        cr += random() < 0.45 ? -1 : 1;
+                    if (cr < 2)
+                        cr = 2;
+                    if (cr > 5)
+                        cr = 5;
+                    fillCircle(new Point(startPoint.x + x, Math.floor(curH)), cr, (x, y) => {
+                        setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    });
+                    curH += theta;
+                }
+            }
+            else {
+                if (startPoint.y > stopPoint.y) {
+                    let t = startPoint;
+                    startPoint = stopPoint;
+                    stopPoint = t;
+                }
+                let interval = stopPoint.sub(startPoint).add(0, 1);
+                let theta = Math.atan2(interval.x, interval.y);
+                let curW = startPoint.x;
+                let lastR = random() < 0.25 ? 3 : 2;
+                lastR = random() < 0.25 ? lastR + 1 : lastR;
+                for (let y = 0; y < Math.abs(interval.y); y++) {
+                    let cr = lastR;
+                    let rand = random();
+                    if (rand < 0.15)
+                        cr += random() < 0.4 ? -2 : 2;
+                    else if (rand < 0.4)
+                        cr += random() < 0.45 ? -1 : 1;
+                    if (cr < 2)
+                        cr = 2;
+                    if (cr > 5)
+                        cr = 5;
+                    fillCircle(new Point(Math.floor(curW), startPoint.y + y), cr, (x, y) => {
+                        setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    });
+                    curW += theta;
+                }
+            }
+        }
+
+        const findCaveNear = (loc, xradius, yradius) => {
+            let flag = false;
+            for (let i = 3; i < yradius + 25; i += 3) { //Справа
+                for (let j = 0; j < 15; j++) {
+                    let curx = loc.x + xradius + j * 2;
+                    let cury = loc.y + i;
+                    if (curx < 5 || curx > width - 5)
+                        break;
+                    if (getZone(curx, cury) === CAVE_ZONE) {
+                        createCaveSeg(new Point(curx, cury).add(3, 3), loc);
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag)
+                    break;
+            }
+            flag = false;
+            for (let i = 3; i < yradius + 25; i += 3) { //Слева
+                for (let j = 0; j < 15; j++) {
+                    let curx = loc.x - xradius - j * 2;
+                    let cury = loc.y + i;
+                    if (curx < 5 || curx > width - 5)
+                        break;
+                    if (getZone(curx, cury) === CAVE_ZONE) {
+                        createCaveSeg(new Point(curx, cury).add(-3, 3), loc);
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag)
+                    break;
+            }
+            flag = false;
+            for (let i = yradius + 4; i < yradius + 25; i += 3) {
+                for (let j = -1; j < 2; j++) {
+                    let curx = loc.x + j * 5;
+                    let cury = loc.y + i;
+                    if (curx < 5 || curx > width - 5)
+                        break;
+                    if (getZone(curx, cury) === CAVE_ZONE) {
+                        createCaveSeg(new Point(curx, cury).add(0, 4), loc);
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag)
+                    break;
+            }
+        } 
+
+        const clearZone = (loc, xradius, yradius) => {
+            const outaCoeff = 4;
+            const outbCoeff = 3;
+            const inCoeff = 10;
+            const tanCoeff = 0.8;
+            for (let x = -xradius - Math.ceil(outaCoeff); x <= xradius + Math.ceil(outaCoeff); x++) {
+                let x_2 = x * x;
+                for (let y = -yradius - Math.ceil(outbCoeff); y <= yradius + Math.ceil(outbCoeff); y++) {
+                    let y_2 = y * y;
+                    let wave = Math.abs(Math.sin(inCoeff * Math.atan(tanCoeff * y / x)));
+                    let xr_2, yr_2;
+                    if (random() > 0.3) {
+                        xr_2 = (xradius + outaCoeff * wave) * (xradius + outaCoeff * wave);
+                        yr_2 = (yradius + outbCoeff * wave) * (yradius + outbCoeff * wave);
+                    }
+                    else {
+                        xr_2 = (xradius + outaCoeff * wave - 3) * (xradius + outaCoeff * wave - 3);
+                        yr_2 = (yradius + outbCoeff * wave - 3) * (yradius + outbCoeff * wave - 3);
+                    }
+                    if (x_2 / xr_2 + y_2 / yr_2 < 1) {
+                        setZone(loc.x + x, loc.y + y, CAVE_SPECIAL_ZONE);
+                        setBlock(loc.x + x, loc.y + y, GameArea.FIRST_LAYOUT, STONE_BLOCK);
+                        setBlock(loc.x + x, loc.y + y, GameArea.SECOND_LAYOUT, STONE_BLOCK);
+                        setBlock(loc.x + x, loc.y + y, GameArea.BACK_LAYOUT, STONE_BLOCK);
+                    }
+                }
+            }
+            setZone(loc.x, loc.y, CAVE_SPECIAL_ZONE);
+            setBlock(loc.x, loc.y, GameArea.FIRST_LAYOUT, STONE_BLOCK);
+            setBlock(loc.x, loc.y, GameArea.SECOND_LAYOUT, STONE_BLOCK);
+            setBlock(loc.x, loc.y, GameArea.BACK_LAYOUT, STONE_BLOCK);
+        }
+
+        const create = (loc, xradius, yradius, dirtLevel) => {
+            //Смещение центра эллипса, чтобы координата отражала корень дерева
+            let center = loc.add(0, yradius - dirtLevel);
+            clearZone(center, xradius + 4, yradius + 4);
+            //Выкапываем пещеру
+            fillEllipse(center, xradius, yradius, (x, y) => {
+                setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+            });
+            fillEllipse(center, xradius - 4, yradius - 3, (x, y) => {
+                setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+            });
+            //Ищем рядом пещеру для присоединения
+            findCaveNear(center, xradius, yradius);
+            //Насыпаем землю
+            const fillSideByDirt = (side) => {
+                let sh = 0;
+                let dirtSh = 1;
+                for (let i = 0; side * i < xradius; i += side) {
+                    if (getBlock(loc.x + i, loc.y + sh + 2, GameArea.FIRST_LAYOUT) !== AIR_BLOCK) {
+                        //Если два блока над точкой есть блок - ставим землю над точкой
+                        setBlock(loc.x + i, loc.y + sh + 1, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                        setBlock(loc.x + i, loc.y + sh + 1, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                    }
+                    if (getBlock(loc.x + i, loc.y + sh + 1, GameArea.FIRST_LAYOUT) !== AIR_BLOCK) {
+                        //Если над точкой есть блок - ставим землю в точку
+                        setBlock(loc.x + i, loc.y + sh, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                        setBlock(loc.x + i, loc.y + sh, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                    }
+                    else {
+                        //Иначе ставим траву в точку
+                        setBlock(loc.x + i, loc.y + sh, GameArea.FIRST_LAYOUT, GRASS_BKOCK);
+                        setBlock(loc.x + i, loc.y + sh, GameArea.SECOND_LAYOUT, GRASS_BKOCK);
+                    }
+                    let j = 1;
+                    while (getBlock(loc.x + i, loc.y + sh - j, GameArea.FIRST_LAYOUT) === AIR_BLOCK
+                        || getBlock(loc.x + i, loc.y + sh - j - 1, GameArea.FIRST_LAYOUT) === AIR_BLOCK
+                        || getBlock(loc.x + i, loc.y + sh - j - 2, GameArea.FIRST_LAYOUT) === AIR_BLOCK) {
+                        setBlock(loc.x + i, loc.y + sh - j, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                        setBlock(loc.x + i, loc.y + sh - j, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                        j++;
+                    }
+                    for (let k = 0; k < dirtSh; k++) {
+                        setBlock(loc.x + i, loc.y + sh - j - k, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
+                        setBlock(loc.x + i, loc.y + sh - j - k, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
+                    }
+                    let rand = random();
+                    if (rand < 0.3)
+                        sh += 1;
+                    else if (rand < 0.5)
+                        sh -= 1;
+                    rand = random();
+                    if (rand < 0.5)
+                        dirtSh = 1;
+                    else if (rand < 0.9)
+                        dirtSh = 2;
+                    else
+                        dirtSh = 3;
+                }
+            }
+            fillSideByDirt(+1);
+            fillSideByDirt(-1);
+            //Устанавливаем дерево
+            const setTree = (loc, width, height) => {
+                //width - максимальное отклонение от цента по x
+                const maxDepth = 4;
+
+                const setLeafBlock = (x, y) => {
+                    if (getBlock(x, y, GameArea.FIRST_LAYOUT) !== WOOD_BLOCK) {
+                        setBlock(x, y, GameArea.FIRST_LAYOUT, LEAVES_BLOCK);
+                        setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                    }
+                };
+
+                const setLine = (startPoint, stopPoint) => {
+                    if (Math.abs(stopPoint.x - startPoint.x) >= Math.abs(stopPoint.y - startPoint.y)) {
+                        if (startPoint.x > stopPoint.x) {
+                            let t = startPoint;
+                            startPoint = stopPoint;
+                            stopPoint = t;
+                        }
+                        let interval = stopPoint.sub(startPoint).add(1, 0);
+                        let theta = Math.atan2(interval.y, interval.x);
+                        let curH = startPoint.y;
+                        for (let x = 0; x < Math.abs(interval.x); x++) {
+                            setBlock(startPoint.x + x, Math.floor(curH), GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                            curH += theta;
+                        }
+                    }
+                    else {
+                        if (startPoint.y > stopPoint.y) {
+                            let t = startPoint;
+                            startPoint = stopPoint;
+                            stopPoint = t;
+                        }
+                        let interval = stopPoint.sub(startPoint).add(0, 1);
+                        let theta = Math.atan2(interval.x, interval.y);
+                        let curW = startPoint.x;
+                        for (let y = 0; y < Math.abs(interval.y); y++) {
+                            setBlock(Math.floor(curW), startPoint.y + y, GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                            curW += theta;
+                        }
+                    }
+                }
+
+                const createBranch = (start, depth)=> {
+                    //TODO: красивые деревья
+                    if (random() < 0.3) { //Две ветки
+                        let rand = random();
+                        let dy = Math.floor(height / maxDepth);
+                        dy += Math.floor(random() * 4) - 2;
+                        if (start.y + dy > loc.y + height)
+                            return;
+                        let dx = Math.floor(random() * 4);
+                        if (start.x + dx <= loc.x + width) {
+                            let nextP = start.add(dx, dy);
+                            setLine(start, nextP);
+                            fillEllipse(nextP, 4, dy, setLeafBlock);
+                            if (depth != maxDepth && rand < 0.49)
+                                createBranch(nextP, depth + 1);
+                        }
+                        dy = Math.floor(height / maxDepth);
+                        dy += Math.floor(random() * 4) - 2;
+                        if (start.y + dy > loc.y + height)
+                            return;
+                        dx = Math.floor(random() * 4);
+                        if (start.x + dx <= loc.x + width) {
+                            let nextP = start.add(dx, dy);
+                            setLine(start, nextP);
+                            fillEllipse(nextP, 4, dy, setLeafBlock);
+                            if (depth != maxDepth && rand > 0.51)
+                                createBranch(nextP, depth + 1);
+                        }
+                    }
+                    else { //Одна ветка
+                        let dy = Math.floor(height / maxDepth);
+                        dy += Math.floor(random() * 4) - 2;
+                        if (start.y + dy > loc.y + height)
+                            return;
+                        let dx = Math.floor(random() * 4);
+                        dx *= loc.x !== start.x ? Math.sign(loc.x - start.x) : (random() < 0.5 ? -1 : 1);
+                        if (start.x + dx > loc.x + width || start.x + dx < loc.x - width)
+                            dx = -dx;
+                        let nextP = start.add(dx, dy);
+                        setLine(start, nextP);
+                        fillEllipse(nextP, 5, dy, setLeafBlock);
+                        if (depth != maxDepth)
+                            createBranch(nextP, depth + 1);
+                    }
+                }
+
+                setLine(loc, loc.add(0, 3));
+                createBranch(loc.add(0, 3));
+            }
+            setTree(loc.add(0, 1), xradius - 4, 2 * yradius - dirtLevel - 10);
+            __observe.push(loc); //TEMP
+        }
+
+        const checkZone = (center, w, h) => {
+            if (center.x - w < 5 || center.y + w > width - 5)
+                return false;
+            for (let i = -w; i <= w; i++)
+                for (let j = -h; j <= h; j++)
+                    if (getZone(center.x + i, center.y + j) === CAVE_SPECIAL_ZONE)
+                        return false;
+            return true;
+        }
+
+        for (let i = 0; i < count; i++) {
+            let curX = (i + 1) * (width - 100) / count;
+            curX += Math.floor(random() * ((width - 100) / (2 * count)));
+            let curY = Math.floor(random() * (elevationMap[curX] - minHeight - maxHeightShift)) + minHeight;
+            let xradius = 13 + Math.floor(random() * 5);
+            let yradius = 20 + Math.floor(random() * 5);
+            let dirtLevel = random() < 0.2 ? 5 : 6;
+            dirtLevel += random() < 0.2 ? 1 : 2;
+            dirtLevel += random() < 0.2 ? 0 : 1;
+            if (checkZone(new Point(curX, curY + yradius - dirtLevel), xradius + 3, yradius + 3)) {
+                create(new Point(curX, curY), xradius, yradius, dirtLevel);
+            }
+            else {
+                i--;
+                continue;
+            }
+        }
+    }
+    //#endregion
+
     //Процесс генерации
     landGen(Math.floor((height / 10) * 5), Math.floor((height / 10) * 8), width, height); //elevationMap + озера
     surfaceGen();
     caveGen(width / 100, height / 3);
     undergroundCavseGen(100, 50, 60);
-    // underSpecial1Gen(200, 150, 15);
-    oreGen();
     lavaLakes(20, height / 2, 1 / 4000);
     treeGen(16, 19, Math.floor(width * 2 / 3));
+
+    underSpecial1Gen(200, 200, 5);
+    oreGen();
     
     //Слой бедрока
     for (let x = 0; x < width; x++) {

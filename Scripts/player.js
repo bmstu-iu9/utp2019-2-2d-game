@@ -289,6 +289,7 @@ class Player {
                 if (items[item.id].weight + this.inv.weight > this.inv.capacity) {
                     return item;
                 }
+                needCraftRedraw = true;
                 for (let i = 0; i < this.inv.items.length; i++) {
                     if (item.id == this.inv.items[i]) {
                         if (items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {

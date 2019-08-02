@@ -38,7 +38,6 @@ class AudioStorage {
         this.newFrame = () => {
             for (let name in this.smart) {
                 if (this.smart[name] === false) {
-                    delete this.smart[name];
                     this.stop(name);
                 } else {
                     this.smart[name] = false;

@@ -708,7 +708,7 @@ const playerCopy = (player, obj) => {
     player.inv = obj.inv;
     player.fastInv = obj.fastInv;
     player.vx = obj.vx;
-    player.vy = obj.vy;
+    player.vy = obj.vy;console.log(obj.vx)
     player.layout = obj.layout;
 }
 

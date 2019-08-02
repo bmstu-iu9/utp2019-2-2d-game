@@ -195,6 +195,7 @@ const preprocessing = () => {
 
 	const bufferOldTime = (newTime) => {
 		oldTime = newTime;
+		onStart();
 		requestAnimationFrame(update);
 	}
 

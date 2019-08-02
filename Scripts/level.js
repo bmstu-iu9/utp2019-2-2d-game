@@ -63,12 +63,11 @@ const beginPlay = () => {
     	}
 
     	player = new Player(px, py);
-    }
+	}
 
-    initUI();
 
 	cameraSet(player.x, player.y);
-	
+
 	// Блок функций, которые не зависят от обновления кадров
 	callSetTimeOfDay(300);
 }
@@ -92,8 +91,14 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	}
 }
 
+const onStart = () => {
+
+	initUI();
+}
+
 // Вызывается каждый кадр
 const eventTick = () => {
+
 	currentTime += deltaTime;
 	staminaNotUsed = true;
 	playerMovement();

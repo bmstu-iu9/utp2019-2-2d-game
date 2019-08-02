@@ -499,8 +499,13 @@ const initUI = () => {
         }
         UIMap.barsPanel.add(UIMap.staminaBar);
 
-
         screenUI.add(UIMap.barsPanel);
+
+        UISetBar(player.hp / player.maxHP, UIMap.healthBar, 202, 16, 1, 0);
+        UISetBar(player.bp / player.maxBP, UIMap.breathBar, 202, 16, 1, 5);
+        UISetBar(player.sp / player.maxSP, UIMap.breathBar, 202, 16, 1, 5);
+
+        player.setHand(0);
 }
 
 // Вызывается каждый кадр после EventTick

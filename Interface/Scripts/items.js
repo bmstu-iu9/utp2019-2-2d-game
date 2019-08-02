@@ -15,6 +15,30 @@ const textureSize = 512;
 const itemSize = 32;
 let _textureItems;
 
+
+const createItem = (id, count) => {
+    if (items[id].isTool) {
+        return {
+            id: id,
+            durability: items[id].durability,
+            name: items[id].name
+        }
+    } else {
+        if (count) {
+            return {
+                id: id,
+                count: count
+            }
+        } else {
+            return {
+                id: id,
+                count: 1
+            }
+        }
+    }
+}
+
+
 const getTextureCoordinates = (x, y) => {
     return [
         [ (x * itemSize + 0.5) / textureSize, (y * itemSize + 0.5) / textureSize],
@@ -23,8 +47,7 @@ const getTextureCoordinates = (x, y) => {
     ];
 }
 
-
-let items = { 
+const items = { 
     undefined: {},
 
     '1':
@@ -105,6 +128,8 @@ let items = {
         name: 'Wood Planks',
         type: 'wood',
         isBlock: true,
+        isCollissed: true,
+        durability: 3,
         isAlwaysGoodDestroy: true,
         dropId: '5',
         weight: WEIGHT_OF_BLOCKS,
@@ -546,6 +571,25 @@ let items = {
         id: '266', 
         name: 'Gold', 
         weight: WEIGHT_OF_ORES
+    },
+
+    '267': {
+        id: '267',
+        name: 'Shaft',
+        texture: () => {
+            return getTextureCoordinates(0, 1)
+        },
+        weight: 1
+    },
+
+    '268': {
+        id: '268',
+        name: 'Torch',
+        brightness: 7,
+        texture: () => {
+            return getTextureCoordinates(1, 2)
+        },
+        weight: 1
     },
 
     '269':

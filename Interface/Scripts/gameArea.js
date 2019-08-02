@@ -360,7 +360,7 @@ class GameArea{
                     break;
                 // Какое-либо стандартное поведение
             }
-        };
+        }
 
         // Обновление окружения блока
         this.updateRadius = (x, y, layout, player) => {
@@ -372,7 +372,7 @@ class GameArea{
                     }
                 }
             }
-        };
+        }
 
         // Действие при разрушении блока
         this.destroyBlock = (x, y, layout, player) => {
@@ -388,11 +388,11 @@ class GameArea{
                 items[lastBlock].destroyFunction(x, y, layout);
             }
             this.updateRadius(x, y, layout, player);
-        };
+        }
 
         // Можно ставить блок на (x, y, layout)
         this.canPlace = (x, y, layout) => {
-            if (layout < GameArea.BACK_LAYOUT) {
+            if (layout < player.layout) {
                 let startX = Math.floor(player.x - Player.WIDTH / 2);
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
@@ -440,7 +440,7 @@ class GameArea{
                 this.updateRadius(x, y, layout);
                 this.updateBlock(x, y, layout);
             }
-        };
+        }
 
         // Функция взаимодействия с блоком
         this.interactWithBlock = (x, y, layout) => {
@@ -449,16 +449,13 @@ class GameArea{
             if(block !== undefined && block.isClickable) {
                 block.interactFunction(x, y, layout);
             }
-        };
+        }
 
         // Функция сброса лута
         this.dropLoot = (x, y, block) => {
             // Оставил x, y - в будующем лут будет падать там, где разрушен блок, пока падает в инвентарь
-            return {
-                "id" : items[block.id].dropId ? items[block.id].dropId : block.id,
-                "count" : 1
-            }
-        };
+            return createItem(items[block.id].dropId ? items[block.id].dropId : block.id, 1);
+        }
 
         // Функция разрушения блока со сбросом лута
         this.goodDestroy = (x, y, layout, player) => {
@@ -467,7 +464,7 @@ class GameArea{
                 this.destroyBlock(x, y, layout, player);
                 player.addToInv(this.dropLoot(x, y, block));
             } else this.destroyBlock(x, y, layout, player);
-        };
+        }
 
         // Находится ли точка в мире
         this.exist = (x, y) => {

@@ -254,8 +254,9 @@ const preprocessing = () => {
 		gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 		const lightOfPlayer = player.getLight(); // освещённость игрока
+		const dynamicLight = [9, player.light]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение (от 0 до 1)
 		render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
-			player.direction);
+			player.direction, dynamicLight);
 		
 		drawUI();
 		render.drawObjects(_textureUI, _renderingUIArr);

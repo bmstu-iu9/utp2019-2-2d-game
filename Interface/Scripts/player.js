@@ -43,6 +43,10 @@ class Player {
         // Очки выносливости
         this.sp = 100;
         this.maxSP = 100;
+
+        // Освещение
+        this.defaultLight = 0.2;
+        this.light = this.defaultLight;
         
         // Инвентарь, в начале пуст. Блоки пока не стакаются
         this.inv = {
@@ -289,6 +293,7 @@ class Player {
                 if (items[item.id].weight + this.inv.weight > this.inv.capacity) {
                     return item;
                 }
+                needCraftRedraw = true;
                 for (let i = 0; i < this.inv.items.length; i++) {
                     if (item.id == this.inv.items[i]) {
                         if (items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
@@ -416,6 +421,13 @@ class Player {
                     this.hand.info = items[this.hand.item.id];
                 }
             }
+            // Свечение предмета в руке
+            if (this.hand.info && this.hand.info.brightness) {
+                this.light = Math.max(this.defaultLight, this.hand.info.brightness / 9);
+            } else {
+                this.light = this.defaultLight;
+            }
+
             UISetActiveSlot(index);
             for (let i = 0; i < this.fastInv.length; i++) {
                 if (this.inv.items[this.fastInv[i]]) {

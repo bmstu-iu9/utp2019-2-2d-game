@@ -76,6 +76,9 @@ class Sprite {
                 isScreenUI = true;
             }
 
+            this.pixelWidth = (parent.pb[0] - parent.pa[0]) / Sprite.pixelScale;
+            this.pixelHeight = (parent.pb[1] - parent.pa[1]) / Sprite.pixelScale;
+
             const pa = [
                 parent.pa[0] + (parent.pb[0] - parent.pa[0]) * rect.pa.x + indent.pa.x * Sprite.pixelScale,
                 parent.pa[1] + (parent.pb[1] - parent.pa[1]) * rect.pa.y + indent.pa.y * Sprite.pixelScale
@@ -509,6 +512,10 @@ const drawUI = () => {
     const _size = render.getCanvasSize();
     Sprite.pixelScale = _size[0] / defaultWidth;
 
+    if (needCraftRedraw && craftOpened) {
+        reloadCraft();
+    }
+
     if (needInvRedraw && inventoryOpened) {
         reloadInv();
     }
@@ -550,7 +557,7 @@ const UISetBar = (count, bar, length, height, padding, number) => {
     }
 }
 
-const createItemCard = (number, id, text, invIndex) => {
+const createItemCard = (number, id, text, invIndex, isClickable) => {
     let card = new Sprite(
         [ [0.125, 0.51], [0.250, 0.615] ],
         {
@@ -572,34 +579,7 @@ const createItemCard = (number, id, text, invIndex) => {
                 x: -5,
                 y: -5
             }
-        },
-        {
-            type: 'invSlot',
-            invIndex: invIndex,
-            isEmpty: invIndex === undefined,
-            selectedImage: [ [0, 0.635], [0.125, 0.740] ],
-            unselectedImage: [ [0.125, 0.51], [0.250, 0.615] ]
         });
-    setOnClickListener(card, () => {
-        let activeElement = UIMap.activeElement;
-        if (activeElement) {
-            // Если дважды нажали на один предмет
-            if (activeElement.props.invIndex === card.props.invIndex) {
-                card.image = card.props.unselectedImage;
-                UIMap.activeElement = undefined;
-            } else {
-                if (activeElement.props.type === 'invSlot') {
-                    player.invSwapByIndex(activeElement.props.invIndex, card.props.invIndex);
-                    needUIRedraw = true;
-                }
-
-                UIMap.activeElement = undefined;
-            }
-        } else {
-            card.image = card.props.selectedImage;
-            UIMap.activeElement = card;
-        }
-    });
     card.recountRect = (rect, indent, parent, image) => {
         let height = 1 / 4 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
         rect.pa.y = 1 - (number + 1) * height;
@@ -908,7 +888,7 @@ const UIOpenInv = () => {
                 y: 40
             },
             pb: {
-                x: 10,
+                x: 0,
                 y: -20
             }
         });
@@ -962,6 +942,7 @@ const UIOpenInv = () => {
             }
         });
     label.add(createText("Inventory " + player.inv.weight + "/" + player.inv.capacity));
+    UIMap.inventoryLabel = label;
     UIMap.invPanel.add(label);
     let scrollingContent = new Sprite(
         undefined,
@@ -1020,7 +1001,11 @@ const UIOpenInv = () => {
     undefined,
     () => {
         downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
-        scrollingContent.props.scrollX -= 600 * deltaTime;
+        if (scrollingContent.props.scrollX - 600 * deltaTime > 0) {
+            scrollingContent.props.scrollX -= 600 * deltaTime;
+        } else {
+            scrollingContent.props.scrollX = 0;
+        }
         needInvRedraw = true;
     },
     () => {
@@ -1076,6 +1061,10 @@ const UIOpenInv = () => {
 }
 
 const reloadInv = () => {
+    let invLabel = UIMap.inventoryLabel;
+    invLabel.deleteChildren();
+    invLabel.add(createText("Inventory " + player.inv.weight + "/" + player.inv.capacity));
+
     let scrollingContent = UIMap.invScrollingContent;
     let selected = UIMap.activeElement;
     scrollingContent.deleteChildren();
@@ -1087,14 +1076,43 @@ const reloadInv = () => {
                 card = createItemCard(insertIndex, player.inv.items[i].id,
                      "Weight: " + items[player.inv.items[i].id].weight + "\n"
                     + "\nDurability: " + player.inv.items[i].durability
-                    + "\n" +items[player.inv.items[i].id].name, i);
+                    + "\n" +items[player.inv.items[i].id].name);
 
             } else {
+                console.log(player.inv.items[i])
                 card = createItemCard(insertIndex, player.inv.items[i],
                     "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
                     + "\n\n" + "Count: " + player.inv.count[i]
-                    + "\n"+items[player.inv.items[i]].name, i);
+                    + "\n"+items[player.inv.items[i]].name);
             }
+
+            card.props = {
+                type: 'invSlot',
+                invIndex: i,
+                selectedImage: [ [0, 0.635], [0.125, 0.740] ],
+                unselectedImage: [ [0.125, 0.51], [0.250, 0.615] ]
+            }
+
+            setOnClickListener(card, () => {
+                let activeElement = UIMap.activeElement;
+                if (activeElement) {
+                    // Если дважды нажали на один предмет
+                    if (activeElement.props.invIndex === card.props.invIndex) {
+                        card.image = card.props.unselectedImage;
+                        UIMap.activeElement = undefined;
+                    } else {
+                        if (activeElement.props.type === 'invSlot') {
+                            player.invSwapByIndex(activeElement.props.invIndex, card.props.invIndex);
+                            needUIRedraw = true;
+                        }
+
+                        UIMap.activeElement = undefined;
+                    }
+                } else {
+                    card.image = card.props.selectedImage;
+                    UIMap.activeElement = card;
+                }
+            });
 
             card.indent.pa.y += scrollingContent.props.scrollX;
             card.indent.pb.y += scrollingContent.props.scrollX;
@@ -1157,9 +1175,255 @@ const UICloseInv = () => {
 let needCraftRedraw = false;
 let craftOpened = false;
 const UIOpenCraft = (isCraftingTable) => {
+    craftOpened = true;
+    if (UIMap.craftPanel) screenUI.deleteChild(UIMap.craftPanel.id);
 
+    // Панель крафтов
+    let craftPanel = new Sprite(
+        [ [0, 0.51], [0.125, 0.615] ],
+        {
+            pa: {
+                x: 2 / 3,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 0,
+                y: 40
+            },
+            pb: {
+                x: -20,
+                y: -20
+            }
+        });
+    UIMap.craftPanel = craftPanel;
+    
+    let craftScrollPanel = new Sprite(
+        [ [0.250, 0.51], [0.375, 0.615] ],
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 5,
+                y: 100
+            },
+            pb: {
+                x: -5,
+                y: -60
+            }
+        });
+    let label = new Sprite(
+        undefined,
+        {
+            pa: {
+                x: 0,
+                y: 1
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 15,
+                y: -50
+            },
+            pb: {
+                x: -5,
+                y: -10
+            }
+        });
+    label.add(createText("Crafting"));
+    UIMap.craftLabel = label;
+    UIMap.craftPanel.add(label);
+    let scrollingContent = new Sprite(
+        undefined,
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 0,
+                y: 0
+            }
+        },
+        {
+            scrollX: 0
+        });
+    UIMap.craftScrollingContent = scrollingContent;
+    reloadCraft(isCraftingTable);
+
+    let downButton = new Sprite(
+        [ [0.4385, 0.5635], [0.375, 0.501] ],
+        {
+            pa: {
+                x: 1,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 0
+            }
+        },
+        {
+            pa: {
+                x: -200,
+                y: 0
+            },
+            pb: {
+                x: -100,
+                y: 100
+            }
+        },
+        {
+            type: 'button'
+        });
+    setOnClickListener(downButton,
+    undefined,
+    () => {
+        downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
+        if (scrollingContent.props.scrollX - 600 * deltaTime > 0) {
+            scrollingContent.props.scrollX -= 600 * deltaTime;
+        } else {
+            scrollingContent.props.scrollX = 0;
+        }
+        needInvRedraw = true;
+    },
+    () => {
+        downButton.image = [ [0.4385, 0.5635], [0.375, 0.501] ];
+        needInvRedraw = false;
+    });
+
+    let upButton = new Sprite(
+        [ [0.376, 0.501], [0.4375, 0.5625] ],
+        {
+            pa: {
+                x: 1,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 0
+            }
+        },
+        {
+            pa: {
+                x: -100,
+                y: 0
+            },
+            pb: {
+                x: 0,
+                y: 100
+            }
+        },
+        {
+            type: 'button'
+        });
+    setOnClickListener(upButton,
+    undefined,
+    () => {
+        upButton.image = [ [0.376 + 0.0625, 0.501], [0.4375 + 0.0625, 0.5625] ];
+        scrollingContent.props.scrollX += 600 * deltaTime;
+        needInvRedraw = true;
+    },
+    () => {
+        upButton.image = [ [0.376, 0.501], [0.4375, 0.5625] ];
+        needInvRedraw = false;
+    });
+
+    craftPanel.add(downButton);
+    craftPanel.add(upButton);
+
+    craftScrollPanel.add(scrollingContent);
+    craftPanel.add(craftScrollPanel);
+    UIMap.craftScrollPanel = craftScrollPanel;
+    needUIRedraw = true;
+    screenUI.add(craftPanel);
+}
+
+const reloadCraft = (isCraftingTable) => {
+    let scrollingContent = UIMap.craftScrollingContent;
+    scrollingContent.deleteChildren();
+
+    let availableCraft = getCrafts(player.inv, isCraftingTable);
+
+    // Добавляем готовые предметы
+    for (let i = 0; i < availableCraft.ready.length; i++) {
+        let card = createItemCard(i, availableCraft.ready[i], 
+            "\n\nCount: " + crafts[availableCraft.ready[i]].resultCount + "\n"
+            + items[availableCraft.ready[i]].name, i);
+
+        card.indent.pa.y += scrollingContent.props.scrollX;
+        card.indent.pb.y += scrollingContent.props.scrollX;
+
+        setOnClickListener(card, () => {
+            for(let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
+                for(let j = 0; j < player.inv.items.length; j++) {
+                    if (+player.inv.items[j] === crafts[availableCraft.ready[i]].needId[k]) {
+                        player.deleteFromInvByIndex(j, crafts[availableCraft.ready[i]].needCount[k]);
+                        break;
+                    }
+                }
+            }
+            player.addToInv(createItem(availableCraft.ready[i], crafts[availableCraft.ready[i]].resultCount));
+            needInvRedraw = true;
+            needCraftRedraw = true;
+            card.image = [ [0.125, 0.51], [0.250, 0.615] ];
+        },
+        () => {
+            card.image = [ [0, 0.635], [0.125, 0.740] ];
+            needCraftRedraw = false;
+        },
+        () => {
+            card.image = [ [0.125, 0.51], [0.250, 0.615] ];
+            needCraftRedraw = false;
+        });
+        scrollingContent.add(card);
+    }
+
+    // Добавляем не готовые предметы
+    for (let i = 0; i < availableCraft.notReady.length; i++) {
+        let card = createItemCard(i + availableCraft.ready.length, availableCraft.notReady[i], 
+            "Not enough resourses!\n\nCount: " + crafts[availableCraft.notReady[i]].resultCount + "\n"
+            + items[availableCraft.notReady[i]].name, i);
+
+        card.indent.pa.y += scrollingContent.props.scrollX;
+        card.indent.pb.y += scrollingContent.props.scrollX;
+
+        scrollingContent.add(card);
+        
+    }
+
+    needUIRedraw = true;
 }
 
 const UICloseCraft = () => {
-
+    craftOpened = false;
+    screenUI.deleteChild(UIMap.craftPanel.id);
+    needUIRedraw = true;
 }

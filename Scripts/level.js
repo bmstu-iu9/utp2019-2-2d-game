@@ -329,12 +329,7 @@ const playerMovement = () => {
 
 	// Анимация + звук падения
 	if (!player.onGround()) {
-		if (!audio.isPlaying("jump")) {
-			audio.playLoop("jump");
-		}
 		player.setAnimation("legs", "jump");
-	} else {
-		audio.pause("jump");
 	}
 	
 	player.x = roundToFunc(newX, blockSize, Math.round);

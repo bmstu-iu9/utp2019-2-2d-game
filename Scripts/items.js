@@ -548,6 +548,15 @@ let items = {
         weight: WEIGHT_OF_ORES
     },
 
+    '267': {
+        id: '267',
+        name: 'Shaft',
+        texture: () => {
+            return getTextureCoordinates(0, 1)
+        },
+        weight: 1
+    },
+
     '269':
     {
         id: '269',

@@ -10,6 +10,7 @@ class Controller {
         this.f      = new ButtonInput();
         this.g      = new ButtonInput();
         this.inv    = new ButtonInput();
+        this.craft  = new ButtonInput();
         this.interact      = new ButtonInput();
 
         this.numbers = [];
@@ -18,6 +19,7 @@ class Controller {
         }
 
         this.invClick = false;
+        this.craftClick = false;
         this.downClick = false;
     }
 
@@ -56,6 +58,9 @@ class Controller {
                 break;
             case 73: 
                 this.inv.getInput(down);
+                break;
+            case 79: 
+                this.craft.getInput(down);
                 break;
         }
     }

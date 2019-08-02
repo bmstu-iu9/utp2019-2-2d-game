@@ -196,6 +196,20 @@ const playerActionButtons = () => {
 		controller.invClick = false;
 	}
 
+	// Нажата клавиша O
+	if(controller.craft.active) {
+		 if(!controller.craftClick) {
+		 	controller.craftClick = true;
+		 	if (craftOpened) {
+		 		UICloseCraft();
+		 	} else {
+		 		UIOpenCraft();
+		 	}
+		 }
+	} else {
+		controller.craftClick = false;
+	}
+
 	if (staminaNotUsed) {
     	player.updateSP(player.sp + 4 * deltaTime);
 	}

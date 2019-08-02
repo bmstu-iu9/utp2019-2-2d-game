@@ -173,7 +173,10 @@ class Render {
 				throw new Error(ErrorMsg);
 			}
 		}
-		// ANGLE_instanced_arrays
+		this.ext = this.gl.getExtension('ANGLE_instanced_arrays');
+		if (!this.ext) {
+			alert("Ошибка: ANGLE_instanced_arrays. Обратитесь к Надиму!");
+		}
 		
 		this.resizeCanvas(canvas);
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
@@ -641,11 +644,14 @@ class Render {
 			};
 		}
 		
+		const length = lightChunk.length;
+		const array = new Uint8Array(length);
+		for (let i = 0; i < length; i++) {
+			array[i] = lightChunk[i] * 255;
+		}
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
 		this.gl.texSubImage2D(this.gl.TEXTURE_2D, 0, 0, 0, this.widthChunk + 2, this.heightChunk + 2, this.gl.LUMINANCE,
-			this.gl.UNSIGNED_BYTE, new Uint8Array(lightChunk.map((a) => {
-					return a * 255;
-				})));
+			this.gl.UNSIGNED_BYTE, array);
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		
@@ -730,7 +736,7 @@ class Render {
 	}
 	
 	isExistChunk(x, y) {
-		return this.arrayOfChunks[`${x}x${y}`] != undefined;
+		return this.arrayOfChunks[`${x}x${y}`] !== undefined;
 	}
 	
 	render(xc, yc, xp, yp, scale, time, deltaTime, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer) {

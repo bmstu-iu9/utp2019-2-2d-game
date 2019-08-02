@@ -590,7 +590,7 @@ const items = {
         name: 'Torch',
         brightness: 7,
         texture: () => {
-            return getTextureCoordinates(1, 13)
+            return getTextureCoordinates(13, 1)
         },
         weight: 1
     },

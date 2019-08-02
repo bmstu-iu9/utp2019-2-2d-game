@@ -506,6 +506,11 @@ const initUI = () => {
         UISetBar(player.sp / player.maxSP, UIMap.breathBar, 202, 16, 1, 5);
 
         player.setHand(0);
+
+
+        needUIRedraw = true;
+        needCraftRedraw = true;
+        needInvRedraw = true;
 }
 
 // Вызывается каждый кадр после EventTick

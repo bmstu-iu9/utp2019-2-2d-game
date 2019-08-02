@@ -1389,10 +1389,7 @@ const reloadCraft = (isCraftingTable) => {
                     }
                 }
             }
-            player.addToInv({
-                id: availableCraft.ready[i],
-                count: crafts[availableCraft.ready[i]].resultCount
-            });
+            player.addToInv(createItem(availableCraft.ready[i], crafts[availableCraft.ready[i]].resultCount));
             needInvRedraw = true;
             needCraftRedraw = true;
             card.image = [ [0.125, 0.51], [0.250, 0.615] ];

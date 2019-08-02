@@ -62,21 +62,6 @@ const beginPlay = () => {
     	}
 
     	player = new Player(px, py);
-    	player.addToInv({
-    		"id" : 278,
-    		"durability" : items[278].durability,
-    		"name" : "Iron pickaxe"
-    	});
-
-    	player.addToInv({
-    		id: 63,
-    		count: 20
-    	});
-
-    	player.addToInv({
-    		id: 61,
-    		count: 20
-    	});
     }
 
 	cameraSet(player.x, player.y);
@@ -496,7 +481,7 @@ const mouseControl = () => {
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, layout)) {
+		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
 		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //............................... Есть блок рядом
 		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
 		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)

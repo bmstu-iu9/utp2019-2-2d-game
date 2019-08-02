@@ -9,7 +9,47 @@ let crafts = {
 		needId: [ 5 ],
 		needCount: [ 2 ],
 		resultCount: 3
-	}
+	},
+	'269': {
+		needId: [ 267, 5 ],
+		needCount: [ 1, 2 ],
+		resultCount: 1
+    },
+	'270': {
+		needId: [ 267, 5 ],
+		needCount: [ 1, 2 ],
+		resultCount: 1
+    },
+	'271': {
+		needId: [ 267, 5 ],
+		needCount: [ 1, 2 ],
+		resultCount: 1
+    },
+	'273': {
+		needId: [ 267, 4 ],
+		needCount: [ 1, 2 ],
+		resultCount: 1
+    },
+	'274': {
+		needId: [ 267, 4 ],
+		needCount: [ 1, 2 ],
+		resultCount: 1
+    },
+	'275': {
+		needId: [ 267, 4 ],
+		needCount: [ 1, 2 ],
+		resultCount: 1
+    },
+    '63': {
+    	needId: [ 5 ],
+    	needCount: [ 5 ],
+    	resultCount: 3
+    },
+    '61': {
+    	needId: [ 5 ],
+    	needCount: [ 5 ],
+    	resultCount: 3
+    }
 }
 
 // Элемент -> объекты, которые из него крафтятся
@@ -20,14 +60,14 @@ for(let i in crafts) {
 			needForCraft[crafts[i].needId[j]] = [ i ];
 		} else {
 			let added = false;
-			for(let k = 0; k < needForCraft[j].length; j++) {
+			for(let k = 0; k < needForCraft[crafts[i].needId[j]].length; k++) {
 				if (needForCraft[crafts[i].needId[j]][k] === i) {
 					added = true;
 					break;
 				}
 			}
 			if (!added) {
-				needForCraft[crafts[i].needId[j]][needForCraft[j].length] = i;
+				needForCraft[crafts[i].needId[j]][needForCraft[crafts[i].needId[j]].length] = i;
 			}
 		}
 	}

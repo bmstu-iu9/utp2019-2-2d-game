@@ -629,7 +629,7 @@ class Render {
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 			
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
-				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, null);
+				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(this.widthChunk * this.heightChunk * 4));
 			
 			this.arrayOfChunks[c] = {
 				x: x,

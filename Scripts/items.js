@@ -329,11 +329,37 @@ const items = {
         name: 'Diamond Ore',
         type: 'stone',
         durability: 15,
+        isCollissed: true;
         dropId: 264,
         isBlock: true,
-        dropId: '264',
         weight: WEIGHT_OF_BLOCKS
     },
+
+    '57':
+    {
+        id: '57',
+        name: 'Iron wood',
+        type: 'stone',
+        durability: 15,
+        isBlock: true,
+        isCollissed: true;
+        dropId: 15,
+        weight: WEIGHT_OF_BLOCKS
+    }
+
+    '58':
+    {
+        id: '58',
+        name: 'Gold leaf',
+        type: 'stone',
+        durability: 12,
+        dropId: 264,
+        isBlock: true,
+        brightness: 6,
+        isCollissed: true;
+        dropId: 14,
+        weight: WEIGHT_OF_BLOCKS
+    }
 
     '60':
     {

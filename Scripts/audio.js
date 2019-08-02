@@ -54,8 +54,7 @@ class AudioStorage {
         }
 
         this.put = (name, path, vol = 1) => {
-            this.storage[name] = new Audio();
-            this.storage[name].src = path;
+            this.storage[name] = new Audio(path);
             this.storage[name].volume = vol;
         }
 

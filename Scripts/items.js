@@ -238,6 +238,7 @@ const items = {
         isBlock: true,
         dropId: '14',
         weight: WEIGHT_OF_BLOCKS,
+        durability: 10,
         meltingId: '266',
         costOfMelting: '100',
         texture: () => {
@@ -253,6 +254,7 @@ const items = {
         isBlock: true,
         dropId: '15',
         weight: WEIGHT_OF_BLOCKS,
+        durability: 12,
         meltingId: '265',
         costOfMelting: '100',
         texture: () => {
@@ -324,6 +326,7 @@ const items = {
         id: '56',
         name: 'Diamond Ore',
         type: 'stone',
+        durability: 15,
         isBlock: true,
         dropId: '264',
         weight: WEIGHT_OF_BLOCKS
@@ -587,7 +590,7 @@ const items = {
         name: 'Torch',
         brightness: 7,
         texture: () => {
-            return getTextureCoordinates(1, 2)
+            return getTextureCoordinates(1, 13)
         },
         weight: 1
     },

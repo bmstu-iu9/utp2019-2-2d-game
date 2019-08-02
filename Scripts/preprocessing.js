@@ -17,7 +17,7 @@ const render = new Render();
 let audio = new AudioStorage();
 audio.add("destroyBlock", "Audio/destroy.mp3", 1);
 audio.add("jump", "Audio/jump.mp3", 1);
-audio.add("day->night", "Audio/test.mp3", 0.02);
+audio.add("day->night", "Audio/test.mp3");
 audio.add("rain", "Audio/rain.mp3", 1);
 
 const image = new Image();

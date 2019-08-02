@@ -99,7 +99,7 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 		gameArea.timeOfDay = 1;
 	} else if (currentTime < 2 * Math.PI) { //........................................ День -> Ночь
 		if (!audio.isPlaying("day->night")) {
-			audio.smoothPlay("day->night", 2, 0.2);
+			audio.smoothPlay("day->night", 2, 0.05);
 		}
 		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
 	} else if (currentTime < 3 * Math.PI) { //........................................ Ночь

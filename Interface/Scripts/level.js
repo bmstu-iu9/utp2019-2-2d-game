@@ -410,6 +410,7 @@ const mouseControl = () => {
     if (controller.mouse.click === 1) {
 
 		// Нажатие по интерфейсу
+		let interactWithUI = false;
 		for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
 			if (_interactiveUIArr[i].pa[0] < controller.mouse.x
 				&& _interactiveUIArr[i].pb[0] > controller.mouse.x
@@ -419,92 +420,60 @@ const mouseControl = () => {
 					let sprite = _interactiveUIArr[i].sprite;
 					let lastButton = UIMap.lastButton;
 					let activeElement = UIMap.activeElement;
-					if (sprite.props.type === 'button') {
-						sprite.click();
-					} else if (sprite.props.type === 'invSlot') {
-						sprite.click();
+					holdAction(sprite);
+
+					if (lastButton !== sprite) {
+						releaseAction(lastButton);
 					}
-
-					if (lastButton !== undefined && lastButton !== sprite && lastButton.onRelease) {
-						lastButton.onRelease();
-					}
-
-					if (activeElement && sprite !== activeElement && activeElement.clickAnother) {
-						activeElement.clickAnother();
-					}
-
-
-					if (lastButton === undefined) {
-						if (activeElement === undefined) {
-							if (sprite.props && sprite.props.type === 'invSlot') {
-								UIMap.activeElement = sprite;
-							}
-						} else {
-							if (activeElement.props && activeElement.props.type === 'invSlot') {
-								if (sprite.props) {
-									if (activeElement.props.invIndex === sprite.props.invIndex) {
-										UIMap.activeElement = undefined;
-									} else {
-										// Действия
-										if (sprite.props.type === 'invSlot') {
-											player.invSwapByIndex(activeElement.props.invIndex, sprite.props.invIndex);
-											needUIRedraw = true;
-										}
-
-										UIMap.activeElement = undefined;
-									}
-								}
-							}
-						} 
-					}
-
-					console.log(activeElement)
 
 					UIMap.lastButton = sprite;
-
+					interactWithUI = true;
 					break;
 				}
 		}
 
-    	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
-    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
-      		&& player.sp > 0) {
-            // Анимация
-            player.setAnimation("body", "kick");
+		if (!interactWithUI) {
+			releaseAction(UIMap.lastButton);
+			UIMap.lastButton = undefined;
 
-            // Уменьшение выносливости
-            player.updateSP(player.sp - 4 * deltaTime);
-            staminaNotUsed = false;
+			let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
+	    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y
+	    																					+ Player.HEIGHT / 2);
+	    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
+	      		&& player.sp > 0) {
+	            // Анимация
+	            player.setAnimation("body", "kick");
 
-    		// Разрушение
-    		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
-    			currentBlock = {
-    				x: targetX, y: targetY, layout: layout,
-    				type: items[gameArea.map[targetX][targetY][layout]].type,
-    				durability: items[gameArea.map[targetX][targetY][layout]].durability
-    			}
-    			let effK = ((player.hand.item && player.hand.info.isTool
-    				&& currentBlock.type == player.hand.info.type))
-    			? player.hand.info.efficiency : 1;
-    			currentBlock.durability -= deltaTime * effK;
-    		} else if (currentBlock.durability > 0) {
-    			let effK = ((player.hand.item && player.hand.info.isTool
-    				&& currentBlock.type == player.hand.info.type))
-    			? player.hand.info.efficiency : 1;
-    			currentBlock.durability -= deltaTime * effK;
-    		} else {
-    			currentBlock = undefined;
-    			player.destroy(targetX, targetY, layout);
-    		}
-    	}
+	            // Уменьшение выносливости
+	            player.updateSP(player.sp - 4 * deltaTime);
+	            staminaNotUsed = false;
+
+	    		// Разрушение
+	    		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
+	    			currentBlock = {
+	    				x: targetX, y: targetY, layout: layout,
+	    				type: items[gameArea.map[targetX][targetY][layout]].type,
+	    				durability: items[gameArea.map[targetX][targetY][layout]].durability
+	    			}
+	    			let effK = ((player.hand.item && player.hand.info.isTool
+	    				&& currentBlock.type == player.hand.info.type))
+	    			? player.hand.info.efficiency : 1;
+	    			currentBlock.durability -= deltaTime * effK;
+	    		} else if (currentBlock.durability > 0) {
+	    			let effK = ((player.hand.item && player.hand.info.isTool
+	    				&& currentBlock.type == player.hand.info.type))
+	    			? player.hand.info.efficiency : 1;
+	    			currentBlock.durability -= deltaTime * effK;
+	    		} else {
+	    			currentBlock = undefined;
+	    			player.destroy(targetX, targetY, layout);
+	    		}
+	    	}
+		}
     } else {
     	currentBlock = undefined;
 
-    	let lastButton = UIMap.lastButton;
-		if (lastButton !== undefined && lastButton.onRelease) {
-			lastButton.onRelease();
-		}
+    	clickAction(UIMap.lastButton);
 		UIMap.lastButton = undefined;
     }
 

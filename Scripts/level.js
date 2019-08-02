@@ -458,8 +458,6 @@ const mouseControl = () => {
 						} 
 					}
 
-					console.log(activeElement)
-
 					UIMap.lastButton = sprite;
 
 					break;

@@ -66,35 +66,37 @@ class Sprite {
             ];
 
             let ans = [];
-            if (!isScreenUI && image !== undefined) {
-                ans[0] = {
-                    'pa': pa,
-                    'pb': pb,
-                    'ta': this.image[0],
-                    'tb': this.image[1],
-                    'ca': parent.ca,
-                    'cb': parent.cb,
-                    'tex': image[2],
-                    'id': this.id
-                };
-            }
-            if (this.interactive) {
-                _interactiveUIArr.push({
-                    'sprite': this,
-                    'pa': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
-                    'pb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
-                    'id': this.id
-                });
-            }
+            if (parent.ca[0] < parent.cb[0] && parent.ca[1] < parent.cb[1]) {
+                if (!isScreenUI && image !== undefined) {
+                    ans[0] = {
+                        'pa': pa,
+                        'pb': pb,
+                        'ta': this.image[0],
+                        'tb': this.image[1],
+                        'ca': parent.ca,
+                        'cb': parent.cb,
+                        'tex': image[2],
+                        'id': this.id
+                    };
+                }
+                if (this.interactive) {
+                    _interactiveUIArr.push({
+                        'sprite': this,
+                        'pa': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                        'pb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                        'id': this.id
+                    });
+                }
 
-            for (let i = 0; i < this.children.length; i++) {
-                ans = ans.concat(this.children[i].draw({
-                    'pa': pa,
-                    'pb': pb,
-                    'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
-                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
-                    'id': this.id
-                }));
+                for (let i = 0; i < this.children.length; i++) {
+                    ans = ans.concat(this.children[i].draw({
+                        'pa': pa,
+                        'pb': pb,
+                        'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                        'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                        'id': this.id
+                    }));
+                }
             }
             return ans;
         }
@@ -466,13 +468,14 @@ const initUI = () => {
 
 // Вызывается каждый кадр после EventTick
 let needUIRedraw = false;
+let needInvRedraw = false;
 let inventoryOpened = false;
 let lastCanvasSize = [ 0, 0 ];
 const drawUI = () => {
     const _size = render.getCanvasSize();
     Sprite.pixelScale = _size[0] / defaultWidth;
 
-    if (inventoryOpened) {
+    if (needInvRedraw && inventoryOpened) {
         reloadInv();
     }
 
@@ -967,9 +970,11 @@ const UIOpenInv = () => {
     setOnClickListener(downButton, () => {
         downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
         scrollingContent.props.scrollX -= 600 * deltaTime;
+        needInvRedraw = true;
     },
     () => {
         downButton.image = [ [0.4385, 0.5635], [0.375, 0.501] ];
+        needInvRedraw = false;
     });
 
     let upButton = new Sprite(
@@ -1000,9 +1005,11 @@ const UIOpenInv = () => {
     setOnClickListener(upButton, () => {
         upButton.image = [ [0.376 + 0.0625, 0.501], [0.4375 + 0.0625, 0.5625] ];
         scrollingContent.props.scrollX += 600 * deltaTime;
+        needInvRedraw = true;
     },
     () => {
         upButton.image = [ [0.376, 0.501], [0.4375, 0.5625] ];
+        needInvRedraw = false;
     });
 
     invPanel.add(downButton);

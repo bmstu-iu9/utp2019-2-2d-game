@@ -295,12 +295,14 @@ class Player {
                             this.inv.count[i] += item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return undefined;
                         } else {
                             this.inv.count[i] += this.inv.capacity - this.inv.weight;
                             item.count -= this.inv.capacity - this.inv.weight;
                             this.inv.weight = this.inv.capacity;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return item;
                         }
                     }
@@ -312,12 +314,14 @@ class Player {
                             this.inv.count[i] = item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return undefined;
                         } else {
                             this.inv.count[i] = this.inv.capacity - this.inv.weight;
                             item.count -= this.inv.capacity - this.inv.weight;
                             this.inv.weight = this.inv.capacity;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return item;
                         }
                     }
@@ -330,6 +334,7 @@ class Player {
                             this.inv.count[i] = undefined;
                             this.inv.weight += items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return undefined;
                         }
                     }
@@ -364,6 +369,7 @@ class Player {
                 }
             }
             this.setHand(this.hand.index);
+            needInvRedraw = true;
             return drop;
         }
 
@@ -377,6 +383,7 @@ class Player {
             this.inv.count[i2] = count;
 
             this.setHand(this.hand.index);
+            needInvRedraw = true;
         }
 
         // Получение "руки" по индексу в быстром инвентаре

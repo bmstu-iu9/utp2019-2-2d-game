@@ -108,17 +108,17 @@ let crafts = {
     	resultCount: 1
     },
     '277': {
-    	needId: [ 267, 56 ],
+    	needId: [ 267, 264 ],
     	needCount: [ 1, 2 ],
     	resultCount: 1
     },
     '278': {
-    	needId: [ 267, 56 ],
+    	needId: [ 267, 264 ],
     	needCount: [ 1, 2 ],
     	resultCount: 1
     },
-    '278': {
-    	needId: [ 267, 56 ],
+    '279': {
+    	needId: [ 267, 264 ],
     	needCount: [ 1, 2 ],
     	resultCount: 1
     }

@@ -329,7 +329,10 @@ const items = {
         durability: 15,
         isBlock: true,
         dropId: '264',
-        weight: WEIGHT_OF_BLOCKS
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(1, 2)
+        }
     },
 
     '60':

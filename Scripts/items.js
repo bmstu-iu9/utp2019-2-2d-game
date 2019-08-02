@@ -582,6 +582,16 @@ const items = {
         weight: 1
     },
 
+    '268': {
+        id: '268',
+        name: 'Torch',
+        brightness: 7,
+        texture: () => {
+            return getTextureCoordinates(1, 2)
+        },
+        weight: 1
+    },
+
     '269':
     {
         id: '269',

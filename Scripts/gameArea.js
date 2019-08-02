@@ -360,7 +360,7 @@ class GameArea{
                     break;
                 // Какое-либо стандартное поведение
             }
-        };
+        }
 
         // Обновление окружения блока
         this.updateRadius = (x, y, layout, player) => {
@@ -372,7 +372,7 @@ class GameArea{
                     }
                 }
             }
-        };
+        }
 
         // Действие при разрушении блока
         this.destroyBlock = (x, y, layout, player) => {
@@ -388,11 +388,11 @@ class GameArea{
                 items[lastBlock].destroyFunction(x, y, layout);
             }
             this.updateRadius(x, y, layout, player);
-        };
+        }
 
         // Можно ставить блок на (x, y, layout)
         this.canPlace = (x, y, layout) => {
-            if (layout <= player.layout) {
+            if (layout < player.layout) {
                 let startX = Math.floor(player.x - Player.WIDTH / 2);
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
@@ -454,7 +454,7 @@ class GameArea{
         // Функция сброса лута
         this.dropLoot = (x, y, block) => {
             // Оставил x, y - в будующем лут будет падать там, где разрушен блок, пока падает в инвентарь
-            return createItem(block.id)
+            return createItem(items[block.id].dropId ? items[block.id].dropId : block.id, 1);
         }
 
         // Функция разрушения блока со сбросом лута

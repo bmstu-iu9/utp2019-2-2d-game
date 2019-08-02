@@ -384,11 +384,9 @@ class Render {
 		/*
 		ID:
 		0 - фон
-		1 - задел на успешное будущее
-		2 - чёрный блок // TODO: удалить
-		3 - игрок // TODO: удалить
-		4 - отзеркаленный игрок // TODO: удалить
-		5 - буфер кадров // TODO: удалить
+		1 - игрок
+		2 - отзеркаленный игрок
+		3 - буфер кадров
 		*/
 		
 		const l = 0, h = this.size;
@@ -401,35 +399,21 @@ class Render {
 			backgroundAsp, 0,
 			backgroundAsp, 1,
 			
-			0, 0, // ID: 1
-			1, 0,
-			0, 1,
-			0, 1,
-			1, 0,
-			1, 1,
-			
-			l, l, // ID: 2
-			h, l,
-			l, h,
-			l, h,
-			h, l,
-			h, h,
-			
-			h * -0.75, l, // ID: 3
+			h * -0.75, l, // ID: 1
 			h * 0.75, l,
 			h * -0.75, h * 3,
 			h * -0.75, h * 3,
 			h * 0.75, l,
 			h * 0.75, h * 3,
 			
-			h * -0.75, l, // ID: 4
+			h * -0.75, l, // ID: 2
 			h * 0.75, l,
 			h * -0.75, h * 3,
 			h * -0.75, h * 3,
 			h * 0.75, l,
 			h * 0.75, h * 3,
 			
-			l, l, // ID: 5
+			l, l, // ID: 3
 			h * this.widthChunk, l,
 			l, h * this.heightChunk,
 			l, h * this.heightChunk,
@@ -442,37 +426,23 @@ class Render {
 			0, 0,
 			0, 0,
 			1, 1,
-			1, 0, 
-			
-			0, 1, // ID: 1
-			1, 1,
-			0, 0,
-			0, 0,
-			1, 1,
 			1, 0,
 			
-			1, 1, // ID: 2
-			1, 1,
-			1, 1,
-			1, 1,
-			1, 1,
-			1, 1,
+			0, 0, // ID: 1
+			48 / 128, 0,
+			0, 96 / 128,
+			0, 96 / 128,
+			48 / 128, 0,
+			48 / 128, 96 / 128,
+			
+			48 / 128, 0, // ID: 2
+			0, 0,
+			48 / 128, 96 / 128,
+			48 / 128, 96 / 128,
+			0, 0,
+			0, 96 / 128,
 			
 			0, 0, // ID: 3
-			48 / 128, 0,
-			0, 96 / 128,
-			0, 96 / 128,
-			48 / 128, 0,
-			48 / 128, 96 / 128,
-			
-			48 / 128, 0, // ID: 4
-			0, 0,
-			48 / 128, 96 / 128,
-			48 / 128, 96 / 128,
-			0, 0,
-			0, 96 / 128,
-			
-			0, 0, // ID: 5
 			1, 0,
 			0, 1,
 			0, 1,
@@ -711,7 +681,7 @@ class Render {
 				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.STREAM_DRAW);
 				this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 				this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
-			}
+			} // TODO: Переделать под ANGLE_instanced_arrays
 		}
 		
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -810,11 +780,11 @@ class Render {
 				this.gl.uniform1f(this.uniform[2].u_light, ls / 2);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[2]);
 				this.gl.uniform3f(this.uniform[2].u_translate, xc, yc, -3);
-				this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
+				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 				this.gl.uniform1f(this.uniform[2].u_light, ls);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
-				this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
-			}
+				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+			} // TODO: Попробовать переделать под ANGLE_instanced_arrays
 		}
 		this.gl.useProgram(this.program[0]);
 		
@@ -824,9 +794,9 @@ class Render {
 			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
 			this.gl.uniform3f(this.uniform[0].u_translate, xp * ch, yp * ch, -1);
 			if (rotatePlayer > 0) {
-				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
-				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
 			}
 			
 			this.gl.useProgram(this.program[1]);
@@ -851,8 +821,8 @@ class Render {
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
 					this.gl.uniform3f(this.uniform[1].u_translate, xc, yc, -2);
-					this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
-				}
+					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+				} // TODO: Попробовать переделать под ANGLE_instanced_arrays
 			}
 			this.gl.useProgram(this.program[0]);
 		} else {
@@ -874,8 +844,8 @@ class Render {
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
 					this.gl.uniform3f(this.uniform[2].u_translate, xc, yc, -2);
-					this.gl.drawArrays(this.gl.TRIANGLES, 30, 6);
-				}
+					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+				} // TODO: Попробовать переделать под ANGLE_instanced_arrays
 			}
 			this.gl.useProgram(this.program[0]);
 		}
@@ -886,9 +856,9 @@ class Render {
 			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
 			this.gl.uniform3f(this.uniform[0].u_translate, xp * ch, yp * ch, -1);
 			if (rotatePlayer > 0) {
-				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
-				this.gl.drawArrays(this.gl.TRIANGLES, 24, 6);
+				this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
 			}
 		}
 		
@@ -921,7 +891,7 @@ class Render {
 			
 			this.gl.uniform1f(this.uniform[5].u_time, time * this.speedRain * 0.0001);
 			this.gl.uniform2f(this.uniform[5].u_resolution, w, h);
-			
+			 // TODO: Переделать под ANGLE_instanced_arrays
 			if (num == 1) {
 				const t = Math.ceil(Math.log(1 / raw) / Math.log(2));
 				for (let i = 0; i < xh; i += t) {

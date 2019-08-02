@@ -167,6 +167,9 @@ class Render {
 				const ErrorMsg = 'Browser is very old';
 				stop();
 				alert(ErrorMsg);
+				const debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+				console.log(this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+				console.log(this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
 				throw new Error(ErrorMsg);
 			}
 		}
@@ -307,24 +310,7 @@ class Render {
 		this.gl.useProgram(this.program[0]);
 		
 		// сбор статистики
-		const ext = this.gl.getExtension('ANGLE_instanced_arrays');
-		const debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
-		const vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-		const renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-		const dpr = window.devicePixelRatio;
-		_params += 'webgl=' + encodeURIComponent(vendor + "|||" + renderer);
-		_params += '&context=' + encodeURIComponent(JSON.stringify(this.gl.getContextAttributes()));
-		_params += '&p01=' + encodeURIComponent(this.gl.getParameter(this.gl.CULL_FACE));
-		_params += '&p02=' + encodeURIComponent(ext == null);
-		_params += '&p03=' + encodeURIComponent(this.gl.getParameter(this.gl.BLEND));
-		_params += '&p04=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
-		_params += '&p05=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE));
-		_params += '&p06=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_TEXTURE_IMAGE_UNITS));
-		_params += '&p07=' + encodeURIComponent(canvas.clientWidth + 'x' + canvas.clientHeight + 'x' + dpr);
-		_params += '&p08=' + encodeURIComponent(canvas.width + 'x' + canvas.height + 'x' + dpr);
-		_params += '&p09=' + encodeURIComponent(this.gl.getParameter(this.gl.VERSION));
-		_params += '&p10=' + encodeURIComponent(this.gl.getParameter(this.gl.MAX_RENDERBUFFER_SIZE));
-		_xhrSend(_xhr, _params);
+		//const ext = this.gl.getExtension('ANGLE_instanced_arrays');
 		
 		// буфер чанков
 		this.arrayOfChunks = {};

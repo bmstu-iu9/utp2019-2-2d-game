@@ -76,6 +76,9 @@ class Sprite {
                 isScreenUI = true;
             }
 
+            this.pixelWidth = (parent.pb[0] - parent.pa[0]) / Sprite.pixelScale;
+            this.pixelHeight = (parent.pb[1] - parent.pa[1]) / Sprite.pixelScale;
+
             const pa = [
                 parent.pa[0] + (parent.pb[0] - parent.pa[0]) * rect.pa.x + indent.pa.x * Sprite.pixelScale,
                 parent.pa[1] + (parent.pb[1] - parent.pa[1]) * rect.pa.y + indent.pa.y * Sprite.pixelScale
@@ -998,7 +1001,11 @@ const UIOpenInv = () => {
     undefined,
     () => {
         downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
-        scrollingContent.props.scrollX -= 600 * deltaTime;
+        if (scrollingContent.props.scrollX - 600 * deltaTime > 0) {
+            scrollingContent.props.scrollX -= 600 * deltaTime;
+        } else {
+            scrollingContent.props.scrollX = 0;
+        }
         needInvRedraw = true;
     },
     () => {
@@ -1299,7 +1306,11 @@ const UIOpenCraft = (isCraftingTable) => {
     undefined,
     () => {
         downButton.image = [ [0.4385 + 0.0625, 0.5635], [0.375 + 0.0625, 0.501] ];
-        scrollingContent.props.scrollX -= 600 * deltaTime;
+        if (scrollingContent.props.scrollX - 600 * deltaTime > 0) {
+            scrollingContent.props.scrollX -= 600 * deltaTime;
+        } else {
+            scrollingContent.props.scrollX = 0;
+        }
         needInvRedraw = true;
     },
     () => {

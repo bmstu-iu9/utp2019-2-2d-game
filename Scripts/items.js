@@ -105,6 +105,7 @@ let items = {
         name: 'Wood Planks',
         type: 'wood',
         isBlock: true,
+        isCollissed: true,
         isAlwaysGoodDestroy: true,
         dropId: '5',
         weight: WEIGHT_OF_BLOCKS,

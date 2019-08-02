@@ -696,7 +696,7 @@ class Render {
 		return this.arrayOfChunks[`${x}x${y}`] != undefined;
 	}
 	
-	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer, drawObjects) {
+	render(xc, yc, xp, yp, scale, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer, dynamicLight) {
 		this.resizeCanvas(); // подгоняем канвас под экран
 		
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -748,7 +748,7 @@ class Render {
 		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
 		const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
 		
-		this.gl.uniform4f(this.uniform[2].u_dynamicLight, deltaX, deltaY, 9 * this.size, 0.2);
+		this.gl.uniform4f(this.uniform[2].u_dynamicLight, deltaX, deltaY, dynamicLight[0] * this.size, dynamicLight[1]);
 		this.gl.uniform1f(this.uniform[2].u_sizeBlock, this.size);
 		this.gl.uniformMatrix4fv(this.uniform[2].u_projectionMatrix, false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
@@ -781,7 +781,7 @@ class Render {
 		if (slicePlayer == 2) {			
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
-			this.gl.uniform1f(this.uniform[0].u_light, lightOfPlayer);
+			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
 			this.gl.uniform3f(this.uniform[0].u_translate, xp * ch, yp * ch, -1);
 			if (rotatePlayer > 0) {
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
@@ -842,7 +842,7 @@ class Render {
 		if (slicePlayer == 1) {
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
-			this.gl.uniform1f(this.uniform[0].u_light, lightOfPlayer);
+			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
 			this.gl.uniform3f(this.uniform[0].u_translate, xp * ch, yp * ch, -1);
 			if (rotatePlayer > 0) {
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);

@@ -66,9 +66,6 @@ const beginPlay = () => {
     }
 
     initUI();
-    needUIRedraw = true;
-    needCraftRedraw = true;
-    needInvRedraw = true;
 
 	cameraSet(player.x, player.y);
 	

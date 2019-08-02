@@ -11,8 +11,6 @@ cameraSet(x, y)                         Устанавливает ккорди�
 */
 
 
-let a = new Audio();
-a.src = "Audio/test.mp3";
 
 let key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
@@ -111,7 +109,6 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 // Вызывается каждый кадр
 const eventTick = () => {
 	currentTime += deltaTime;
-	audio.newFrame();
 	playerMovement();
 	mouseControl();
 	UI();
@@ -176,7 +173,6 @@ const playerActionButtons = () => {
 const playerMovement = () => {
 
 	if(controller.down.active) {
-		audio.smartPlay("jump");
 		 if(!layoutSwitcher) {
 		 	layoutSwitcher = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
@@ -333,7 +329,12 @@ const playerMovement = () => {
 
 	// Анимация + звук падения
 	if (!player.onGround()) {
+		if (!audio.isPlaying("jump")) {
+			audio.playLoop("jump");
+		}
 		player.setAnimation("legs", "jump");
+	} else {
+		audio.pause("jump");
 	}
 	
 	player.x = roundToFunc(newX, blockSize, Math.round);

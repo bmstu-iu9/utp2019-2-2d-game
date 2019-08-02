@@ -11,6 +11,8 @@ cameraSet(x, y)                         Устанавливает ккорди�
 */
 
 
+let a = new Audio();
+a.src = "Audio/test.mp3";
 
 let key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
@@ -98,14 +100,8 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	if (currentTime < Math.PI) { //................................................... День
 		gameArea.timeOfDay = 1;
 	} else if (currentTime < 2 * Math.PI) { //........................................ День -> Ночь
-		if (!audio.isPlaying("day->night")) {
-			audio.smoothPlay("day->night", 2, 0.05);
-		}
 		gameArea.timeOfDay = (Math.cos(currentTime % Math.PI) + 1) / 2;
 	} else if (currentTime < 3 * Math.PI) { //........................................ Ночь
-		if (audio.isPlaying("day->night")) {
-			audio.smoothPause("day->night", 2);
-		}
 		gameArea.timeOfDay = 0;
 	} else { //....................................................................... Ночь -> День
 		gameArea.timeOfDay = 1 - (Math.cos(currentTime % Math.PI) + 1) / 2;
@@ -114,7 +110,6 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 
 // Вызывается каждый кадр
 const eventTick = () => {
-	audio.newFrame();
 	currentTime += deltaTime;
 	playerMovement();
 	mouseControl();
@@ -180,6 +175,7 @@ const playerActionButtons = () => {
 const playerMovement = () => {
 
 	if(controller.down.active) {
+		a.play();
 		 if(!layoutSwitcher) {
 		 	layoutSwitcher = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
@@ -336,7 +332,6 @@ const playerMovement = () => {
 
 	// Анимация + звук падения
 	if (!player.onGround()) {
-		audio.smartPlayOnce("jump");
 		player.setAnimation("legs", "jump");
 	}
 	
@@ -372,7 +367,6 @@ const mouseControl = () => {
     	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
             // Анимация
 			player.setAnimation("body", "kick");
-			audio.smartPlay("destroyBlock");
 
     		// Разрушение
     		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {

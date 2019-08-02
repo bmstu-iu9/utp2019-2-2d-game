@@ -23,33 +23,37 @@ class AudioStorage {
         // Воспроизводится, пока вызывается этот метод (каждый кадр нужно вызывать newFrame)
         this.smartPlay = (name) => {
             if (this.smart[name] === undefined) {
-                if (this.storage[name] === undefined) {
-                    throw("Audio " + name + " doesn't exist")
-                }
-                this.smart[name] = true;
                 this.playLoop(name);
             }
+            this.smart[name] = true;
+        }
+
+        this.smartPlayOnce = (name) => {
+            if (this.smart[name] === undefined) {
+                this.playOnce(name);
+            }
+            this.smart[name] = true;
         }
 
         this.newFrame = () => {
             for (let name in this.smart) {
-                if (this.smart[name] === undefined) {
+                if (this.smart[name] === false) {
                     delete this.smart[name];
                     this.stop(name);
                 } else {
-                    this.smart[name] = undefined;
+                    this.smart[name] = false;
                 }
             }
         }
 
-        this.add = (name, path, volume) => {
+        this.add = (name, path, volume = 1) => {
             if (this.storage[name] !== undefined) {
                 console.error('Sound "' + name + '" already exist');
             }
             this.put(name, path, volume);
         }
 
-        this.put = (name, path, vol) => {
+        this.put = (name, path, vol = 1) => {
             this.storage[name] = new Audio();
             this.storage[name].src = path;
             this.storage[name].volume = vol;

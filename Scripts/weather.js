@@ -30,8 +30,7 @@ const initRain = () => {
 }
 
 const startRain = () => {
-	audio.playLoop("rain");
-	render.startRain();
+	setTimeout(render.startRain, 1000);
 	setTimeout(stopRain, 30000 + 10000 * Math.random());
 }
 

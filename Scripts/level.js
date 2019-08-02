@@ -336,9 +336,7 @@ const playerMovement = () => {
 
 	// Анимация + звук падения
 	if (!player.onGround()) {
-		try {
-		audio.smartPlay("jump");
-		} catch {}
+		audio.smartPlayOnce("jump");
 		player.setAnimation("legs", "jump");
 	}
 	

@@ -316,10 +316,30 @@ const items = {
         }
     },
 
+    '19': {
+        id: '19',
+        name: 'Torch',
+        type: 'other',
+        isBlock: true,
+        brightness: 9,
+        isCollissed: false,
+        isAlwaysGoodDestroy: true,
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(13, 1)
+        },
+        canPlace: (x, y, layout) => {
+            console.log("can place");
+            return layout === GameArea.FIRST_LAYOUT && gameArea.canAttach(x, y, GameArea.SECOND_LAYOUT);
+        },
+        weight: 1
+    },
+
     '20': 
     {
         id: '20',
         name: 'Glass',
+        type: 'other',
         isBlock: true,
         weight: WEIGHT_OF_BLOCKS
     },
@@ -602,16 +622,6 @@ const items = {
         name: 'Shaft',
         texture: () => {
             return getTextureCoordinates(0, 1)
-        },
-        weight: 1
-    },
-
-    '268': {
-        id: '268',
-        name: 'Torch',
-        brightness: 7,
-        texture: () => {
-            return getTextureCoordinates(13, 1)
         },
         weight: 1
     },

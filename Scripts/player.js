@@ -104,7 +104,8 @@ class Player {
         this.place = (x, y, layout) => {
             let isPlaced = false;
             if (this.hand.item && this.hand.info.isBlock
-                    && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace)) {
+                    && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace,
+                                                        !items[this.hand.item].isCollissed)) {
                 isPlaced = gameArea.placeBlock(x, y, layout, this.hand.item);
 
                 if (isPlaced) {

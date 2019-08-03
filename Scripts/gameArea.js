@@ -413,13 +413,14 @@ class GameArea{
         }
 
         // Можно ставить блок на (x, y, layout)
-        this.canPlace = (x, y, layout, checkFunc) => {
+        this.canPlace = (x, y, layout, checkFunc, ignorePlayerField) => {
             let startX = Math.floor(player.x - Player.WIDTH / 2);
             let endX = Math.floor(player.x + Player.WIDTH / 2);
             let startY = Math.floor(player.y);
             let endY = Math.floor(player.y + Player.HEIGHT);
             return this.canPlaceInBlock(x, y, layout)
                     && (player.layout !== layout
+                        || ignorePlayerField
                         || !(x >= startX && x <= endX && y >= startY && y <= endY)) // Площадь игрока
                     && (checkFunc && checkFunc(x, y, layout)
                         || !checkFunc

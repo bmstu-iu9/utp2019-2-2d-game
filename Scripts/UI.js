@@ -292,6 +292,11 @@ const initUI = () => {
                     x: 0,
                     y: 0
                 }
+            },
+            {
+                animationStartX: 0,
+                animationCurrentX: 0,
+                animationTargetX: 0
             });
         fastInvPanel.add(UIMap.activeSlot);
         screenUI.add(fastInvPanel);
@@ -522,6 +527,28 @@ const drawUI = () => {
     const _size = render.getCanvasSize();
     Sprite.pixelScale = _size[0] / defaultWidth;
 
+
+    // Анимации
+    let animationSpeed = 5;
+
+    let activeSlot = UIMap.activeSlot;
+    if (activeSlot.props.animationTargetX !== activeSlot.props.animationCurrentX) {
+        let direction = Math.sign(activeSlot.props.animationTargetX - activeSlot.props.animationCurrentX);
+        let step = activeSlot.props.animationCurrentX
+                    + (activeSlot.props.animationTargetX - activeSlot.props.animationStartX)
+                        * animationSpeed * deltaTime;
+        let index = (Math.sign(activeSlot.props.animationTargetX - step) !== direction)
+                ? activeSlot.props.animationTargetX : step;
+
+        console.log(direction + " " + step + " " + index)
+        activeSlot.props.animationCurrentX  = index;
+        activeSlot.rect.pa.x = index / 8;
+        activeSlot.rect.pb.x = (index + 1) / 8;
+        UIMap.activeSlot = activeSlot;
+        needUIRedraw = true;
+    }
+
+    // Обновление интерфейса
     if (needCraftRedraw && craftOpened) {
         reloadCraft();
     }
@@ -538,9 +565,8 @@ const drawUI = () => {
 }
 
 const UISetActiveSlot = (index) => {
-    needUIRedraw = true;
-    UIMap.activeSlot.rect.pa.x = index / 8;
-    UIMap.activeSlot.rect.pb.x = (index + 1) / 8;
+    UIMap.activeSlot.props.animationTargetX = index;
+    UIMap.activeSlot.props.animationStartX = UIMap.activeSlot.props.animationCurrentX;
 }
 
 const UISetBar = (count, bar, length, height, padding, number) => {

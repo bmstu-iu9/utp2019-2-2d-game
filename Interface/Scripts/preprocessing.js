@@ -42,7 +42,6 @@ const preprocessing = () => {
 	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);
 	_fontUI = render.createTexture(_Font, _Font.width, _Font.height);
 	_textureItems = render.createTexture(_Items, _Items.width, _Items.height);
-	initUI();
 
 	// Отправка образцов объектов
 	{
@@ -196,6 +195,7 @@ const preprocessing = () => {
 
 	const bufferOldTime = (newTime) => {
 		oldTime = newTime;
+		onStart();
 		requestAnimationFrame(update);
 	}
 

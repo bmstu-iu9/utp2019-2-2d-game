@@ -14,6 +14,8 @@ const DIAMOND_DURABILITY = 300;
 const textureSize = 512;
 const itemSize = 32;
 let _textureItems;
+const GRASS_TIME_UPDATE = 5;
+const WATER_TIME_UPDATE = 0.2;
 
 
 const createItem = (id, count) => {
@@ -82,6 +84,17 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(1, 0)
+        },
+        update: (x, y, l, gA) => {
+            setTimeout(() => {
+                if ((y + 1) >= gA.height) {
+                    return;
+                }
+                if (gA.map[x][y + 1][l] !== undefined) {
+                    gA.map[x][y][l] = undefined;
+                    gA.placeBlock(x, y, l, 3);
+                }
+            }, GRASS_TIME_UPDATE * 1000);
         }
     },
 
@@ -100,6 +113,17 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(2, 0)
+        },
+        update: (x, y, l, gA) => {
+            setTimeout(() => {
+                if ((y + 1) >= gA.height) {
+                    return;
+                }
+                if (gA.map[x][y + 1][l] === undefined) {
+                    gA.map[x][y][l] = undefined;
+                    gA.placeBlock(x, y, l, 2);
+                }
+            }, GRASS_TIME_UPDATE * 1000);
         }
     },
 
@@ -132,6 +156,7 @@ const items = {
         durability: 3,
         isAlwaysGoodDestroy: true,
         dropId: '5',
+        isSolid: true,
         weight: WEIGHT_OF_BLOCKS,
         meltingId: '263',
         costOfMelting: '50',
@@ -169,7 +194,27 @@ const items = {
         isCanInteractThrow: true,
         hasGravity: true,
         density: 0.5,
-        isNaturalLight: true
+        isNaturalLight: true,
+        // TODO : Проблема с нумерацией id текучей воды
+        // update: (x, y, l, gA) => {
+        //     const typeId = +this.id + 1;
+        //     if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
+        //         setTimeout(() => {
+        //             gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(typeId * 1000 + 16));
+        //         }, WATER_TIME_UPDATE * 1000);
+        //     } else {
+        //         if ((x - 1) >= 0 && gA.map[x - 1][y][l] === undefined) {
+        //             setTimeout(() => {
+        //                 gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(typeId * 1000));
+        //             }, WATER_TIME_UPDATE * 1000);
+        //         }
+        //         if ((x + 1) < gA.height && gA.map[x + 1][y][l] === undefined) {
+        //             setTimeout(() => {
+        //                 gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(typeId * 1000 + 8));
+        //             }, WATER_TIME_UPDATE * 1000);
+        //         }
+        //     }
+        // }
     },
 
     '9':
@@ -225,6 +270,7 @@ const items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
+        hasGravity: true,
         texture: () => {
             return getTextureCoordinates(5, 0)
         }
@@ -238,6 +284,8 @@ const items = {
         isBlock: true,
         dropId: '14',
         weight: WEIGHT_OF_BLOCKS,
+        isCollissed: true,
+        durability: 10,
         meltingId: '266',
         costOfMelting: '100',
         texture: () => {
@@ -253,6 +301,8 @@ const items = {
         isBlock: true,
         dropId: '15',
         weight: WEIGHT_OF_BLOCKS,
+        isCollissed: true,
+        durability: 12,
         meltingId: '265',
         costOfMelting: '100',
         texture: () => {
@@ -311,10 +361,31 @@ const items = {
         }
     },
 
+    '19': {
+        id: '19',
+        name: 'Torch',
+        type: 'other',
+        isBlock: true,
+        brightness: 9,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isAlwaysGoodDestroy: true,
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(13, 1)
+        },
+        canPlace: (x, y, layout) => {
+            console.log("can place");
+            return layout === GameArea.FIRST_LAYOUT && gameArea.canAttach(x, y, GameArea.SECOND_LAYOUT);
+        },
+        weight: 1
+    },
+
     '20': 
     {
         id: '20',
         name: 'Glass',
+        type: 'other',
         isBlock: true,
         weight: WEIGHT_OF_BLOCKS
     },
@@ -324,8 +395,36 @@ const items = {
         id: '56',
         name: 'Diamond Ore',
         type: 'stone',
+        durability: 15,
+        isCollissed: true,
+        dropId: 264,
         isBlock: true,
-        dropId: '264',
+        weight: WEIGHT_OF_BLOCKS
+    },
+
+    '57':
+    {
+        id: '57',
+        name: 'Iron wood',
+        type: 'stone',
+        durability: 15,
+        isBlock: true,
+        isCollissed: true,
+        dropId: 15,
+        weight: WEIGHT_OF_BLOCKS
+    },
+
+    '58':
+    {
+        id: '58',
+        name: 'Gold leaf',
+        type: 'stone',
+        durability: 12,
+        dropId: 264,
+        isBlock: true,
+        brightness: 6,
+        isCollissed: true,
+        dropId: 14,
         weight: WEIGHT_OF_BLOCKS
     },
 
@@ -351,16 +450,12 @@ const items = {
                     && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.get(x + 1, y, layout) !== undefined
-                    && (gameArea.map[x + 1][y][layout] === 61
+            return (gameArea.map[x + 1][y][layout] === 61
                         || gameArea.map[x + 1][y][layout] === 60
-                        || (items[gameArea.map[x + 1][y][layout]].isSolid
-                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
-                || (gameArea.get(x - 1, y, layout) !== undefined
-                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.canAttach(x + 1, y, layout))
+                || (gameArea.map[x - 1][y][layout] === 61
                         || gameArea.map[x - 1][y][layout] === 60
-                        || (items[gameArea.map[x - 1][y][layout]].isSolid
-                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+                        || gameArea.canAttach(x - 1, y, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
@@ -382,7 +477,7 @@ const items = {
         durability: 3,
         isAlwaysGoodDestroy: true,
         weight: WEIGHT_OF_BLOCKS,
-        isSolid: true,
+        isSolid: false,
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,
@@ -398,16 +493,12 @@ const items = {
                     && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.get(x + 1, y, layout) !== undefined
-                    && (gameArea.map[x + 1][y][layout] === 61
+            return (gameArea.map[x + 1][y][layout] === 61
                         || gameArea.map[x + 1][y][layout] === 60
-                        || (items[gameArea.map[x + 1][y][layout]].isSolid
-                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
-                || (gameArea.get(x - 1, y, layout) !== undefined
-                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.canAttach(x + 1, y, layout))
+                || (gameArea.map[x - 1][y][layout] === 61
                         || gameArea.map[x - 1][y][layout] === 60
-                        || (items[gameArea.map[x - 1][y][layout]].isSolid
-                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+                        || gameArea.canAttach(x - 1, y, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
@@ -441,11 +532,9 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
-                    && (gameArea.map[x][y - 1][layout] === 63
-                        || gameArea.map[x][y - 1][layout] === 62
-                        || (items[gameArea.map[x][y - 1][layout]].isSolid
-                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+            return (gameArea.map[x][y - 1][layout] === 61
+                        || gameArea.map[x][y - 1][layout] === 60
+                        || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
@@ -484,11 +573,9 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
-                    && (gameArea.map[x][y - 1][layout] === 63
-                        || gameArea.map[x][y - 1][layout] === 62
-                        || (items[gameArea.map[x][y - 1][layout]].isSolid
-                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+            return (gameArea.map[x][y - 1][layout] === 61
+                        || gameArea.map[x][y - 1][layout] === 60
+                        || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
@@ -556,7 +643,10 @@ const items = {
     { 
         id: '264',
         name: 'Diamond', 
-        weight: WEIGHT_OF_ORES
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(1, 2)
+        }
     },
 
     '265': 
@@ -578,16 +668,6 @@ const items = {
         name: 'Shaft',
         texture: () => {
             return getTextureCoordinates(0, 1)
-        },
-        weight: 1
-    },
-
-    '268': {
-        id: '268',
-        name: 'Torch',
-        brightness: 7,
-        texture: () => {
-            return getTextureCoordinates(1, 2)
         },
         weight: 1
     },

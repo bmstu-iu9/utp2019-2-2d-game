@@ -52,6 +52,7 @@ const beginPlay = () => {
     	player = new Player();
     	playerCopy(player, loadingResult.player);
     	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+
     } else {
 		gameArea = generate(1000, 1000, key);
 
@@ -62,10 +63,11 @@ const beginPlay = () => {
     	}
 
     	player = new Player(px, py);
-    }
+	}
+
 
 	cameraSet(player.x, player.y);
-	
+
 	// Блок функций, которые не зависят от обновления кадров
 	callSetTimeOfDay(300);
 }
@@ -89,8 +91,14 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	}
 }
 
+const onStart = () => {
+
+	initUI();
+}
+
 // Вызывается каждый кадр
 const eventTick = () => {
+
 	currentTime += deltaTime;
 	staminaNotUsed = true;
 	playerMovement();
@@ -481,24 +489,21 @@ const mouseControl = () => {
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
-		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //............................... Есть блок рядом
-		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
-		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
-		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
-    			// Установка блока
-		       	player.place(targetX, targetY, layout);
-		       	lastPlaceBlockTime = currentTime;
+		if (player.blockAvailable(targetX, targetY, player.layout)) {
+   			// Установка блока
+		    if (player.place(targetX, targetY, layout)) {
+		    	lastPlaceBlockTime = currentTime;
 
-                // Анимация
-                player.setAnimation("body", "kick");
+	            // Анимация
+	            player.setAnimation("body", "kick");
 		    }
 		} else {
-			player.interact(targetX, targetY, layout);
-			lastPlaceBlockTime = currentTime;
+			if (player.interact(targetX, targetY, layout)) {
+				lastPlaceBlockTime = currentTime;
 
-            // Анимация
-            player.setAnimation("body", "kick");
+	            // Анимация
+	            player.setAnimation("body", "kick");
+			}
 		}
 	}
 }

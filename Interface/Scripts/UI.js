@@ -61,7 +61,7 @@ class Sprite {
 
         this.draw = (parent) => {
             if (this.recountRect) {
-                this.recountRect(this.rect, this.indent, parent, this.image);
+                this.recountRect(this.rect, this.indent, parent, this.image, this.props);
             }
 
             let isScreenUI = false;
@@ -272,6 +272,96 @@ const initUI = () => {
             UIMap.fastInv[i] = slot;
             fastInvPanel.add(slot);
         }
+
+        let invButton = new Sprite([ [0.375 + 0.125, 0.501], [0.4385 + 0.125, 0.5635] ],
+                {
+                    pa: {
+                        x: 9 / 24,
+                        y: 0
+                    },
+                    pb: {
+                        x: 10 / 24,
+                        y: undefined
+                    }
+                },
+                {
+                    pa: {
+                        x: 0,
+                        y: 20
+                    },
+                    pb: {
+                        x: 0,
+                        y: 20
+                    }
+                },
+                {
+                    selected: [ [0.375 + 0.125, 0.501 + 0.0625], [0.4385 + 0.125, 0.5635 + 0.0625] ],
+                    notSelected: [ [0.375 + 0.125, 0.501], [0.4385 + 0.125, 0.5635] ]
+                });
+        invButton.recountRect = (rect, indent, parent, image) => {
+            rect.pb.y = (rect.pb.x - rect.pa.x) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        }
+        setOnClickListener(invButton, () => {
+            if (inventoryOpened) {
+                UICloseInv();
+            } else {
+                UIOpenInv();
+            }
+        },
+        () => {
+            invButton.image = invButton.props.selected;
+        },
+        () => {
+            invButton.image = invButton.props.notSelected;
+        });
+        UIMap.invButton = invButton;
+
+        let craftButton = new Sprite([ [0.375 + 0.1875, 0.501], [0.4385 + 0.1875, 0.5635] ],
+                {
+                    pa: {
+                        x: 10 / 24,
+                        y: 0
+                    },
+                    pb: {
+                        x: 11 / 24,
+                        y: undefined
+                    }
+                },
+                {
+                    pa: {
+                        x: 0,
+                        y: 20
+                    },
+                    pb: {
+                        x: 0,
+                        y: 20
+                    }
+                },
+                {
+                    selected: [ [0.375 + 0.1875, 0.501 + 0.0625], [0.4385 + 0.1875, 0.5635 + 0.0625] ],
+                    notSelected: [ [0.375 + 0.1875, 0.501], [0.4385 + 0.1875, 0.5635] ]
+                });
+        craftButton.recountRect = (rect, indent, parent, image) => {
+            rect.pb.y = (rect.pb.x - rect.pa.x) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        }
+        setOnClickListener(craftButton, () => {
+            if (craftOpened) {
+                UICloseCraft();
+            } else {
+                UIOpenCraft();
+            }
+        },
+        () => {
+            craftButton.image = craftButton.props.selected;
+        },
+        () => {
+            craftButton.image = craftButton.props.notSelected;
+        });
+        UIMap.craftButton = craftButton;
+
+        screenUI.add(invButton);
+        screenUI.add(craftButton);
+
         UIMap.activeSlot = new Sprite([ [0.25, 0], [0.5, 0.25] ],
             {
                 pa: {
@@ -292,6 +382,11 @@ const initUI = () => {
                     x: 0,
                     y: 0
                 }
+            },
+            {
+                animationStartX: 0,
+                animationCurrentX: 0,
+                animationTargetX: 0
             });
         fastInvPanel.add(UIMap.activeSlot);
         screenUI.add(fastInvPanel);
@@ -499,8 +594,18 @@ const initUI = () => {
         }
         UIMap.barsPanel.add(UIMap.staminaBar);
 
-
         screenUI.add(UIMap.barsPanel);
+
+        UISetBar(player.hp / player.maxHP, UIMap.healthBar, 202, 16, 1, 0);
+        UISetBar(player.bp / player.maxBP, UIMap.breathBar, 202, 16, 1, 5);
+        UISetBar(player.sp / player.maxSP, UIMap.breathBar, 202, 16, 1, 5);
+
+        player.setHand(0);
+
+
+        needUIRedraw = true;
+        needCraftRedraw = true;
+        needInvRedraw = true;
 }
 
 // Вызывается каждый кадр после EventTick
@@ -512,6 +617,65 @@ const drawUI = () => {
     const _size = render.getCanvasSize();
     Sprite.pixelScale = _size[0] / defaultWidth;
 
+
+    // Анимации
+    let animationSpeed = 5;
+
+    let activeSlot = UIMap.activeSlot;
+    if (activeSlot.props.animationTargetX !== activeSlot.props.animationCurrentX) {
+        let direction = Math.sign(activeSlot.props.animationTargetX - activeSlot.props.animationCurrentX);
+        let step = activeSlot.props.animationCurrentX
+                    + (activeSlot.props.animationTargetX - activeSlot.props.animationStartX)
+                        * animationSpeed * deltaTime;
+        let index = (Math.sign(activeSlot.props.animationTargetX - step) !== direction)
+                ? activeSlot.props.animationTargetX : step;
+
+        console.log(direction + " " + step + " " + index)
+        activeSlot.props.animationCurrentX  = index;
+        activeSlot.rect.pa.x = index / 8;
+        activeSlot.rect.pb.x = (index + 1) / 8;
+        needUIRedraw = true;
+    }
+
+    let invPanel = UIMap.invPanel;
+    if (invPanel) {
+        if (inventoryOpened) {
+            if (invPanel.props.animationState < 1) {
+                invPanel.props.animationState = Math.min(invPanel.props.animationState + animationSpeed * deltaTime, 1);
+                needUIRedraw = true;
+            }
+        } else { 
+            if (invPanel.props.animationState > 0) {
+                invPanel.props.animationState = Math.max(invPanel.props.animationState - animationSpeed * deltaTime, 0);
+            } else {
+                screenUI.deleteChild(UIMap.invPanel.id);
+                UIMap.invButton.image = UIMap.invButton.props.notSelected;
+                UIMap.invPanel = undefined;
+                needUIRedraw = true;
+            }
+        }
+    }
+
+    let craftPanel = UIMap.craftPanel;
+    if (craftPanel) {
+        if (craftOpened) {
+            if (craftPanel.props.animationState < 1) {
+                craftPanel.props.animationState = Math.min(craftPanel.props.animationState + animationSpeed * deltaTime, 1);
+                needUIRedraw = true;
+            }
+        } else { 
+            if (craftPanel.props.animationState > 0) {
+                craftPanel.props.animationState = Math.max(craftPanel.props.animationState - animationSpeed * deltaTime, 0);
+            } else {
+                screenUI.deleteChild(UIMap.craftPanel.id);
+                UIMap.craftButton.image = UIMap.craftButton.props.notSelected;
+                UIMap.craftPanel = undefined;
+                needUIRedraw = true;
+            }
+        }
+    }
+
+    // Обновление интерфейса
     if (needCraftRedraw && craftOpened) {
         reloadCraft();
     }
@@ -528,9 +692,8 @@ const drawUI = () => {
 }
 
 const UISetActiveSlot = (index) => {
-    needUIRedraw = true;
-    UIMap.activeSlot.rect.pa.x = index / 8;
-    UIMap.activeSlot.rect.pb.x = (index + 1) / 8;
+    UIMap.activeSlot.props.animationTargetX = index;
+    UIMap.activeSlot.props.animationStartX = UIMap.activeSlot.props.animationCurrentX;
 }
 
 const UISetBar = (count, bar, length, height, padding, number) => {
@@ -867,9 +1030,12 @@ const createText = (word) => {
 }
 
 const UIOpenInv = () => {
+    if (inventoryOpened) return;
     inventoryOpened = true;
     if (UIMap.invPanel) screenUI.deleteChild(UIMap.invPanel.id);
     // Инвентарь
+    let invButton = UIMap.invButton;
+    invButton.image = UIMap.invButton.props.selected;
     let invPanel = new Sprite(
         [ [0, 0.51], [0.125, 0.615] ],
         {
@@ -891,9 +1057,75 @@ const UIOpenInv = () => {
                 x: 0,
                 y: -20
             }
+        },
+        {
+            animationState: 0,
+            opened: {
+                rect: {
+                    pa: {
+                        x: 0,
+                        y: undefined
+                    },
+                    pb: {
+                        x: 1 / 3,
+                        y: 1
+                    }
+                },
+                indent: {
+                    pa: {
+                        x: 20,
+                        y: 40
+                    },
+                    pb: {
+                        x: 0,
+                        y: -20
+                    }
+                }
+            },
+            closed: {
+                rect: {
+                    pa: {
+                        x: invButton.rect.pb.x,
+                        y: invButton.rect.pa.y
+                    },
+                    pb: {
+                        x: invButton.rect.pb.x,
+                        y: invButton.rect.pa.y
+                    }
+                },
+                indent: {
+                    pa: {
+                        x: invButton.indent.pa.x,
+                        y: invButton.indent.pa.y
+                    },
+                    pb: {
+                        x: invButton.indent.pb.x,
+                        y: invButton.indent.pb.y
+                    }
+                }
+            }
         });
-    invPanel.recountRect = (rect, indent, parent, image) => {
-        rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+    invPanel.recountRect = (rect, indent, parent, imagem, props) => {
+        props.opened.rect.pa.y = props.opened.rect.pb.x / 8
+                                    * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+
+        rect.pa = {
+            x: props.closed.rect.pa.x + props.animationState * (props.opened.rect.pa.x - props.closed.rect.pa.x),
+            y: props.closed.rect.pa.y + props.animationState * (props.opened.rect.pa.y - props.closed.rect.pa.y)
+        }
+        rect.pb = {
+            x: props.closed.rect.pb.x + props.animationState * (props.opened.rect.pb.x - props.closed.rect.pb.x),
+            y: props.closed.rect.pb.y + props.animationState * (props.opened.rect.pb.y - props.closed.rect.pb.y)
+        }
+
+        indent.pa = {
+            x: props.closed.indent.pa.x + props.animationState * (props.opened.indent.pa.x - props.closed.indent.pa.x),
+            y: props.closed.indent.pa.y + props.animationState * (props.opened.indent.pa.y - props.closed.indent.pa.y)
+        }
+        indent.pb = {
+            x: props.closed.indent.pb.x + props.animationState * (props.opened.indent.pb.x - props.closed.indent.pb.x),
+            y: props.closed.indent.pb.y + props.animationState * (props.opened.indent.pb.y - props.closed.indent.pb.y)
+        }
     }
     UIMap.invPanel = invPanel;
     
@@ -1079,7 +1311,6 @@ const reloadInv = () => {
                     + "\n" +items[player.inv.items[i].id].name);
 
             } else {
-                console.log(player.inv.items[i])
                 card = createItemCard(insertIndex, player.inv.items[i],
                     "Weight: " + items[player.inv.items[i]].weight * player.inv.count[i]
                     + "\n\n" + "Count: " + player.inv.count[i]
@@ -1166,8 +1397,6 @@ const reloadInv = () => {
 
 const UICloseInv = () => {
     inventoryOpened = false;
-    screenUI.deleteChild(UIMap.invPanel.id);
-    needUIRedraw = true;
 }
 
 
@@ -1175,10 +1404,13 @@ const UICloseInv = () => {
 let needCraftRedraw = false;
 let craftOpened = false;
 const UIOpenCraft = (isCraftingTable) => {
+    if (craftOpened) return;
     craftOpened = true;
     if (UIMap.craftPanel) screenUI.deleteChild(UIMap.craftPanel.id);
 
     // Панель крафтов
+    let craftButton = UIMap.craftButton;
+    craftButton.image = craftButton.props.selected;
     let craftPanel = new Sprite(
         [ [0, 0.51], [0.125, 0.615] ],
         {
@@ -1200,7 +1432,74 @@ const UIOpenCraft = (isCraftingTable) => {
                 x: -20,
                 y: -20
             }
+        },
+        {
+            animationState: 0,
+            opened: {
+                rect: {
+                    pa: {
+                        x: 2 / 3,
+                        y: 0
+                    },
+                    pb: {
+                        x: 1,
+                        y: 1
+                    }
+                },
+                indent: {
+                    pa: {
+                        x: 0,
+                        y: 40
+                    },
+                    pb: {
+                        x: -20,
+                        y: -20
+                    }
+                },
+            },
+            closed: {
+                rect: {
+                    pa: {
+                        x: craftButton.rect.pa.x,
+                        y: craftButton.rect.pa.y
+                    },
+                    pb: {
+                        x: craftButton.rect.pa.x,
+                        y: craftButton.rect.pa.y
+                    }
+                },
+                indent: {
+                    pa: {
+                        x: craftButton.indent.pa.x,
+                        y: craftButton.indent.pa.y + 20
+                    },
+                    pb: {
+                        x: craftButton.indent.pb.x,
+                        y: craftButton.indent.pb.y
+                    }
+                },
+            }
         });
+    craftPanel.recountRect = (rect, indent, parent, imagem, props) => {
+        rect.pa = {
+            x: props.closed.rect.pa.x + props.animationState * (props.opened.rect.pa.x - props.closed.rect.pa.x),
+            y: props.closed.rect.pa.y + props.animationState * (props.opened.rect.pa.y - props.closed.rect.pa.y)
+        }
+        rect.pb = {
+            x: props.closed.rect.pb.x + props.animationState * (props.opened.rect.pb.x - props.closed.rect.pb.x),
+            y: props.closed.rect.pb.y + props.animationState * (props.opened.rect.pb.y - props.closed.rect.pb.y)
+        }
+
+        indent.pa = {
+            x: props.closed.indent.pa.x + props.animationState * (props.opened.indent.pa.x - props.closed.indent.pa.x),
+            y: props.closed.indent.pa.y + props.animationState * (props.opened.indent.pa.y - props.closed.indent.pa.y)
+        }
+        indent.pb = {
+            x: props.closed.indent.pb.x + props.animationState * (props.opened.indent.pb.x - props.closed.indent.pb.x),
+            y: props.closed.indent.pb.y + props.animationState * (props.opened.indent.pb.y - props.closed.indent.pb.y)
+        }
+    }
+    
     UIMap.craftPanel = craftPanel;
     
     let craftScrollPanel = new Sprite(
@@ -1424,6 +1723,4 @@ const reloadCraft = (isCraftingTable) => {
 
 const UICloseCraft = () => {
     craftOpened = false;
-    screenUI.deleteChild(UIMap.craftPanel.id);
-    needUIRedraw = true;
 }

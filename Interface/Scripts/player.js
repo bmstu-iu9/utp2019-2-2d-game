@@ -102,26 +102,29 @@ class Player {
 
         // Разместить блок из руки на (x, y, layout)
         this.place = (x, y, layout) => {
-            if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)
-                    && (!items[this.hand.item].canPlace || items[this.hand.item].canPlace(x, y, layout))) {
-                gameArea.placeBlock(x, y, layout, this.hand.item);
+            let isPlaced = false;
+            if (this.hand.item && this.hand.info.isBlock
+                    && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace,
+                                                        !items[this.hand.item].isCollissed)) {
+                isPlaced = gameArea.placeBlock(x, y, layout, this.hand.item);
 
-                // Уменьшение выносливости
-                player.updateSP(player.sp - this.hand.info.weight);
-                staminaNotUsed = false;
+                if (isPlaced) {
+                    // Уменьшение выносливости
+                    player.updateSP(player.sp - this.hand.info.weight);
+                    staminaNotUsed = false;
 
-                this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+                    this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+                }
             }
-        };
+            return isPlaced;
+        }
 
         // Если можно взаимодействовать - сделать это
         this.interact = (x, y, layout) => {
             if (this.blockAvailable(x, y, layout)) {
-                gameArea.interactWithBlock(x, y, layout);
-
-                // Анимация
-                player.setAnimation("body", "kick");
+                return gameArea.interactWithBlock(x, y, layout);
             }
+            return false;
         }
 
         // Взаимодействовать с ближайшим интерактивным блоком
@@ -707,7 +710,6 @@ const playerCopy = (player, obj) => {
     player.bp = obj.bp;
     player.inv = obj.inv;
     player.fastInv = obj.fastInv;
-    player.hand = obj.hand;
     player.vx = obj.vx;
     player.vy = obj.vy;
     player.layout = obj.layout;

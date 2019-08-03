@@ -66,7 +66,7 @@ class Player {
         this.hand = {
             "item" : undefined,
             "info" : undefined,
-            "index" : 0
+            "index" : 8
         }
         
         // Скорость игрока

@@ -263,110 +263,110 @@ class GameArea{
                 }
                     break;
                 case "water": {
-                    const LIQUID_TYPE = +block.id + 1;
-                    if (this.map[x][y - 1][layout] === undefined) {
-                        setTimeout(() => {
-                            if (this.map[x][y - 1][layout] === undefined) {
-                                this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000 + 16));
-                            }
-                        })
-                    } else if (Math.floor((this.map[x][y - 1][layout] - LIQUID_TYPE*1000) / 8) !== 2) {
-                        if (this.map[x - 1][y][layout] === undefined) {
-                            setTimeout(() => {
-                                if (this.map[x - 1][y][layout] === undefined) {
-                                    this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000));
-                                }
-                            }, 200);
-                        }
-                        if (this.map[x + 1][y][layout] === undefined) {
-                            setTimeout(() => {
-                                if (this.map[x + 1][y][layout] === undefined) {
-                                    this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000 + 8));
-                                }
-                            }, 200);
-                        }
-                    }
+                    // const LIQUID_TYPE = +block.id + 1;
+                    // if (this.map[x][y - 1][layout] === undefined) {
+                    //     setTimeout(() => {
+                    //         if (this.map[x][y - 1][layout] === undefined) {
+                    //             this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000 + 16));
+                    //         }
+                    //     })
+                    // } else if (Math.floor((this.map[x][y - 1][layout] - LIQUID_TYPE*1000) / 8) !== 2) {
+                    //     if (this.map[x - 1][y][layout] === undefined) {
+                    //         setTimeout(() => {
+                    //             if (this.map[x - 1][y][layout] === undefined) {
+                    //                 this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000));
+                    //             }
+                    //         }, 200);
+                    //     }
+                    //     if (this.map[x + 1][y][layout] === undefined) {
+                    //         setTimeout(() => {
+                    //             if (this.map[x + 1][y][layout] === undefined) {
+                    //                 this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000 + 8));
+                    //             }
+                    //         }, 200);
+                    //     }
+                    // }
                 }
                     break;
 
                 case "flowingWater": {
-                    const LIQUID_TYPE = Math.floor(+block.id / 1000);
-                    const power = (+block.id - 1000 * LIQUID_TYPE) % 8;
-                    if (this.map[x + 1][y][layout] !== (LIQUID_TYPE - 1)
-                        && this.map[x - 1][y][layout] !== (LIQUID_TYPE - 1)
-                        && this.map[x][y + 1][layout] !== (LIQUID_TYPE - 1)
-                        && (!this.map[x + 1][y][layout]
-                            || (this.map[x + 1][y][layout] - 1000 * LIQUID_TYPE) % 8 >= power
-                            || this.map[x + 1][y][layout] < 1000 * LIQUID_TYPE)
-                        && (!this.map[x - 1][y][layout]
-                            || (this.map[x - 1][y][layout] - 1000 * LIQUID_TYPE) % 8 >= power
-                            || this.map[x - 1][y][layout] < 1000 * LIQUID_TYPE)
-                        && (!this.map[x][y + 1][layout]
-                            || (this.map[x][y + 1][layout] - 1000 * LIQUID_TYPE) % 8 > power
-                            || this.map[x][y + 1][layout] < 1000 * LIQUID_TYPE)) {
+                    // const LIQUID_TYPE = Math.floor(+block.id / 1000);
+                    // const power = (+block.id - 1000 * LIQUID_TYPE) % 8;
+                    // if (this.map[x + 1][y][layout] !== (LIQUID_TYPE - 1)
+                    //     && this.map[x - 1][y][layout] !== (LIQUID_TYPE - 1)
+                    //     && this.map[x][y + 1][layout] !== (LIQUID_TYPE - 1)
+                    //     && (!this.map[x + 1][y][layout]
+                    //         || (this.map[x + 1][y][layout] - 1000 * LIQUID_TYPE) % 8 >= power
+                    //         || this.map[x + 1][y][layout] < 1000 * LIQUID_TYPE)
+                    //     && (!this.map[x - 1][y][layout]
+                    //         || (this.map[x - 1][y][layout] - 1000 * LIQUID_TYPE) % 8 >= power
+                    //         || this.map[x - 1][y][layout] < 1000 * LIQUID_TYPE)
+                    //     && (!this.map[x][y + 1][layout]
+                    //         || (this.map[x][y + 1][layout] - 1000 * LIQUID_TYPE) % 8 > power
+                    //         || this.map[x][y + 1][layout] < 1000 * LIQUID_TYPE)) {
 
-                        setTimeout(() => {
-                            if (this.map[x][y][layout] === +block.id) this.destroyBlock(x, y, layout);
-                        }, 50);
-                    } else {
+                    //     setTimeout(() => {
+                    //         if (this.map[x][y][layout] === +block.id) this.destroyBlock(x, y, layout);
+                    //     }, 50);
+                    // } else {
 
-                        let direction = Math.floor((+block.id - 1000 * LIQUID_TYPE) / 8);
-                        if (this.map[x][y - 1][layout] === undefined) {
+                    //     let direction = Math.floor((+block.id - 1000 * LIQUID_TYPE) / 8);
+                    //     if (this.map[x][y - 1][layout] === undefined) {
 
-                            setTimeout(() => {
-                                if (this.map[x][y][layout] === +block.id)
-                                    this.placeBlock(x, y - 1, layout,
-                                        this.makeFlowingWaterBlock(this.map[x][y][layout] + 8 * (2 - direction)));
-                            }, 50);
-                        } else if (this.map[x][y - 1][layout] !== undefined
-                            && items[this.map[x][y - 1][layout]].type !== "flowingWater"
-                            && +block.id !== 1000 * LIQUID_TYPE + 23
-                            && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
+                    //         setTimeout(() => {
+                    //             if (this.map[x][y][layout] === +block.id)
+                    //                 this.placeBlock(x, y - 1, layout,
+                    //                     this.makeFlowingWaterBlock(this.map[x][y][layout] + 8 * (2 - direction)));
+                    //         }, 50);
+                    //     } else if (this.map[x][y - 1][layout] !== undefined
+                    //         && items[this.map[x][y - 1][layout]].type !== "flowingWater"
+                    //         && +block.id !== 1000 * LIQUID_TYPE + 23
+                    //         && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
 
-                            if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
+                    //         if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
 
-                                if (direction === 0) {
-                                    setTimeout(() => {
-                                        if (this.map[x][y][layout] === +block.id
-                                            && this.map[x - 1][y][layout] === undefined) {
+                    //             if (direction === 0) {
+                    //                 setTimeout(() => {
+                    //                     if (this.map[x][y][layout] === +block.id
+                    //                         && this.map[x - 1][y][layout] === undefined) {
 
-                                            this.placeBlock(x - 1, y,
-                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                                        }
-                                    }, 200);
-                                } else {
-                                    setTimeout(() => {
-                                        if (this.map[x][y][layout] === +block.id
-                                            && this.map[x - 1][y][layout] === undefined) {
+                    //                         this.placeBlock(x - 1, y,
+                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+                    //                     }
+                    //                 }, 200);
+                    //             } else {
+                    //                 setTimeout(() => {
+                    //                     if (this.map[x][y][layout] === +block.id
+                    //                         && this.map[x - 1][y][layout] === undefined) {
 
-                                            this.placeBlock(x - 1, y,
-                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15));
-                                        }
-                                    }, 200);
-                                }
-                            } else if (this.map[x + 1][y][layout] === undefined && direction !== 0) {
-                                if (direction === 1) {
-                                    setTimeout(() => {
-                                        if (this.map[x][y][layout] === +block.id
-                                            && this.map[x + 1][y][layout] === undefined) {
+                    //                         this.placeBlock(x - 1, y,
+                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15));
+                    //                     }
+                    //                 }, 200);
+                    //             }
+                    //         } else if (this.map[x + 1][y][layout] === undefined && direction !== 0) {
+                    //             if (direction === 1) {
+                    //                 setTimeout(() => {
+                    //                     if (this.map[x][y][layout] === +block.id
+                    //                         && this.map[x + 1][y][layout] === undefined) {
 
-                                            this.placeBlock(x + 1, y,
-                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                                        }
-                                    }, 200);
-                                } else {
-                                    setTimeout(() => {
-                                        if (this.map[x][y][layout] === +block.id
-                                            && this.map[x + 1][y][layout] === undefined) {
+                    //                         this.placeBlock(x + 1, y,
+                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
+                    //                     }
+                    //                 }, 200);
+                    //             } else {
+                    //                 setTimeout(() => {
+                    //                     if (this.map[x][y][layout] === +block.id
+                    //                         && this.map[x + 1][y][layout] === undefined) {
 
-                                            this.placeBlock(x + 1, y,
-                                                layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 7));
-                                        }
-                                    }, 200);
-                                }
-                            }
-                        }
-                    }
+                    //                         this.placeBlock(x + 1, y,
+                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 7));
+                    //                     }
+                    //                 }, 200);
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                     break;
                 default:
@@ -415,7 +415,8 @@ class GameArea{
         this.canPlaceInBlock = (x, y, layout) => {
             return this.exist(x, y)
                     && (this.map[x][y][layout] === undefined
-                        || items[this.map[x][y][layout]].type === "water"); 
+                        || items[this.map[x][y][layout]].type === "water"
+                        || items[this.map[x][y][layout]].type === "flowingWater"); 
         }
 
         // Можно ставить блок на (x, y, layout)

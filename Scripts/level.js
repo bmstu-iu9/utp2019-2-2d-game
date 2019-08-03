@@ -66,6 +66,7 @@ const beginPlay = () => {
 	}
 
 
+	// player.addToInv(items[8]);
 	cameraSet(player.x, player.y);
 
 	// Блок функций, которые не зависят от обновления кадров

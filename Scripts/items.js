@@ -100,7 +100,7 @@ const items = {
         isAlwaysGoodDestroy: true,
         dropId: '3',
         weight: WEIGHT_OF_BLOCKS,
-        durability: 0.01,
+        durability: 1.5,
         brightness: 0,
         isCollissed: true,
         isSolid: true,
@@ -132,7 +132,7 @@ const items = {
         isAlwaysGoodDestroy: true,
         dropId: '3',
         weight: WEIGHT_OF_BLOCKS,
-        durability: 0.01,//1.5
+        durability: 1.5,
         brightness: 0,
         isCollissed: true,
         isSolid: true,

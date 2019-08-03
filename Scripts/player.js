@@ -117,11 +117,9 @@ class Player {
         // Если можно взаимодействовать - сделать это
         this.interact = (x, y, layout) => {
             if (this.blockAvailable(x, y, layout)) {
-                gameArea.interactWithBlock(x, y, layout);
-
-                // Анимация
-                player.setAnimation("body", "kick");
+                return gameArea.interactWithBlock(x, y, layout);
             }
+            return false;
         }
 
         // Взаимодействовать с ближайшим интерактивным блоком

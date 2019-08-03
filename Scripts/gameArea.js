@@ -390,36 +390,45 @@ class GameArea{
             this.updateRadius(x, y, layout, player);
         }
 
+        // К этому блоку можно приставлять другие
+        this.canAttach = (x, y, layout) => {
+            return this.exist(x, y)
+                    && this.map[x][y][layout] !== undefined
+                    && this.map[x][y][layout].type !== "water";
+        }
+
+        //  Замещая этот блок можно поставить другой блок
+        this.canPlaceInBlock = (x, y, layout) => {
+            return this.exist(x, y)
+                    && (this.map[x][y][layout] === undefined
+                        || this.map[x][y][layout].type === "water"); 
+        }
+
         // Можно ставить блок на (x, y, layout)
         this.canPlace = (x, y, layout) => {
-            if (layout > player.layout) {
-                return this.exist(x, y) // Пределы мира
-                    && this.map[x][y][layout] === undefined;
-            } else {
-                let startX = Math.floor(player.x - Player.WIDTH / 2);
-                let endX = Math.floor(player.x + Player.WIDTH / 2);
-                let startY = Math.floor(player.y);
-                let endY = Math.floor(player.y + Player.HEIGHT);
-                return this.exist(x, y) // Пределы мира
-                    && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
-                    && (this.map[x][y][layout] === undefined
-                    || this.map[x][y][layout].type === "water");
-            }
+            let startX = Math.floor(player.x - Player.WIDTH / 2);
+            let endX = Math.floor(player.x + Player.WIDTH / 2);
+            let startY = Math.floor(player.y);
+            let endY = Math.floor(player.y + Player.HEIGHT);
+            return this.canPlaceInBlock(x, y, layout)
+                    && (player.layout !== layout
+                        || !(x >= startX && x <= endX && y >= startY && y <= endY)) // Площадь игрока
+                    && (this.canAttach(x + 1, y, layout)
+                        || this.canAttach(x - 1, y, layout)
+                        || this.canAttach(x, y + 1, layout)
+                        || this.canAttach(x, y - 1, layout));
         }
 
         // Можно ли ломать блок на (x, y, layout)
         this.canDestroy = (x, y, layout) => {
             // Если задний слой, то можно ломать только с краёв
-            if (layout === GameArea.BACK_LAYOUT
-                && (this.canDestroy(x, y, GameArea.SECOND_LAYOUT)
-                || !this.canPlace(x, y + 1, layout)
-                && !this.canPlace(x + 1, y, layout)
-                && !this.canPlace(x - 1, y, layout)
-                && !this.canPlace(x, y - 1, layout))) return false;
-
-            return this.exist(x, y) // Пределы мира
-                && this.map[x][y][layout] != undefined
-                && this.map[x][y][layout].type != "water";
+            return !this.canPlaceInBlock(x, y, layout)
+                && (layout === GameArea.BACK_LAYOUT 
+                        && (!this.canAttach(x + 1, y, layout)
+                            || !this.canAttach(x - 1, y, layout)
+                            || !this.canAttach(x, y + 1, layout)
+                            || !this.canAttach(x, y - 1, layout))
+                    || layout !== GameArea.BACK_LAYOUT);
         }
 
         // Действие при установке блока
@@ -446,9 +455,11 @@ class GameArea{
         this.interactWithBlock = (x, y, layout) => {
             if(!this.exist(x, y)) return; // проверка на выход из карты
             let block = items[this.map[x][y][layout]];
-            if(block !== undefined && block.isClickable) {
+            if(block.isClickable) {
                 block.interactFunction(x, y, layout);
+                return true;
             }
+            return false;
         }
 
         // Функция сброса лута

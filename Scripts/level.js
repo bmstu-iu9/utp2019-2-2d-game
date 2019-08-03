@@ -492,23 +492,19 @@ const mouseControl = () => {
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
 		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
-		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //............................... Есть блок рядом
-		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
-		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
-		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
-    			// Установка блока
-		       	player.place(targetX, targetY, layout);
-		       	lastPlaceBlockTime = currentTime;
-
-                // Анимация
-                player.setAnimation("body", "kick");
-		    }
-		} else {
-			player.interact(targetX, targetY, layout);
-			lastPlaceBlockTime = currentTime;
+   			// Установка блока
+		    player.place(targetX, targetY, layout);
+		    lastPlaceBlockTime = currentTime;
 
             // Анимация
             player.setAnimation("body", "kick");
+		} else {
+			if (player.interact(targetX, targetY, layout)) {
+				lastPlaceBlockTime = currentTime;
+
+	            // Анимация
+	            player.setAnimation("body", "kick");
+			}
 		}
 	}
 }

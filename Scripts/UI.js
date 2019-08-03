@@ -938,6 +938,7 @@ const createText = (word) => {
 }
 
 const UIOpenInv = () => {
+    if (inventoryOpened) return;
     inventoryOpened = true;
     if (UIMap.invPanel) screenUI.deleteChild(UIMap.invPanel.id);
     // Инвентарь
@@ -1280,6 +1281,7 @@ const UICloseInv = () => {
 let needCraftRedraw = false;
 let craftOpened = false;
 const UIOpenCraft = (isCraftingTable) => {
+    if (craftOpened) return;
     craftOpened = true;
     if (UIMap.craftPanel) screenUI.deleteChild(UIMap.craftPanel.id);
 

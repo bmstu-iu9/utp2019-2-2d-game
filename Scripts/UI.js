@@ -61,7 +61,7 @@ class Sprite {
 
         this.draw = (parent) => {
             if (this.recountRect) {
-                this.recountRect(this.rect, this.indent, parent, this.image);
+                this.recountRect(this.rect, this.indent, parent, this.image, this.props);
             }
 
             let isScreenUI = false;
@@ -544,8 +544,43 @@ const drawUI = () => {
         activeSlot.props.animationCurrentX  = index;
         activeSlot.rect.pa.x = index / 8;
         activeSlot.rect.pb.x = (index + 1) / 8;
-        UIMap.activeSlot = activeSlot;
         needUIRedraw = true;
+    }
+
+    let invPanel = UIMap.invPanel;
+    if (invPanel) {
+        if (inventoryOpened) {
+            if (invPanel.props.animationState < 1) {
+                invPanel.props.animationState = Math.min(invPanel.props.animationState + animationSpeed * deltaTime, 1);
+                needUIRedraw = true;
+            }
+        } else { 
+            if (invPanel.props.animationState > 0) {
+                invPanel.props.animationState = Math.max(invPanel.props.animationState - animationSpeed * deltaTime, 0);
+            } else {
+                screenUI.deleteChild(UIMap.invPanel.id);
+                UIMap.invPanel = undefined;
+                needUIRedraw = true;
+            }
+        }
+    }
+
+    let craftPanel = UIMap.craftPanel;
+    if (craftPanel) {
+        if (craftOpened) {
+            if (craftPanel.props.animationState < 1) {
+                craftPanel.props.animationState = Math.min(craftPanel.props.animationState + animationSpeed * deltaTime, 1);
+                needUIRedraw = true;
+            }
+        } else { 
+            if (craftPanel.props.animationState > 0) {
+                craftPanel.props.animationState = Math.max(craftPanel.props.animationState - animationSpeed * deltaTime, 0);
+            } else {
+                screenUI.deleteChild(UIMap.craftPanel.id);
+                UIMap.craftPanel = undefined;
+                needUIRedraw = true;
+            }
+        }
     }
 
     // Обновление интерфейса
@@ -927,9 +962,46 @@ const UIOpenInv = () => {
                 x: 0,
                 y: -20
             }
+        },
+        {
+            animationState: 0,
+            opened: {
+                rect: {
+                    pa: {
+                        x: 0,
+                        y: undefined
+                    },
+                    pb: {
+                        x: 1 / 3,
+                        y: 1
+                    }
+                }
+            },
+            closed: {
+                rect: {
+                    pa: {
+                        x: 0,
+                        y: 0.5
+                    },
+                    pb: {
+                        x: 0,
+                        y: 0.5
+                    }
+                }
+            }
         });
-    invPanel.recountRect = (rect, indent, parent, image) => {
-        rect.pa.y = rect.pb.x / 8 * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+    invPanel.recountRect = (rect, indent, parent, imagem, props) => {
+        props.opened.rect.pa.y = props.opened.rect.pb.x / 8
+                                    * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+
+        rect.pa = {
+            x: props.closed.rect.pa.x + props.animationState * (props.opened.rect.pa.x - props.closed.rect.pa.x),
+            y: props.closed.rect.pa.y + props.animationState * (props.opened.rect.pa.y - props.closed.rect.pa.y)
+        }
+        rect.pb = {
+            x: props.closed.rect.pb.x + props.animationState * (props.opened.rect.pb.x - props.closed.rect.pb.x),
+            y: props.closed.rect.pb.y + props.animationState * (props.opened.rect.pb.y - props.closed.rect.pb.y)
+        }
     }
     UIMap.invPanel = invPanel;
     
@@ -1201,8 +1273,6 @@ const reloadInv = () => {
 
 const UICloseInv = () => {
     inventoryOpened = false;
-    screenUI.deleteChild(UIMap.invPanel.id);
-    needUIRedraw = true;
 }
 
 
@@ -1235,7 +1305,44 @@ const UIOpenCraft = (isCraftingTable) => {
                 x: -20,
                 y: -20
             }
+        },
+        {
+            animationState: 0,
+            opened: {
+                rect: {
+                    pa: {
+                        x: 2 / 3,
+                        y: 0
+                    },
+                    pb: {
+                        x: 1,
+                        y: 1
+                    }
+                }
+            },
+            closed: {
+                rect: {
+                    pa: {
+                        x: 1,
+                        y: 0.5
+                    },
+                    pb: {
+                        x: 1,
+                        y: 0.5
+                    }
+                }
+            }
         });
+    craftPanel.recountRect = (rect, indent, parent, imagem, props) => {
+        rect.pa = {
+            x: props.closed.rect.pa.x + props.animationState * (props.opened.rect.pa.x - props.closed.rect.pa.x),
+            y: props.closed.rect.pa.y + props.animationState * (props.opened.rect.pa.y - props.closed.rect.pa.y)
+        }
+        rect.pb = {
+            x: props.closed.rect.pb.x + props.animationState * (props.opened.rect.pb.x - props.closed.rect.pb.x),
+            y: props.closed.rect.pb.y + props.animationState * (props.opened.rect.pb.y - props.closed.rect.pb.y)
+        }
+    }
     UIMap.craftPanel = craftPanel;
     
     let craftScrollPanel = new Sprite(
@@ -1459,6 +1566,4 @@ const reloadCraft = (isCraftingTable) => {
 
 const UICloseCraft = () => {
     craftOpened = false;
-    screenUI.deleteChild(UIMap.craftPanel.id);
-    needUIRedraw = true;
 }

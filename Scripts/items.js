@@ -132,6 +132,7 @@ const items = {
         durability: 3,
         isAlwaysGoodDestroy: true,
         dropId: '5',
+        isSolid: true,
         weight: WEIGHT_OF_BLOCKS,
         meltingId: '263',
         costOfMelting: '50',

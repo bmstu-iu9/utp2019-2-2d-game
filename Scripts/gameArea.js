@@ -392,7 +392,10 @@ class GameArea{
 
         // Можно ставить блок на (x, y, layout)
         this.canPlace = (x, y, layout) => {
-            if (layout < player.layout) {
+            if (layout > player.layout) {
+                return this.exist(x, y) // Пределы мира
+                    && this.map[x][y][layout] === undefined;
+            } else {
                 let startX = Math.floor(player.x - Player.WIDTH / 2);
                 let endX = Math.floor(player.x + Player.WIDTH / 2);
                 let startY = Math.floor(player.y);
@@ -401,9 +404,6 @@ class GameArea{
                     && !(x >= startX && x <= endX && y >= startY && y <= endY) // Площадь игрока
                     && (this.map[x][y][layout] === undefined
                     || this.map[x][y][layout].type === "water");
-            } else {
-                return this.exist(x, y) // Пределы мира
-                    && this.map[x][y][layout] === undefined;
             }
         }
 

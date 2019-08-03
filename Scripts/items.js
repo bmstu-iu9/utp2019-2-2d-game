@@ -415,7 +415,7 @@ const items = {
         durability: 3,
         isAlwaysGoodDestroy: true,
         weight: WEIGHT_OF_BLOCKS,
-        isSolid: true,
+        isSolid: false,
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,

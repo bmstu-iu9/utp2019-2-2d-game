@@ -14,6 +14,8 @@ const DIAMOND_DURABILITY = 300;
 const textureSize = 512;
 const itemSize = 32;
 let _textureItems;
+const GRASS_TIME_UPDATE = 5;
+const WATER_TIME_UPDATE = 0.2;
 
 
 const createItem = (id, count) => {
@@ -82,6 +84,17 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(1, 0)
+        },
+        update: (x, y, l, gA) => {
+            setTimeout(() => {
+                if ((y + 1) >= gA.height) {
+                    return;
+                }
+                if (gA.map[x][y + 1][l] !== undefined) {
+                    gA.map[x][y][l] = undefined;
+                    gA.placeBlock(x, y, l, 3);
+                }
+            }, GRASS_TIME_UPDATE * 1000);
         }
     },
 
@@ -100,6 +113,17 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(2, 0)
+        },
+        update: (x, y, l, gA) => {
+            setTimeout(() => {
+                if ((y + 1) >= gA.height) {
+                    return;
+                }
+                if (gA.map[x][y + 1][l] === undefined) {
+                    gA.map[x][y][l] = undefined;
+                    gA.placeBlock(x, y, l, 2);
+                }
+            }, GRASS_TIME_UPDATE * 1000);
         }
     },
 
@@ -170,7 +194,27 @@ const items = {
         isCanInteractThrow: true,
         hasGravity: true,
         density: 0.5,
-        isNaturalLight: true
+        isNaturalLight: true,
+        // TODO : Проблема с нумерацией id текучей воды
+        // update: (x, y, l, gA) => {
+        //     const typeId = +this.id + 1;
+        //     if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
+        //         setTimeout(() => {
+        //             gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(typeId * 1000 + 16));
+        //         }, WATER_TIME_UPDATE * 1000);
+        //     } else {
+        //         if ((x - 1) >= 0 && gA.map[x - 1][y][l] === undefined) {
+        //             setTimeout(() => {
+        //                 gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(typeId * 1000));
+        //             }, WATER_TIME_UPDATE * 1000);
+        //         }
+        //         if ((x + 1) < gA.height && gA.map[x + 1][y][l] === undefined) {
+        //             setTimeout(() => {
+        //                 gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(typeId * 1000 + 8));
+        //             }, WATER_TIME_UPDATE * 1000);
+        //         }
+        //     }
+        // }
     },
 
     '9':
@@ -226,6 +270,7 @@ const items = {
         brightness: 0,
         isCollissed: true,
         isSolid: true,
+        hasGravity: true,
         texture: () => {
             return getTextureCoordinates(5, 0)
         }

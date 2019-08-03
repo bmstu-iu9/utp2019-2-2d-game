@@ -194,18 +194,25 @@ class GameArea{
         };
 
         this.updateBlock = (x, y, layout, player) => {
-            if (x < 0 || y < 0 || x >= this.width || y >= this.height) return; // проверка на выход из карты
-            if (this.map[x][y][layout] === undefined) return;
-            let block = items[this.map[x][y][layout]];
-            if (block === undefined) return;
+            if (x < 0 || x >= this.width
+                || y < 0 || y >= this.height
+                || this.map[x][y][layout] === undefined
+                || items[this.map[x][y][layout]] === undefined) {
+                    return;
+                }
+            const block = items[this.map[x][y][layout]];
 
             if (block.hasGravity) {
                 // Если нет блока снизу
-                if ((y - 1) >= 0 && items[this.map[x][y - 1][layout]] === undefined) {
-                    let block_id = this.map[x][y][layout];
-                    this.destroyBlock(x, y, layout);
-                    this.placeBlock(x, y - 1, layout, block_id);
+                if ((y - 1) >= 0 && this.map[x][y - 1][layout] === undefined) {
+                    const id = this.map[x][y][layout];
+                    this.map[x][y][layout] = undefined;  // Без пересчета света
+                    this.placeBlock(x, y - 1, layout, id);
                 }
+            }
+
+            if (block.update !== undefined) {
+                block.update(x, y, layout, this);
             }
 
             switch (block.type) {

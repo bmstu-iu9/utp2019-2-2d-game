@@ -206,8 +206,10 @@ class GameArea{
                 // Если нет блока снизу
                 if ((y - 1) >= 0 && this.map[x][y - 1][layout] === undefined) {
                     const id = this.map[x][y][layout];
-                    this.map[x][y][layout] = undefined;  // Без пересчета света
-                    this.placeBlock(x, y - 1, layout, id);
+                    setTimeout(() => {
+                        this.map[x][y][layout] = undefined;  // Без пересчета света
+                        this.placeBlock(x, y - 1, layout, id);
+                    }, GameArea.FALLING_BLOCKS * 1000);
                 }
             }
 
@@ -599,4 +601,5 @@ GameArea.BACK_LAYOUT = 4;
 
 // Константы поведения игрового пространства
 
-GameArea.GRAVITY = 100;         // Ускорение свободного падения
+GameArea.GRAVITY = 100;              // Ускорение свободного падения
+GameArea.FALLING_BLOCKS = 0.1;       // Время падения блока на 1 блок вниз

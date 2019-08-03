@@ -368,6 +368,7 @@ const items = {
         isBlock: true,
         brightness: 9,
         isCollissed: false,
+        isCanInteractThrow: true,
         isAlwaysGoodDestroy: true,
         isSolid: true,
         texture: () => {

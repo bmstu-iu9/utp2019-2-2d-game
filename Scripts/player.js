@@ -102,17 +102,21 @@ class Player {
 
         // Разместить блок из руки на (x, y, layout)
         this.place = (x, y, layout) => {
+            let isPlaced = false;
             if (this.hand.item && this.hand.info.isBlock
                     && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace)) {
-                gameArea.placeBlock(x, y, layout, this.hand.item);
+                isPlaced = gameArea.placeBlock(x, y, layout, this.hand.item);
 
-                // Уменьшение выносливости
-                player.updateSP(player.sp - this.hand.info.weight);
-                staminaNotUsed = false;
+                if (isPlaced) {
+                    // Уменьшение выносливости
+                    player.updateSP(player.sp - this.hand.info.weight);
+                    staminaNotUsed = false;
 
-                this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+                    this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+                }
             }
-        };
+            return isPlaced;
+        }
 
         // Если можно взаимодействовать - сделать это
         this.interact = (x, y, layout) => {

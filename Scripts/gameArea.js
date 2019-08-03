@@ -436,8 +436,8 @@ class GameArea{
 
         // Действие при установке блока
         this.placeBlock = (x, y, layout, id) => {
-            if(!this.exist(x, y)) return; // проверка на выход из карты
-            if(!this.map[x][y][layout] || (items[this.map[x][y][layout]] && !items[this.map[x][y][layout]].isSolid)) {
+            if(!this.exist(x, y)) return false; // проверка на выход из карты
+            if(!this.map[x][y][layout] || this.canPlaceInBlock(x, y, layout)) {
                 let lastBlock = this.map[x][y][layout];
                 this.gameAreaMapSet(x, y, layout, id);
                 if (layout === GameArea.FIRST_LAYOUT) {
@@ -451,7 +451,10 @@ class GameArea{
                 }
                 this.updateRadius(x, y, layout);
                 this.updateBlock(x, y, layout);
+
+                return true;
             }
+            return false;
         }
 
         // Функция взаимодействия с блоком

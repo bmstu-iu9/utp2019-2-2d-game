@@ -493,11 +493,12 @@ const mouseControl = () => {
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
 		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
    			// Установка блока
-		    player.place(targetX, targetY, layout);
-		    lastPlaceBlockTime = currentTime;
+		    if (player.place(targetX, targetY, layout)) {
+		    	lastPlaceBlockTime = currentTime;
 
-            // Анимация
-            player.setAnimation("body", "kick");
+	            // Анимация
+	            player.setAnimation("body", "kick");
+		    }
 		} else {
 			if (player.interact(targetX, targetY, layout)) {
 				lastPlaceBlockTime = currentTime;

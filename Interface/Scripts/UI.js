@@ -304,6 +304,7 @@ const initUI = () => {
         setOnClickListener(invButton, () => {
             if (inventoryOpened) {
                 UICloseInv();
+                if (craftOpened) UICloseCraft();
             } else {
                 UIOpenInv();
             }
@@ -349,6 +350,7 @@ const initUI = () => {
                 UICloseCraft();
             } else {
                 UIOpenCraft();
+                if (!inventoryOpened) UIOpenInv();
             }
         },
         () => {

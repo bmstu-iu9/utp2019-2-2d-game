@@ -90,7 +90,8 @@ const items = {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] !== undefined) {
+                // При генерации лежат числа, а игрок ставит строки
+                if (gA.map[x][y + 1][l] !== undefined && (gA.map[x][y][l] === 2 || gA.map[x][y][l] === '2')) {
                     gA.map[x][y][l] = undefined;
                     gA.placeBlock(x, y, l, 3);
                 }
@@ -119,7 +120,7 @@ const items = {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] === undefined) {
+                if (gA.map[x][y + 1][l] === undefined && (gA.map[x][y][l] === 3 || gA.map[x][y][l] === '3')) {
                     gA.map[x][y][l] = undefined;
                     gA.placeBlock(x, y, l, 2);
                 }

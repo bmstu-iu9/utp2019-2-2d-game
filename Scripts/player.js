@@ -101,7 +101,7 @@ class Player {
         };
 
         // Разместить блок из руки на (x, y, layout)
-        this.place = (x, y, layout) => {
+        this.place = (x, y, layout) => {console.log(this.hand.item === '3')
             let isPlaced = false;
             if (this.hand.item && this.hand.info.isBlock
                     && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace,

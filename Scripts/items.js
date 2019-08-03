@@ -14,7 +14,7 @@ const DIAMOND_DURABILITY = 300;
 const textureSize = 512;
 const itemSize = 32;
 let _textureItems;
-const GRASS_TIME_UPDATE = 5;
+const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с верхним концом [сек]
 const WATER_TIME_UPDATE = 0.2;
 
 
@@ -86,16 +86,18 @@ const items = {
             return getTextureCoordinates(1, 0)
         },
         update: (x, y, l, gA) => {
+            if (gA.map[x][y + 1][l] === undefined) {
+                return;
+            }
             setTimeout(() => {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                // При генерации лежат числа, а игрок ставит строки
-                if (gA.map[x][y + 1][l] !== undefined && (gA.map[x][y][l] === 2 || gA.map[x][y][l] === '2')) {
+                if (gA.map[x][y + 1][l] !== undefined && gA.map[x][y][l] === 2) {
                     gA.map[x][y][l] = undefined;
                     gA.placeBlock(x, y, l, 3);
                 }
-            }, GRASS_TIME_UPDATE * 1000);
+            }, GRASS_TIME_UPDATE * Math.random() * 1000);
         }
     },
 
@@ -116,15 +118,18 @@ const items = {
             return getTextureCoordinates(2, 0)
         },
         update: (x, y, l, gA) => {
+            if (gA.map[x][y + 1][l] !== undefined) {
+                return;
+            }
             setTimeout(() => {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] === undefined && (gA.map[x][y][l] === 3 || gA.map[x][y][l] === '3')) {
+                if (gA.map[x][y + 1][l] === undefined && gA.map[x][y][l] === 3) {
                     gA.map[x][y][l] = undefined;
                     gA.placeBlock(x, y, l, 2);
                 }
-            }, GRASS_TIME_UPDATE * 1000);
+            }, GRASS_TIME_UPDATE * Math.random() * 1000);
         }
     },
 

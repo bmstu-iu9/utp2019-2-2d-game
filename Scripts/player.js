@@ -101,12 +101,12 @@ class Player {
         };
 
         // Разместить блок из руки на (x, y, layout)
-        this.place = (x, y, layout) => {console.log(this.hand.item === '3')
+        this.place = (x, y, layout) => {
             let isPlaced = false;
             if (this.hand.item && this.hand.info.isBlock
                     && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace,
                                                         !items[this.hand.item].isCollissed)) {
-                isPlaced = gameArea.placeBlock(x, y, layout, this.hand.item);
+                isPlaced = gameArea.placeBlock(x, y, layout, +this.hand.item);
 
                 if (isPlaced) {
                     // Уменьшение выносливости

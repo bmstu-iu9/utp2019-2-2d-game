@@ -272,6 +272,51 @@ const initUI = () => {
             UIMap.fastInv[i] = slot;
             fastInvPanel.add(slot);
         }
+
+        let invButton = new Sprite([ [0.375 + 0.125, 0.501], [0.4385 + 0.125, 0.5635] ],
+                {
+                    pa: {
+                        x: 9 / 24,
+                        y: 0
+                    },
+                    pb: {
+                        x: 10 / 24,
+                        y: undefined
+                    }
+                },
+                {
+                    pa: {
+                        x: 0,
+                        y: 20
+                    },
+                    pb: {
+                        x: 0,
+                        y: 20
+                    }
+                },
+                {
+                    selected: [ [0.375 + 0.125, 0.501 + 0.0625], [0.4385 + 0.125, 0.5635 + 0.0625] ],
+                    notSelected: [ [0.375 + 0.125, 0.501], [0.4385 + 0.125, 0.5635] ]
+                });
+        invButton.recountRect = (rect, indent, parent, image) => {
+            rect.pb.y = (rect.pb.x - rect.pa.x) * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+        }
+        setOnClickListener(invButton, () => {
+            if (inventoryOpened) {
+                UICloseInv();
+            } else {
+                UIOpenInv();
+            }
+        },
+        () => {
+            invButton.image = invButton.props.selected;
+        },
+        () => {
+            invButton.image = invButton.props.notSelected;
+        });
+        UIMap.invButton = invButton;
+        screenUI.add(invButton);
+
         UIMap.activeSlot = new Sprite([ [0.25, 0], [0.5, 0.25] ],
             {
                 pa: {
@@ -553,12 +598,15 @@ const drawUI = () => {
             if (invPanel.props.animationState < 1) {
                 invPanel.props.animationState = Math.min(invPanel.props.animationState + animationSpeed * deltaTime, 1);
                 needUIRedraw = true;
+            } else {
+                UIMap.invButton.image = UIMap.invButton.props.selected;
             }
         } else { 
             if (invPanel.props.animationState > 0) {
                 invPanel.props.animationState = Math.max(invPanel.props.animationState - animationSpeed * deltaTime, 0);
             } else {
                 screenUI.deleteChild(UIMap.invPanel.id);
+                UIMap.invButton.image = UIMap.invButton.props.notSelected;
                 UIMap.invPanel = undefined;
                 needUIRedraw = true;
             }
@@ -942,6 +990,7 @@ const UIOpenInv = () => {
     inventoryOpened = true;
     if (UIMap.invPanel) screenUI.deleteChild(UIMap.invPanel.id);
     // Инвентарь
+    let invButton = UIMap.invButton;
     let invPanel = new Sprite(
         [ [0, 0.51], [0.125, 0.615] ],
         {
@@ -976,17 +1025,37 @@ const UIOpenInv = () => {
                         x: 1 / 3,
                         y: 1
                     }
+                },
+                indent: {
+                    pa: {
+                        x: 20,
+                        y: 40
+                    },
+                    pb: {
+                        x: 0,
+                        y: -20
+                    }
                 }
             },
             closed: {
                 rect: {
                     pa: {
-                        x: 0,
-                        y: 0.5
+                        x: invButton.rect.pb.x,
+                        y: invButton.rect.pa.y
                     },
                     pb: {
-                        x: 0,
-                        y: 0.5
+                        x: invButton.rect.pb.x,
+                        y: invButton.rect.pa.y
+                    }
+                },
+                indent: {
+                    pa: {
+                        x: invButton.indent.pa.x,
+                        y: invButton.indent.pa.y
+                    },
+                    pb: {
+                        x: invButton.indent.pb.x,
+                        y: invButton.indent.pb.y
                     }
                 }
             }
@@ -1002,6 +1071,15 @@ const UIOpenInv = () => {
         rect.pb = {
             x: props.closed.rect.pb.x + props.animationState * (props.opened.rect.pb.x - props.closed.rect.pb.x),
             y: props.closed.rect.pb.y + props.animationState * (props.opened.rect.pb.y - props.closed.rect.pb.y)
+        }
+
+        indent.pa = {
+            x: props.closed.indent.pa.x + props.animationState * (props.opened.indent.pa.x - props.closed.indent.pa.x),
+            y: props.closed.indent.pa.y + props.animationState * (props.opened.indent.pa.y - props.closed.indent.pa.y)
+        }
+        indent.pb = {
+            x: props.closed.indent.pb.x + props.animationState * (props.opened.indent.pb.x - props.closed.indent.pb.x),
+            y: props.closed.indent.pb.y + props.animationState * (props.opened.indent.pb.y - props.closed.indent.pb.y)
         }
     }
     UIMap.invPanel = invPanel;

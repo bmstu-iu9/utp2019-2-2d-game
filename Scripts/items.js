@@ -384,16 +384,12 @@ const items = {
                     && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.get(x + 1, y, layout) !== undefined
-                    && (gameArea.map[x + 1][y][layout] === 61
+            return (gameArea.map[x + 1][y][layout] === 61
                         || gameArea.map[x + 1][y][layout] === 60
-                        || (items[gameArea.map[x + 1][y][layout]].isSolid
-                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
-                || (gameArea.get(x - 1, y, layout) !== undefined
-                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.canAttach(x + 1, y, layout))
+                || (gameArea.map[x - 1][y][layout] === 61
                         || gameArea.map[x - 1][y][layout] === 60
-                        || (items[gameArea.map[x - 1][y][layout]].isSolid
-                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+                        || gameArea.canAttach(x - 1, y, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
@@ -431,16 +427,12 @@ const items = {
                     && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.get(x + 1, y, layout) !== undefined
-                    && (gameArea.map[x + 1][y][layout] === 61
+            return (gameArea.map[x + 1][y][layout] === 61
                         || gameArea.map[x + 1][y][layout] === 60
-                        || (items[gameArea.map[x + 1][y][layout]].isSolid
-                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
-                || (gameArea.get(x - 1, y, layout) !== undefined
-                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.canAttach(x + 1, y, layout))
+                || (gameArea.map[x - 1][y][layout] === 61
                         || gameArea.map[x - 1][y][layout] === 60
-                        || (items[gameArea.map[x - 1][y][layout]].isSolid
-                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+                        || gameArea.canAttach(x - 1, y, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
@@ -474,11 +466,9 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
-                    && (gameArea.map[x][y - 1][layout] === 63
-                        || gameArea.map[x][y - 1][layout] === 62
-                        || (items[gameArea.map[x][y - 1][layout]].isSolid
-                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+            return (gameArea.map[x][y - 1][layout] === 61
+                        || gameArea.map[x][y - 1][layout] === 60
+                        || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
@@ -517,11 +507,9 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
-                    && (gameArea.map[x][y - 1][layout] === 63
-                        || gameArea.map[x][y - 1][layout] === 62
-                        || (items[gameArea.map[x][y - 1][layout]].isSolid
-                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+            return (gameArea.map[x][y - 1][layout] === 61
+                        || gameArea.map[x][y - 1][layout] === 60
+                        || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {

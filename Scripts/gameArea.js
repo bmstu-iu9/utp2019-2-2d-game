@@ -394,18 +394,19 @@ class GameArea{
         this.canAttach = (x, y, layout) => {
             return this.exist(x, y)
                     && this.map[x][y][layout] !== undefined
-                    && this.map[x][y][layout].type !== "water";
+                    && items[this.map[x][y][layout]].type !== "water"
+                    && items[this.map[x][y][layout]].isCollissed;
         }
 
         //  Замещая этот блок можно поставить другой блок
         this.canPlaceInBlock = (x, y, layout) => {
             return this.exist(x, y)
                     && (this.map[x][y][layout] === undefined
-                        || this.map[x][y][layout].type === "water"); 
+                        || items[this.map[x][y][layout]].type === "water"); 
         }
 
         // Можно ставить блок на (x, y, layout)
-        this.canPlace = (x, y, layout) => {
+        this.canPlace = (x, y, layout, checkFunc) => {
             let startX = Math.floor(player.x - Player.WIDTH / 2);
             let endX = Math.floor(player.x + Player.WIDTH / 2);
             let startY = Math.floor(player.y);
@@ -413,10 +414,12 @@ class GameArea{
             return this.canPlaceInBlock(x, y, layout)
                     && (player.layout !== layout
                         || !(x >= startX && x <= endX && y >= startY && y <= endY)) // Площадь игрока
-                    && (this.canAttach(x + 1, y, layout)
-                        || this.canAttach(x - 1, y, layout)
-                        || this.canAttach(x, y + 1, layout)
-                        || this.canAttach(x, y - 1, layout));
+                    && (checkFunc && checkFunc(x, y, layout)
+                        || !checkFunc
+                            && (this.canAttach(x + 1, y, layout)
+                                || this.canAttach(x - 1, y, layout)
+                                || this.canAttach(x, y + 1, layout)
+                                || this.canAttach(x, y - 1, layout)));
         }
 
         // Можно ли ломать блок на (x, y, layout)

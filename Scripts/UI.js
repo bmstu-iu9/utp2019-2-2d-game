@@ -598,8 +598,6 @@ const drawUI = () => {
             if (invPanel.props.animationState < 1) {
                 invPanel.props.animationState = Math.min(invPanel.props.animationState + animationSpeed * deltaTime, 1);
                 needUIRedraw = true;
-            } else {
-                UIMap.invButton.image = UIMap.invButton.props.selected;
             }
         } else { 
             if (invPanel.props.animationState > 0) {
@@ -987,6 +985,7 @@ const createText = (word) => {
 
 const UIOpenInv = () => {
     if (inventoryOpened) return;
+    UIMap.invButton.image = UIMap.invButton.props.selected;
     inventoryOpened = true;
     if (UIMap.invPanel) screenUI.deleteChild(UIMap.invPanel.id);
     // Инвентарь

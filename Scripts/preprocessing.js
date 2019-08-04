@@ -176,14 +176,6 @@ const preprocessing = () => {
 							? 0 : (j >= gameArea.height
 								? gameArea.height - 1 : j))));
 			}
-			for (let i = 0; i < chunkWidth - 2; i++) {
-				arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-			}
-		}
-		for (let i = 0; i < chunkWidth * 2; i++) {
-			for (let j = 0; j < chunkHeight - 2; j++) {
-				arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-			}
 		}
 
 		render.drawChunk(xLocate, yLocate,
@@ -257,8 +249,8 @@ const preprocessing = () => {
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 		const lightOfPlayer = player.getLight(); // освещённость игрока
 		const dynamicLight = [9, player.light]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение (от 0 до 1)
-		render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
-			player.direction, dynamicLight);
+		render.render(cameraX, cameraY, player.x, player.y, cameraScale, oldTime, deltaTime, lightOfDay, lightOfPlayer,
+			slicePlayer, player.direction, dynamicLight);
 		
 		drawUI();
 		render.drawObjects(_textureUI, _renderingUIArr);

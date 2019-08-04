@@ -533,6 +533,11 @@ class GameArea{
             }
 
             this.map[x][y][layout] = id;
+			
+			// обновляем карту высот для погоды
+			if (layout == GameArea.FIRST_LAYOUT) {
+				elevationUpdate(x, y);
+			}
         }
 
         // Отслеживание изменений света

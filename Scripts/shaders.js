@@ -174,3 +174,39 @@ _fragmentShader[4] = `
 			? texture2D(u_texture0, v_texCoord) : texture2D(u_texture1, v_texCoord);
 		gl_FragColor = tex;
 	}`;
+
+// шейдеры для дождя
+_vertexShader[5] = `
+	attribute float a_id;
+	
+	uniform vec2 u_translate;
+	uniform vec2 u_resolution;
+	uniform float u_number;
+	uniform float u_time;
+	
+	float hash(float i) {
+		vec2 p = fract(vec2(i * 5.3983, i * 5.4427));
+		p += dot(p.yx, p.xy + vec2(21.5351, 14.3137));
+		return fract(p.x * p.y * 95.4337);
+	}
+	
+	void main() {
+		float delta = a_id / u_number;
+		float offset = floor(u_time + delta) / 1000.0;
+		float x = (hash(offset + delta) * u_resolution.x + u_translate.x) * 2.0 ;
+		float y = fract(u_time + hash(delta)) * -2.0 + 1.0;
+		if (y >= u_translate.y) {
+			gl_Position = vec4(x, y, 0.0, 1.0);
+			gl_PointSize = 2.0;
+		} else if (u_translate.y - y < u_resolution.y * 64.0) {
+			gl_Position = vec4(x, u_translate.y, 0.0, 1.0);
+			gl_PointSize = 2.0;
+		}
+	}`;
+
+_fragmentShader[5] = `
+	precision mediump float;
+	
+	void main() {
+		gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+	}`;

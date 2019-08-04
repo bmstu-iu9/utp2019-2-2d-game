@@ -632,7 +632,6 @@ const drawUI = () => {
         let index = (Math.sign(activeSlot.props.animationTargetX - step) !== direction)
                 ? activeSlot.props.animationTargetX : step;
 
-        console.log(direction + " " + step + " " + index)
         activeSlot.props.animationCurrentX  = index;
         activeSlot.rect.pa.x = index / 8;
         activeSlot.rect.pb.x = (index + 1) / 8;

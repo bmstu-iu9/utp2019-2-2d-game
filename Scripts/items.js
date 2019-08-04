@@ -14,7 +14,7 @@ const DIAMOND_DURABILITY = 300;
 const textureSize = 512;
 const itemSize = 32;
 let _textureItems;
-const GRASS_TIME_UPDATE = 5;
+const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с верхним концом [сек]
 const WATER_TIME_UPDATE = 0.2;
 
 
@@ -38,6 +38,55 @@ const createItem = (id, count) => {
             }
         }
     }
+}
+
+
+// Never used
+const isWater = (id) => {
+    return (id >= 9000 && id <= 9016) || id === 8;
+}
+const firstLowerFullWater = (currentId, targetId) => {
+    if (currentId === 8) {
+        return false;
+    }
+    if (!isWater(currentId)) {
+        return true;
+    }
+    return ((currentId - 9000) % 8 > (targetId - 9000) % 8)
+        || (targetId === 9016 && currentId !== 9016);
+}
+const needPlaceWater = (targetId, id) => {
+    return targetId === undefined;
+}
+
+
+const fallingWaterUpdate = (x, y, l, gA, id) => {
+    setTimeout(() => {
+        if ((y + 1) < gA.height && firstLowerFullWater(gA.map[x][y + 1][l], id)
+            && (x - 1) >= 0 && firstLowerFullWater(gA.map[x - 1][y][l], id)
+            && (x + 1) < gA.width && firstLowerFullWater(gA.map[x + 1][y][l], id)) {
+    
+            gA.placeBlock(x, y, l, undefined);
+            return;
+        }
+        if ((y - 1) >= 0 && gA.map[x][y - 1][l] === 9016) {
+            return;
+        }
+
+        if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
+            // 16 - вода стоит
+            gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
+        } else {
+            if ((x - 1) >= 0 && id !== 9007 && needPlaceWater(gA.map[x - 1][y][l], id)) {
+                // 0 ... 7 - вода течет влево (0 - макс наполнена)
+                gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(id + 1));
+            }
+            if ((x + 1) < gA.height && id !== 9015 && needPlaceWater(gA.map[x + 1][y][l], id)) {
+                // 8 ... 15 - вода течет вправо (8 - макс наполнена)
+                gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(id + 1));
+            }
+        }
+    }, WATER_TIME_UPDATE * 1000);
 }
 
 
@@ -78,7 +127,7 @@ const items = {
         isAlwaysGoodDestroy: true,
         dropId: '3',
         weight: WEIGHT_OF_BLOCKS,
-        durability: 1.5,
+        durability: 0.01,
         brightness: 0,
         isCollissed: true,
         isSolid: true,
@@ -86,15 +135,18 @@ const items = {
             return getTextureCoordinates(1, 0)
         },
         update: (x, y, l, gA) => {
+            if (gA.map[x][y + 1][l] === undefined) {
+                return;
+            }
             setTimeout(() => {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] !== undefined) {
+                if (gA.map[x][y + 1][l] !== undefined && gA.map[x][y][l] === 2) {
                     gA.map[x][y][l] = undefined;
                     gA.placeBlock(x, y, l, 3);
                 }
-            }, GRASS_TIME_UPDATE * 1000);
+            }, GRASS_TIME_UPDATE * Math.random() * 1000);
         }
     },
 
@@ -107,7 +159,7 @@ const items = {
         isAlwaysGoodDestroy: true,
         dropId: '3',
         weight: WEIGHT_OF_BLOCKS,
-        durability: 1.5,
+        durability: 0.01,//1.5
         brightness: 0,
         isCollissed: true,
         isSolid: true,
@@ -115,15 +167,18 @@ const items = {
             return getTextureCoordinates(2, 0)
         },
         update: (x, y, l, gA) => {
+            if (gA.map[x][y + 1][l] !== undefined) {
+                return;
+            }
             setTimeout(() => {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] === undefined) {
+                if (gA.map[x][y + 1][l] === undefined && gA.map[x][y][l] === 3) {
                     gA.map[x][y][l] = undefined;
                     gA.placeBlock(x, y, l, 2);
                 }
-            }, GRASS_TIME_UPDATE * 1000);
+            }, GRASS_TIME_UPDATE * Math.random() * 1000);
         }
     },
 
@@ -192,29 +247,36 @@ const items = {
         brightness: 6,
         isCollissed: false,
         isCanInteractThrow: true,
-        hasGravity: true,
+        hasGravity: false,
         density: 0.5,
         isNaturalLight: true,
-        // TODO : Проблема с нумерацией id текучей воды
-        // update: (x, y, l, gA) => {
-        //     const typeId = +this.id + 1;
-        //     if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
-        //         setTimeout(() => {
-        //             gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(typeId * 1000 + 16));
-        //         }, WATER_TIME_UPDATE * 1000);
-        //     } else {
-        //         if ((x - 1) >= 0 && gA.map[x - 1][y][l] === undefined) {
-        //             setTimeout(() => {
-        //                 gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(typeId * 1000));
-        //             }, WATER_TIME_UPDATE * 1000);
-        //         }
-        //         if ((x + 1) < gA.height && gA.map[x + 1][y][l] === undefined) {
-        //             setTimeout(() => {
-        //                 gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(typeId * 1000 + 8));
-        //             }, WATER_TIME_UPDATE * 1000);
-        //         }
-        //     }
-        // }
+        update: (x, y, l, gA, id = 8) => {
+            setTimeout(() => {
+                if (id === 9016
+                    && (y + 1) < gA.height && !isWater(gA.map[x][y + 1][l])) {
+            
+                    gA.placeBlock(x, y, l, undefined);
+                    return;
+                }
+                if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
+                    return;
+                }
+
+                if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
+                    // 16 - вода стоит
+                    gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
+                } else {
+                    if ((x - 1) >= 0 && needPlaceWater(gA.map[x + 1][y][l], id)) {
+                        // 0 ... 7 - вода течет влево (0 - макс наполнена)
+                        gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(9000));
+                    }
+                    if ((x + 1) < gA.height && needPlaceWater(gA.map[x + 1][y][l], id)) {
+                        // 8 ... 16 - вода течет вправо (8 - макс наполнена)
+                        gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(9000 + 8));
+                    }
+                }
+            }, WATER_TIME_UPDATE * 1000);
+        }
     },
 
     '9':
@@ -831,8 +893,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-0'
+        name: 'flowing-water-0',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9000);
+        }
     },
 
     '9001':
@@ -842,8 +908,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-1'
+        name: 'flowing-water-1',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9001);
+        }
     },
 
     '9002':
@@ -853,8 +923,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-2'
+        name: 'flowing-water-2',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9002);
+        }
     },
 
     '9003':
@@ -864,8 +938,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-3'
+        name: 'flowing-water-3',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9003);
+        }
     },
 
     '9004':
@@ -875,8 +953,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-4'
+        name: 'flowing-water-4',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9004);
+        }
     },
 
     '9005':
@@ -886,8 +968,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-5'
+        name: 'flowing-water-5',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9005);
+        }
     },
 
     '9006':
@@ -897,8 +983,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-6'
+        name: 'flowing-water-6',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9006);
+        }
     },
 
     '9007':
@@ -908,8 +998,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-7'
+        name: 'flowing-water-7',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9007);
+        }
     },
 
     '9008':
@@ -919,8 +1013,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-8'
+        name: 'flowing-water-8',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9008);
+        }
     },
 
     '9009':
@@ -930,8 +1028,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-9'
+        name: 'flowing-water-9',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9009);
+        }
     },
 
     '9010':
@@ -941,8 +1043,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-10'
+        name: 'flowing-water-10',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9010);
+        }
     },
 
     '9011':
@@ -952,8 +1058,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-11'
+        name: 'flowing-water-11',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9011);
+        }
     },
 
     '9012':
@@ -963,8 +1073,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-12'
+        name: 'flowing-water-12',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9012);
+        }
     },
 
     '9013':
@@ -974,8 +1088,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-13'
+        name: 'flowing-water-13',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9013);
+        }
     },
 
     '9014':
@@ -985,8 +1103,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-14'
+        name: 'flowing-water-14',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9014);
+        }
     },
 
     '9015':
@@ -996,8 +1118,12 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-15'
+        name: 'flowing-water-15',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9015);
+        }
     },
 
     '9016':
@@ -1007,84 +1133,89 @@ const items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-16'
-    },
-
-    '9017':
-    {
-        id: '9017',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-17'
-    },
-
-    '9018':
-    {
-        id: '9018',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-18'
-    },
-
-    '9019':
-    {
-        id: '9019',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-19'
-    },
-
-    '9020':
-    {
-        id: '9020',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-20'
-    },
-
-    '9021':
-    {
-        id: '9021',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-21'
-    },
-
-    '9022':
-    {
-        id: '9022',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-22'
-    },
-
-    '9023':
-    {
-        id: '9023',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-23'
+        name: 'flowing-water-16',
+        update: (x, y, l, gA) => {
+            items['8'].update(x, y, l, gA, 9016);
+        }
     }
+
+    // TODO : вояснить необходимость
+    // '9017':
+    // {
+    //     id: '9017',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-17'
+    // },
+
+    // '9018':
+    // {
+    //     id: '9018',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-18'
+    // },
+
+    // '9019':
+    // {
+    //     id: '9019',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-19'
+    // },
+
+    // '9020':
+    // {
+    //     id: '9020',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-20'
+    // },
+
+    // '9021':
+    // {
+    //     id: '9021',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-21'
+    // },
+
+    // '9022':
+    // {
+    //     id: '9022',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-22'
+    // },
+
+    // '9023':
+    // {
+    //     id: '9023',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-23'
+    // }
 }

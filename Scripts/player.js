@@ -66,7 +66,7 @@ class Player {
         this.hand = {
             "item" : undefined,
             "info" : undefined,
-            "index" : 0
+            "index" : 8
         }
         
         // Скорость игрока
@@ -106,7 +106,7 @@ class Player {
             if (this.hand.item && this.hand.info.isBlock
                     && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace,
                                                         !items[this.hand.item].isCollissed)) {
-                isPlaced = gameArea.placeBlock(x, y, layout, this.hand.item);
+                isPlaced = gameArea.placeBlock(x, y, layout, +this.hand.item);
 
                 if (isPlaced) {
                     // Уменьшение выносливости

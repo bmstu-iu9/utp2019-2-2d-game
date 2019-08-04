@@ -41,11 +41,36 @@ const createItem = (id, count) => {
 }
 
 
+const isWater = (id) => {
+    return (id >= 9000 && id <= 9016) || id === 8;
+}
+
+
+const firstLowerFullWater = (currentId, targetId) => {
+    if (currentId === 8) {
+        return false;
+    }
+    if (!isWater(currentId)) {
+        return true;
+    }
+    return ((currentId - 9000) % 8 > (targetId - 9000) % 8)
+        || (targetId === 9016 && currentId !== 9016);
+}
+
+
 const fallingWaterUpdate = (x, y, l, gA, id) => {
     setTimeout(() => {
+        if ((y + 1) < gA.height && firstLowerFullWater(gA.map[x][y + 1][l], id)
+            && (x - 1) >= 0 && firstLowerFullWater(gA.map[x - 1][y][l], id)
+            && (x + 1) < gA.width && firstLowerFullWater(gA.map[x + 1][y][l], id)) {
+    
+            gA.placeBlock(x, y, l, undefined);
+            return;
+        }
         if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
             return;
         }
+
         if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
             // 16 - вода стоит
             gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
@@ -100,7 +125,7 @@ const items = {
         isAlwaysGoodDestroy: true,
         dropId: '3',
         weight: WEIGHT_OF_BLOCKS,
-        durability: 1.5,
+        durability: 0.01,
         brightness: 0,
         isCollissed: true,
         isSolid: true,
@@ -132,7 +157,7 @@ const items = {
         isAlwaysGoodDestroy: true,
         dropId: '3',
         weight: WEIGHT_OF_BLOCKS,
-        durability: 1.5,
+        durability: 0.01,//1.5
         brightness: 0,
         isCollissed: true,
         isSolid: true,
@@ -225,9 +250,16 @@ const items = {
         isNaturalLight: true,
         update: (x, y, l, gA) => {
             setTimeout(() => {
+                if (gA.map[x][y][l] === 9016
+                    && (y + 1) < gA.height && !isWater(gA.map[x][y + 1][l])) {
+            
+                    gA.placeBlock(x, y, l, undefined);
+                    return;
+                }
                 if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
                     return;
                 }
+
                 if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
                     // 16 - вода стоит
                     gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
@@ -1088,24 +1120,7 @@ const items = {
         isNaturalLight: true,
         name: 'flowing-water-16',
         update: (x, y, l, gA) => {
-            setTimeout(() => {
-                if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
-                    return;
-                }
-                if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
-                    // 16 - вода стоит
-                    gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
-                } else {
-                    if ((x - 1) >= 0 && gA.map[x - 1][y][l] === undefined) {
-                        // 0 ... 7 - вода течет влево (0 - макс наполнена)
-                        gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(9000));
-                    }
-                    if ((x + 1) < gA.height && gA.map[x + 1][y][l] === undefined) {
-                        // 8 ... 16 - вода течет вправо (8 - макс наполнена)
-                        gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(9000 + 8));
-                    }
-                }
-            }, WATER_TIME_UPDATE * 1000);
+            items['8'].update(x, y, l, gA);
         }
     }
 

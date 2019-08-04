@@ -41,11 +41,10 @@ const createItem = (id, count) => {
 }
 
 
+// Never used
 const isWater = (id) => {
     return (id >= 9000 && id <= 9016) || id === 8;
 }
-
-
 const firstLowerFullWater = (currentId, targetId) => {
     if (currentId === 8) {
         return false;
@@ -55,6 +54,9 @@ const firstLowerFullWater = (currentId, targetId) => {
     }
     return ((currentId - 9000) % 8 > (targetId - 9000) % 8)
         || (targetId === 9016 && currentId !== 9016);
+}
+const needPlaceWater = (targetId, id) => {
+    return targetId === undefined;
 }
 
 
@@ -67,19 +69,19 @@ const fallingWaterUpdate = (x, y, l, gA, id) => {
             gA.placeBlock(x, y, l, undefined);
             return;
         }
-        if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
+        if ((y - 1) >= 0 && gA.map[x][y - 1][l] === 9016) {
             return;
         }
 
-        if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
+        if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
             // 16 - вода стоит
             gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
         } else {
-            if ((x - 1) >= 0 && gA.map[x - 1][y][l] === undefined && id !== 9007) {
+            if ((x - 1) >= 0 && id !== 9007 && needPlaceWater(gA.map[x - 1][y][l], id)) {
                 // 0 ... 7 - вода течет влево (0 - макс наполнена)
                 gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(id + 1));
             }
-            if ((x + 1) < gA.height && gA.map[x + 1][y][l] === undefined && id !== 9015) {
+            if ((x + 1) < gA.height && id !== 9015 && needPlaceWater(gA.map[x + 1][y][l], id)) {
                 // 8 ... 15 - вода течет вправо (8 - макс наполнена)
                 gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(id + 1));
             }
@@ -248,9 +250,9 @@ const items = {
         hasGravity: false,
         density: 0.5,
         isNaturalLight: true,
-        update: (x, y, l, gA) => {
+        update: (x, y, l, gA, id = 8) => {
             setTimeout(() => {
-                if (gA.map[x][y][l] === 9016
+                if (id === 9016
                     && (y + 1) < gA.height && !isWater(gA.map[x][y + 1][l])) {
             
                     gA.placeBlock(x, y, l, undefined);
@@ -260,15 +262,15 @@ const items = {
                     return;
                 }
 
-                if ((y - 1) >= 0 && gA.map[x][y - 1][l] === undefined) {
+                if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
                     // 16 - вода стоит
                     gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
                 } else {
-                    if ((x - 1) >= 0 && gA.map[x - 1][y][l] === undefined) {
+                    if ((x - 1) >= 0 && needPlaceWater(gA.map[x + 1][y][l], id)) {
                         // 0 ... 7 - вода течет влево (0 - макс наполнена)
                         gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(9000));
                     }
-                    if ((x + 1) < gA.height && gA.map[x + 1][y][l] === undefined) {
+                    if ((x + 1) < gA.height && needPlaceWater(gA.map[x + 1][y][l], id)) {
                         // 8 ... 16 - вода течет вправо (8 - макс наполнена)
                         gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(9000 + 8));
                     }
@@ -1120,7 +1122,7 @@ const items = {
         isNaturalLight: true,
         name: 'flowing-water-16',
         update: (x, y, l, gA) => {
-            items['8'].update(x, y, l, gA);
+            items['8'].update(x, y, l, gA, 9016);
         }
     }
 

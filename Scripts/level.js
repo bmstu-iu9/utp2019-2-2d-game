@@ -234,6 +234,7 @@ const playerMovement = () => {
 	// Урон от удушья 
 	if (gameArea.map[headX][headY][player.layout]
 		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
+			|| items[gameArea.map[headX][headY][player.layout]].type == "flowingWater"
 			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {

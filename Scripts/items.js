@@ -390,6 +390,21 @@ const items = {
         weight: WEIGHT_OF_BLOCKS
     },
 
+    '21':
+    {
+        id: '21',
+        name: 'Stone bricks',
+        type: 'stone',
+        isBlock: true,
+        isCollissed: true,
+        durability: 9,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(13, 0)
+        }
+    },
+
     '56':
     {
         id: '56',

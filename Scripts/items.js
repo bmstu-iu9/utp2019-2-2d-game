@@ -266,7 +266,7 @@ const items = {
                     // 16 - вода стоит
                     gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
                 } else {
-                    if ((x - 1) >= 0 && needPlaceWater(gA.map[x + 1][y][l], id)) {
+                    if ((x - 1) >= 0 && needPlaceWater(gA.map[x - 1][y][l], id)) {
                         // 0 ... 7 - вода течет влево (0 - макс наполнена)
                         gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(9000));
                     }

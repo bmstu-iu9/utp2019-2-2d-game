@@ -2,6 +2,7 @@
 
 let _elevationMap = [];
 
+// подсчёт карты высот для всего мира
 const elevationCalculate = () => {
 	for (let i = 0; i < gameArea.width; i++) {
 		for (let j = gameArea.height - 1; j >= 0; j--) {
@@ -13,6 +14,7 @@ const elevationCalculate = () => {
 	}
 }
 
+// обновление карты высот только при установке/удалении блока
 const elevationUpdate = (x, y) => {
 	if (y >= _elevationMap[x]) {
 		for (let j = y; j >= 0; j--) {

@@ -837,7 +837,7 @@ class Render {
 			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 		this.gl.uniform1f(this.uniform[2].u_resolution, this.gl.canvas.height);
 		let ls = 0.65;
-		if (slicePlayer == 2) {
+		if (slicePlayer === 2) {
 			ls = 0.75;
 		}
 		for (let c in this.arrayOfChunks) {
@@ -858,7 +858,7 @@ class Render {
 		}
 		this.gl.useProgram(this.program[0]);
 		
-		if (slicePlayer == 2) {			
+		if (slicePlayer === 2) {			
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
 			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
@@ -919,7 +919,7 @@ class Render {
 		}
 		this.gl.useProgram(this.program[0]);
 		
-		if (slicePlayer == 1) {
+		if (slicePlayer === 1) {
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
 			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
@@ -960,31 +960,23 @@ class Render {
 			
 			this.gl.uniform1f(this.uniform[5].u_time, time * this.speedRain * 0.0001);
 			this.gl.uniform2f(this.uniform[5].u_resolution, w, h);
-			 // TODO: Переделать под ANGLE_instanced_arrays
-			if (num == 1) {
-				const t = Math.ceil(Math.log(1 / raw) / Math.log(2));
-				for (let i = 0; i < xh; i += t) {
-					const yt = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-					this.gl.uniform2f(this.uniform[5].u_translate, (xt - i) * w, Math.max(yt, this.weather[2]) * h);
-					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
-					
-					const yt2 = (this.elevationMap[Math.floor(xc + i + t)] + 1 - yc) * this.size;
-					this.gl.uniform2f(this.uniform[5].u_translate, Math.floor(xt + i + t) * w, 
-						Math.max(yt2, this.weather[2]) * h);
-					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
-				}
-			} else {
-				for (let i = 0; i < xh; i++) {
-					const yt = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-					this.gl.uniform2f(this.uniform[5].u_translate, (xt - i) * w, Math.max(yt, this.weather[2]) * h);
-					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
-					
-					const yt2 = (this.elevationMap[Math.floor(xc + i + 1)] + 1 - yc) * this.size;
-					this.gl.uniform2f(this.uniform[5].u_translate, (xt + i + 1) * w,
-						Math.max(yt2, this.weather[2]) * h);
-					this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
-				}
+			
+			// TODO: Переделать под ANGLE_instanced_arrays
+			// отрисовка дождя
+			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1;
+			for (let i = 0; i < xh; i += d) {
+				// левая половина экрана
+				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
+				this.gl.uniform2f(this.uniform[5].u_translate, (xt - i) * w, Math.max(yt0, this.weather[2]) * h);
+				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
+				
+				// правая половина экрана
+				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
+				this.gl.uniform2f(this.uniform[5].u_translate, Math.floor(xt + i + d) * w, 
+					Math.max(yt1, this.weather[2]) * h);
+				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
 			}
+			
 			this.weather[2] -= deltaTime * this.speedRain * 92;
 			if (this.rain) {
 				this.weather[3] = Math.min(this.weather[3] + deltaTime * this.speedRain / 6, this.size);

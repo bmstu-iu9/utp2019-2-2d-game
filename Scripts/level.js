@@ -68,7 +68,6 @@ const beginPlay = () => {
 	
 	// player.addToInv(items[8]);
 	cameraSet(player.x, player.y);
-	// cheat.tp(512, 868);
 	
 	elevationCalculate(); // расчитывает карту высот для погоды
 	
@@ -98,6 +97,7 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 const onStart = () => {
 
 	initUI();
+	__cheat_apply();
 }
 
 // Вызывается каждый кадр
@@ -217,7 +217,7 @@ const playerActionButtons = () => {
 // Движение игрока
 const playerMovement = () => {
 
-	if(controller.down.active) {
+	if(!__cheat_noLayout && controller.down.active) {
 		 if(!controller.downClick) {
 		 	controller.downClick = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;

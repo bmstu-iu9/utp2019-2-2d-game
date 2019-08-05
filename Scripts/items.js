@@ -101,6 +101,34 @@ const getTextureCoordinates = (x, y) => {
 const items = { 
     undefined: {},
 
+    '790': //__cheat
+    {
+        id: '790',
+        name: 'SupStone',
+        type: 'stone',
+        isTool: true,
+        durability: 999,
+        efficiency: 999,
+        weight: 1,
+        texture: () => {
+            return getTextureCoordinates(11, 1)
+        }
+    },
+    '791': //__cheat
+    {
+        id: '791',
+        name: 'SupWood',
+        type: 'wood',
+        isTool: true,
+        durability: 999,
+        efficiency: 999,
+        weight: 1,
+        texture: () => {
+            return getTextureCoordinates(12, 1)
+        }
+    },
+
+
     '1':
     {
         id: '1',

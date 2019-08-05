@@ -407,6 +407,8 @@ class GameArea{
 
         // К этому блоку можно приставлять другие
         this.canAttach = (x, y, layout) => {
+            if (__cheat_freePlacement)
+                return true;
             return this.exist(x, y)
                     && this.map[x][y][layout] !== undefined
                     && items[this.map[x][y][layout]].type !== "water"

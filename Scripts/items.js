@@ -465,7 +465,6 @@ const items = {
             return getTextureCoordinates(13, 1)
         },
         canPlace: (x, y, layout) => {
-            console.log("can place");
             return layout === GameArea.FIRST_LAYOUT && gameArea.canAttach(x, y, GameArea.SECOND_LAYOUT);
         },
         weight: 1

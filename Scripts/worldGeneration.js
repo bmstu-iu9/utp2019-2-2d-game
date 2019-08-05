@@ -882,12 +882,16 @@ const generate = (width, height, seed, changes) => {
             endOfBranchY.push(forkY);
 
             for (let i = 0; i < treeArrX.length; i++) {
-                if(layout === GameArea.FIRST_LAYOUT) {
+                if (layout === GameArea.FIRST_LAYOUT) {
                     treeArr[treeArrX[i]][treeArrY[i]] = 1;
                     setBlock(treeArrX[i], treeArrY[i], GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                    if (getBlock(treeArrX[i], treeArrY[i] - 1, GameArea.FIRST_LAYOUT) === GRASS_BKOCK)
+                        setBlock(treeArrX[i], treeArrY[i] - 1, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
                 } else {
                     treeArr[treeArrX[i]][treeArrY[i]] = 3;
                     setBlock(treeArrX[i], treeArrY[i], GameArea.SECOND_LAYOUT, WOOD_BLOCK);
+                    if (getBlock(treeArrX[i], treeArrY[i] - 1, GameArea.SECOND_LAYOUT) === GRASS_BKOCK)
+                        setBlock(treeArrX[i], treeArrY[i] - 1, GameArea.SECOND_LAYOUT, DIRT_BLOCK);
                 }
             }
 

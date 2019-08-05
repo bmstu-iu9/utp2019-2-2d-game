@@ -137,7 +137,7 @@ const generate = (width, height, seed, changes) => {
             let theta = Math.atan2(interval.y, interval.x);
             let curH = startPoint.y;
             for (let x = 0; x < Math.abs(interval.x); x++) {
-                setf(startPoint.x + x, Math.floor(curH));
+                setf(startPoint.x + x, Math.round(curH));
                 curH += theta;
             }
         }
@@ -151,7 +151,7 @@ const generate = (width, height, seed, changes) => {
             let theta = Math.atan2(interval.x, interval.y);
             let curW = startPoint.x;
             for (let y = 0; y < Math.abs(interval.y); y++) {
-                setf(Math.floor(curW), startPoint.y + y);
+                setf(Math.round(curW), startPoint.y + y);
                 curW += theta;
             }
         }
@@ -1285,20 +1285,22 @@ const generate = (width, height, seed, changes) => {
                     //Точка - убрать любые блоки
                     'w': WOOD_PLANKS_BLOCK, //Стены
                     'r': _ROOF_BLOCK, //Крыша
-                    'd': CLOSED_DOOR_BLOCK, //Дверь
-                    't': CLOSED_TRAPDOOR_BLOCK //Люк
+                    'd': CLOSED_DOOR_BLOCK,
+                    't': CLOSED_TRAPDOOR_BLOCK,
+                    'l': TORCH_BLOCK,
+                    's': WOOD_PLANKS_BLOCK, //Это должен быть сундук
                 };
                 let firstL = [
                     '   rrrrrrrr  ',
-                    '  r.......d  ',
+                    '  r...l...d  ',
                     ' rr.......d  ',
                     ' rr.......d  ',
                     'rrwwttwwwwwrr',
                     'rrw.......wrr',
-                    'r w.......w r',
+                    'r w...l...w r',
                     '  w.......w  ',
                     '  w.......w  ',
-                    '  w.......w  ',
+                    '  w....s..w  ',
                     '  wwwwwwwww  '
                 ].reverse();
                 let secondL = [
@@ -1411,28 +1413,31 @@ const generate = (width, height, seed, changes) => {
 
             const blocksMap = {
                 'b': STONE_BRICK_BLOCK,
+                'c': COBBLESTONE_BLOCK,
+                'l': TORCH_BLOCK,
+                's': WOOD_PLANKS_BLOCK, //Это должен быть сундук
             }
             //Центральная площадка
             const firstL = [
-                '    .....    ',
-                '   .......   ',
-                '  .........  ',
+                '    bbbbb    ',
+                '   bb...bb   ',
+                '  bb.....bb  ',
+                ' bb.......bb ',
                 ' ........... ',
                 ' ........... ',
-                ' ........... ',
+                '.............',
+                '...l.....l...',
                 '.............',
                 '.............',
                 '.............',
-                '.............',
-                '.............',
-                '.............',
+                '......s......',
+                '..bbbbbbbbb..',
                 'bbbbbbbbbbbbb',
-                'bbbbbbbbbbbbb',
-                ' bbbbbbbbbbb ',
-                ' bbbbbbbbbbb ',
-                '  bbbbbbbbb  ',
-                '  bbbbbbbbb  ',
-                '   bbbbbbb   ',
+                ' cbbbcccbbbc ',
+                ' ccbbbcbbbcc ',
+                '  cbbbbbbbc  ',
+                '  ccbbbbbcc  ',
+                '   ccccccc   ',
             ].reverse();
             const secondL = [
                 '    bbbbb    ',
@@ -1449,11 +1454,11 @@ const generate = (width, height, seed, changes) => {
                 'bbbbbbbbbbbbb', //Floor
                 'bbbbbbbbbbbbb',
                 'bbbbbbbbbbbbb',
-                ' bbbbbbbbbbb ',
-                ' bbbbbbbbbbb ',
-                '  bbbbbbbbb  ',
-                '  bbbbbbbbb  ',
-                '   bbbbbbb   ',
+                ' cbbbcccbbbc ',
+                ' ccbbbcbbbcc ',
+                '  cbbbbbbbc  ',
+                '  ccbbbbbcc  ',
+                '   ccccccc   ',
             ].reverse();
 
             for (let i = loc.y - 2; i <= loc.y + yr + 1; i++) {

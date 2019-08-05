@@ -23,6 +23,8 @@ const cheat = {
             player.fx = x.x;
             player.fy = x.y;
         } 
+        cameraX = player.fx;
+        cameraY = player.fy;
     },
     mv(x, y) {
         player.fx += x;

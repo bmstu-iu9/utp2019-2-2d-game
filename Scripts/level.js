@@ -68,6 +68,7 @@ const beginPlay = () => {
 	
 	// player.addToInv(items[8]);
 	cameraSet(player.x, player.y);
+	// cheat.tp(512, 868);
 	
 	elevationCalculate(); // расчитывает карту высот для погоды
 	

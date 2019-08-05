@@ -3,7 +3,7 @@ var __observe = [];
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
     console.time('World generation');
-    // seed = 1564694789830;
+    // seed = 1564857901028;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -50,6 +50,7 @@ const generate = (width, height, seed, changes) => {
     const GRASS_BKOCK = 2;
     const DIRT_BLOCK = 3;
     const COBBLESTONE_BLOCK = 4;
+    const WOOD_PLANKS_BLOCK = 5;
     const BEDROCK_BLOCK = 7;
     const WATER_BLOCK = 8;
     const LAVA_BLOCK = 10;
@@ -65,6 +66,10 @@ const generate = (width, height, seed, changes) => {
     const DIAMOND_ORE_BLOCK = 56;
     const IRON_WOOD_BLOCK = 57;
     const GOLD_LEAF_BLOCK = 58;
+    const CLOSED_TRAPDOOR_BLOCK = 60;
+    const TRAPDOOR_BLOCK = 61;
+    const CLOSED_DOOR_BLOCK = 62;
+    const DOOR_BLOCK = 63;
 
     const NONE_ZONE = 0;
     const LAKE_ZONE = 1;
@@ -1251,11 +1256,11 @@ const generate = (width, height, seed, changes) => {
                 createBranch(loc.add(0, 3));
             }
             setTree(loc.add(0, 1), xradius - 4, 2 * yradius - dirtLevel - 10);
-            __observe.push(loc); //TEMP
+            // __observe.push(loc); //TEMP
         }
 
         const checkZone = (center, w, h) => {
-            if (center.x - w < 5 || center.y + w > width - 5)
+            if (center.x - w < 5 || center.x + w > width - 5)
                 return false;
             for (let i = -w; i <= w; i++)
                 for (let j = -h; j <= h; j++)
@@ -1282,6 +1287,465 @@ const generate = (width, height, seed, changes) => {
             }
         }
     }
+
+    //Создание подземной деревни
+    const villageGen = () => {
+        const vLoc = new Point(500, 900); //Top-left corner
+        const vWidth = 190;
+        const vHeight = 90;
+
+        let lCenterEnter, rCenterEnter; //Входы в центр
+
+        const clearZone = () => {
+            const clearBlock = (x, y) => {
+                setZone(x, y, CAVE_SPECIAL_ZONE);
+                setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BLOCK);
+                setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BLOCK);
+                setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BLOCK);
+            }
+            const vW_2 = vWidth * vWidth;
+            const vH_2 = vHeight * vHeight;
+            //Верхняя и нижняя границы
+            for (let i = 0; i <= vWidth; i++) {
+                let s = i - vWidth / 2;
+                let bound = 5 * Math.min((1 - (4 * s * s / vW_2)), Math.abs(Math.sin(i / 3)));
+                bound += random() * 3 - 1;
+                for (let j = 0; j <= 2 + bound; j++) {
+                    clearBlock(vLoc.x + i, vLoc.y + j);
+                    clearBlock(vLoc.x + i, vLoc.y - vHeight - j);
+                }
+            }
+            //Правая и левая границы
+            for (let i = 0; i <= vHeight; i++) {
+                let s = i - vHeight / 2;
+                let bound = 5 * Math.min((1 - (4 * s * s / vH_2)), Math.abs(Math.sin(i / 3)));
+                bound += random() * 3 - 1;
+                for (let j = 0; j <= 2 + bound; j++) {
+                    clearBlock(vLoc.x - j, vLoc.y - i);
+                    clearBlock(vLoc.x + vWidth + j, vLoc.y - i);
+                }
+            }
+            // Заливка
+            for (let i = 0; i < vWidth; i++)
+                for (let j = 0; j < vHeight; j++)
+                    clearBlock(vLoc.x + i, vLoc.y - j);
+        }
+
+        const createCaveSeg = (startPoint, stopPoint) => {
+            const fillEllipse = (center, xr, yr, setf) => {
+                //setf - функция установки точки
+                let xr_2 = xr * xr;
+                let yr_2 = yr * yr;
+                let xr1_2 = (xr + 2) * (xr + 2);
+                let yr1_2 =  (yr + 2) * (yr + 2);
+                for (let x = -xr; x < xr; x++) {
+                    let x_2 = x * x;
+                    for (let y = -yr; y < yr; y++) {
+                        let tx = random() < 0.25 ? xr1_2 : xr_2;
+                        let ty = random() < 0.25 ? yr1_2 : yr_2;
+                        if (x * x / tx + y * y / ty < 1)
+                            setf(center.x + x, center.y + y);
+                    }
+                }
+            }
+            //Корректируем границы сегмента (с отступом от краев)
+            if (startPoint.x < 8)
+                startPoint.x = 9;
+            if (startPoint.x > width - 9)
+                startPoint.x = width - 10;
+            if (startPoint.y < 14)
+                startPoint.y = 15;
+            if (stopPoint.x < 8)
+                stopPoint.x = 9;
+            if (stopPoint.x > width - 9)
+                stopPoint.x = width - 10;
+            if (stopPoint.y < 14)
+                stopPoint.y = 15;
+            
+            if (Math.abs(stopPoint.x - startPoint.x) >= Math.abs(stopPoint.y - startPoint.y)) {
+                if (startPoint.x > stopPoint.x) {
+                    let t = startPoint;
+                    startPoint = stopPoint;
+                    stopPoint = t;
+                }
+                let interval = stopPoint.sub(startPoint).add(1, 0);
+                let theta = Math.atan2(interval.y, interval.x);
+                let curH = startPoint.y;
+                let lastR = random() < 0.25 ? 4 : 3;
+                lastR = random() < 0.25 ? lastR + 1 : lastR;
+                for (let x = 0; x < Math.abs(interval.x); x++) {
+                    let cr = lastR;
+                    let rand = random();
+                    if (rand < 0.15)
+                        cr += random() < 0.4 ? -2 : 2;
+                    else if (rand < 0.4)
+                        cr += random() < 0.45 ? -1 : 1;
+                    if (cr < 3)
+                        cr = 3;
+                    if (cr > 6)
+                        cr = 6;
+                    fillEllipse(new Point(startPoint.x + x, Math.floor(curH)), cr, cr, (x, y) => {
+                        if (getBlock(x, y, GameArea.FIRST_LAYOUT) === STONE_BLOCK)
+                            setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                        if (getBlock(x, y, GameArea.SECOND_LAYOUT) === STONE_BLOCK)
+                            setBlock(x, y, GameArea.SECOND_LAYOUT, random() < 0.05 ? COBBLESTONE_BLOCK : STONE_BLOCK);
+                    });
+                    curH += theta;
+                }
+            }
+            else {
+                if (startPoint.y > stopPoint.y) {
+                    let t = startPoint;
+                    startPoint = stopPoint;
+                    stopPoint = t;
+                }
+                let interval = stopPoint.sub(startPoint).add(0, 1);
+                let theta = Math.atan2(interval.x, interval.y);
+                let curW = startPoint.x;
+                let lastR = random() < 0.25 ? 4 : 3;
+                lastR = random() < 0.25 ? lastR + 1 : lastR;
+                for (let y = 0; y < Math.abs(interval.y); y++) {
+                    let cr = lastR;
+                    let rand = random();
+                    if (rand < 0.15)
+                        cr += random() < 0.4 ? -2 : 2;
+                    else if (rand < 0.4)
+                        cr += random() < 0.45 ? -1 : 1;
+                    if (cr < 3)
+                        cr = 3;
+                    if (cr > 6)
+                        cr = 6;
+                    fillEllipse(new Point(Math.floor(curW), startPoint.y + y), cr, cr, (x, y) => {
+                        if (getBlock(x, y, GameArea.FIRST_LAYOUT) === STONE_BLOCK)
+                            setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                        if (getBlock(x, y, GameArea.SECOND_LAYOUT) === STONE_BLOCK)
+                            setBlock(x, y, GameArea.SECOND_LAYOUT, random() < 0.05 ? COBBLESTONE_BLOCK : STONE_BLOCK);
+                    });
+                    curW += theta;
+                }
+            }
+        }
+
+        //Перенести в более глобальную область
+        const drawByScheme = (loc, blocks, firstL, secondL) => {
+            const drawToLayer = (layer, scheme) => {
+                for (let i = 0; i < scheme.length; i++) {
+                    for (let j = 0; j < scheme[i].length; j++) {
+                        if (scheme[i][j] === ' ')
+                            continue;
+                        if (scheme[i][j] === '.')
+                            setBlock(loc.x + j, loc.y + i, layer, AIR_BLOCK);
+                        if (blocks[scheme[i][j]] === undefined)
+                            continue; //Или throw? Или в log?
+                        setBlock(loc.x + j, loc.y + i, layer, blocks[scheme[i][j]]);
+                    }
+                }
+            }
+            drawToLayer(GameArea.FIRST_LAYOUT, firstL);
+            drawToLayer(GameArea.SECOND_LAYOUT, secondL);
+        }
+        
+        //Максимальный размер - 27x18
+        const createSmall = (loc, mirror) => {
+            const createCave = (w, h) => {
+                //Похоже на прямленный скругольник
+                //w - ширина ровной части
+                //h - высота в ровной части
+
+                const fillEllipse = (center, xr, yr, setf) => {
+                    //setf - функция установки точки
+                    let xr_2 = xr * xr;
+                    let yr_2 = yr * yr;
+                    let xr1_2 = (xr + 1) * (xr + 1);
+                    let yr1_2 =  (yr + 2) * (yr + 2);
+                    for (let x = -xr; x < xr; x++) {
+                        let x_2 = x * x;
+                        for (let y = -yr; y < yr; y++) {
+                            let tx = random() < 0.25 ? xr1_2 : xr_2;
+                            let ty = random() < 0.25 ? yr1_2 : yr_2;
+                            if (x * x / tx + y * y / ty < 1)
+                                setf(center.x + x, center.y + y);
+                        }
+                    }
+                }
+
+                for (let i = Math.floor(-w / 2); i <= w / 2; i++) {
+                    let fl = random() < 0.25 ? 1 : 0;
+                    for (let j = Math.floor(-h / 2); j <= h / 2 + fl; j++) {
+                        setBlock(loc.x + i, loc.y + j, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                        setBlock(loc.x + i, loc.y + j, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                        setBlock(loc.x + i, loc.y + j, GameArea.BACK_LAYOUT, random() < 0.2 ? COBBLESTONE_BLOCK : STONE_BLOCK);
+                    }
+                }
+                let side = Math.floor(random() * 4) + 6;
+                fillEllipse(new Point(loc.x + Math.floor(w / 2) - 1, loc.y), side, Math.floor(h / 2) + 1, (x, y) => {
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                    setBlock(x, y, GameArea.BACK_LAYOUT, random() < 0.2 ? COBBLESTONE_BLOCK : STONE_BLOCK);
+                });
+                side = Math.floor(random() * 4) + 6;
+                fillEllipse(new Point(loc.x - Math.floor(w / 2) + 1, loc.y), side, Math.floor(h / 2) + 1, (x, y) => {
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                    setBlock(x, y, GameArea.BACK_LAYOUT, random() < 0.2 ? COBBLESTONE_BLOCK : STONE_BLOCK);
+                });
+
+                let t = loc.x;
+                while (getBlock(t, loc.y, GameArea.FIRST_LAYOUT) === AIR_BLOCK)
+                    t += mirror ? -1 : 1;
+                t += mirror ? 2 : -2;
+                createCaveSeg(new Point(t, loc.y), mirror ? rCenterEnter : lCenterEnter);
+                fillEllipse(new Point(t, loc.y), 1, 1, (x, y) => {
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                });
+            }
+
+            const createHouse = (loc) => {
+                const _ROOF_BLOCK = WOOD_BLOCK;
+
+                const blockMap = {
+                    //Пробел - не изменять этот блок
+                    //Точка - убрать любые блоки
+                    'w': WOOD_PLANKS_BLOCK, //Стены
+                    'r': _ROOF_BLOCK, //Крыша
+                    'd': CLOSED_DOOR_BLOCK, //Дверь
+                    't': CLOSED_TRAPDOOR_BLOCK //Люк
+                };
+                let firstL = [
+                    '   rrrrrrrr  ',
+                    '  r.......d  ',
+                    ' rr.......d  ',
+                    ' rr.......d  ',
+                    'rrwwttwwwwwrr',
+                    'rrw.......wrr',
+                    'r w.......w r',
+                    '  w.......w  ',
+                    '  w.......w  ',
+                    '  w.......w  ',
+                    '  wwwwwwwww  '
+                ].reverse();
+                let secondL = [
+                    '   rrrrrrrr  ',
+                    '  rrrrrrrrr  ',
+                    ' rrrrrrrrrrr ',
+                    ' rrrrrrrrrrr ',
+                    'rrwwwwwwwwwrr',
+                    'rrwwwwwwwwwrr',
+                    'r wwwwwwwww r',
+                    '  wwwwwwwww  ',
+                    '  wwwwwwwww  ',
+                    '  wwwwwwwww  ',
+                    '  wwwwwwwww  '
+                ].reverse();
+                if (mirror) {
+                    for (let i = 0; i < firstL.length; i++)
+                        firstL[i] = firstL[i].split('').reverse().join('');
+                    for (let i = 0; i < secondL.length; i++)
+                        secondL[i] = secondL[i].split('').reverse().join('');
+                }
+                drawByScheme(loc, blockMap, firstL, secondL);
+            }
+
+            createCave(14, 14);
+            if (mirror)
+                createHouse(new Point(loc.x - 6, loc.y - 9));
+            else
+                createHouse(new Point(loc.x - 6, loc.y - 9));
+        }
+
+        const createCenter = (loc) => {
+            const fillEllipse = (center, xr, yr, setf) => {
+                //setf - функция установки точки
+                let xr_2 = xr * xr;
+                let yr_2 = yr * yr;
+                let xr1_2 = (xr + 2) * (xr + 2);
+                let yr1_2 =  (yr + 2) * (yr + 2);
+                for (let x = -xr; x < xr; x++) {
+                    let x_2 = x * x;
+                    for (let y = -yr; y < yr; y++) {
+                        let tx = random() < 0.25 ? xr1_2 : xr_2;
+                        let ty = random() < 0.25 ? yr1_2 : yr_2;
+                        if (x * x / tx + y * y / ty < 1)
+                            setf(center.x + x, center.y + y);
+                    }
+                }
+            }
+            const drawLine = (startPoint, stopPoint, setf) => {
+                if (Math.abs(stopPoint.x - startPoint.x) >= Math.abs(stopPoint.y - startPoint.y)) {
+                    if (startPoint.x > stopPoint.x) {
+                        let t = startPoint;
+                        startPoint = stopPoint;
+                        stopPoint = t;
+                    }
+                    let interval = stopPoint.sub(startPoint).add(1, 0);
+                    let theta = Math.atan2(interval.y, interval.x);
+                    let curH = startPoint.y;
+                    for (let x = 0; x < Math.abs(interval.x); x++) {
+                        setf(startPoint.x + x, Math.round(curH));
+                        curH += theta;
+                    }
+                }
+                else {
+                    if (startPoint.y > stopPoint.y) {
+                        let t = startPoint;
+                        startPoint = stopPoint;
+                        stopPoint = t;
+                    }
+                    let interval = stopPoint.sub(startPoint).add(0, 1);
+                    let theta = Math.atan2(interval.x, interval.y);
+                    let curW = startPoint.x;
+                    for (let y = 0; y < Math.abs(interval.y); y++) {
+                        setf(Math.round(curW), startPoint.y + y);
+                        curW += theta;
+                    }
+                }
+            }
+
+            const xr = 25, yr = 30;
+            let waterLevel = loc.y - Math.floor(random() * 8 - 4) - yr + 7;
+            fillEllipse(loc, xr, yr, (x, y) => {
+                if (y > waterLevel) {
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
+                }
+                else {
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, LAVA_BLOCK);
+                }
+                setBlock(x, y, GameArea.BACK_LAYOUT, random() < 0.2 ? COBBLESTONE_BLOCK : STONE_BLOCK);
+            });
+            for (let i = -xr - 4; i <= xr + 4; i++) {
+                let wave = Math.round((Math.cos(i / 1.5) / 2 + 0.5) * 3);
+                wave += Math.round(random() * 2 - 1);
+                for (let j = 0; j <= wave; j++)
+                    setBlock(loc.x + i, waterLevel + 1 + j, GameArea.SECOND_LAYOUT, STONE_BLOCK);
+            }
+            createCaveSeg(loc.add(-30, 0), loc.add(30, 0));
+            lCenterEnter = loc.add(-30, 0);
+            rCenterEnter = loc.add(30, 0);
+            
+            //Ворота на входе
+            for (let i = -5; i <= 5; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    setBlock(rCenterEnter.x + j - 5, rCenterEnter.y + i, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(rCenterEnter.x + j - 5, rCenterEnter.y + i, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    setBlock(lCenterEnter.x + j + 5, rCenterEnter.y + i, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(lCenterEnter.x + j + 5, rCenterEnter.y + i, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                }
+                setBlock(rCenterEnter.x - 5, rCenterEnter.y + i, GameArea.FIRST_LAYOUT, CLOSED_DOOR_BLOCK);
+                setBlock(lCenterEnter.x + 5, rCenterEnter.y + i, GameArea.FIRST_LAYOUT, CLOSED_DOOR_BLOCK);
+            }
+            for (let i = -1; i <= 1; i++) {
+                for (let j = 0; j <= 2; j++) {
+                    setBlock(rCenterEnter.x + i - 5, rCenterEnter.y + j + 6, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(rCenterEnter.x + i - 5, rCenterEnter.y - j - 6, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(lCenterEnter.x + i + 5, lCenterEnter.y + j + 6, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(lCenterEnter.x + i + 5, lCenterEnter.y - j - 6, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(rCenterEnter.x + i - 5, rCenterEnter.y + j + 6, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(rCenterEnter.x + i - 5, rCenterEnter.y - j - 6, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(lCenterEnter.x + i + 5, lCenterEnter.y + j + 6, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(lCenterEnter.x + i + 5, lCenterEnter.y - j - 6, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                }
+            }
+            for (let i = 0; i <= 5; i++) {
+                setBlock(rCenterEnter.x - 5, rCenterEnter.y + i + 5, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(rCenterEnter.x - 5, rCenterEnter.y - i - 5, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(lCenterEnter.x + 5, lCenterEnter.y + i + 5, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(lCenterEnter.x + 5, lCenterEnter.y - i - 5, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(rCenterEnter.x - 5, rCenterEnter.y + i + 5, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(rCenterEnter.x - 5, rCenterEnter.y - i - 5, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(lCenterEnter.x + 5, lCenterEnter.y + i + 5, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(lCenterEnter.x + 5, lCenterEnter.y - i - 5, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+            }
+
+            const blocksMap = {
+                'b': STONE_BRICK_BLOCK,
+            }
+            //Центральная площадка
+            const firstL = [
+                '    .....    ',
+                '   .......   ',
+                '  .........  ',
+                ' ........... ',
+                ' ........... ',
+                ' ........... ',
+                '.............',
+                '.............',
+                '.............',
+                '.............',
+                '.............',
+                '.............',
+                'bbbbbbbbbbbbb',
+                'bbbbbbbbbbbbb',
+                ' bbbbbbbbbbb ',
+                ' bbbbbbbbbbb ',
+                '  bbbbbbbbb  ',
+                '  bbbbbbbbb  ',
+                '   bbbbbbb   ',
+            ].reverse();
+            const secondL = [
+                '    bbbbb    ',
+                '   bbbbbbb   ',
+                '  bbbbbbbbb  ',
+                ' bbb bbb bbb ',
+                ' bbb bbb bbb ',
+                ' b b bbb b b ',
+                'bb b bbb b bb',
+                'bb b bbb b bb',
+                'bb b bbb b bb',
+                'bb b bbb b bb',
+                'bb b bbb b bb',
+                'bbbbbbbbbbbbb', //Floor
+                'bbbbbbbbbbbbb',
+                'bbbbbbbbbbbbb',
+                ' bbbbbbbbbbb ',
+                ' bbbbbbbbbbb ',
+                '  bbbbbbbbb  ',
+                '  bbbbbbbbb  ',
+                '   bbbbbbb   ',
+            ].reverse();
+
+            for (let i = loc.y - 2; i <= loc.y + yr + 1; i++) {
+                setBlock(loc.x - 5, i, GameArea.SECOND_LAYOUT, WOOD_BLOCK);
+                setBlock(loc.x + 5, i, GameArea.SECOND_LAYOUT, WOOD_BLOCK);
+            }
+            drawByScheme(loc.add(-6, -9), blocksMap, firstL, secondL);
+
+            //Мосты
+            drawLine(lCenterEnter.add(6, -6), new Point(loc.x - 7, loc.y - 4), (x, y) => {
+                setBlock(x, y, GameArea.FIRST_LAYOUT, WOOD_PLANKS_BLOCK);
+                let fenceHeigh = (x % 3 === 0) ? 3 : 2;
+                for (let i = 0; i < fenceHeigh; i++)
+                    setBlock(x, y + i, GameArea.SECOND_LAYOUT, WOOD_PLANKS_BLOCK);
+            });
+            drawLine(rCenterEnter.add(-6, -6), new Point(loc.x + 7, loc.y - 4), (x, y) => {
+                setBlock(x, y, GameArea.FIRST_LAYOUT, WOOD_PLANKS_BLOCK);
+                let fenceHeigh = (x % 3 === 0) ? 3 : 2;
+                for (let i = 0; i < fenceHeigh; i++)
+                    setBlock(x, y + i, GameArea.SECOND_LAYOUT, WOOD_PLANKS_BLOCK);
+            });
+        }
+
+        clearZone();
+        createCenter(vLoc.add(Math.floor(vWidth / 2), -Math.floor(vHeight / 2)));
+        let points = [
+            new Point(vLoc.x + 20, vLoc.y - 20), 
+            new Point(vLoc.x + 36, vLoc.y - vHeight + 20),
+            new Point(vLoc.x + vWidth - 40, vLoc.y - 20),
+            new Point(vLoc.x + vWidth - 26, vLoc.y - vHeight + 20)
+        ];
+        let shift = new Point(Math.round(random() * 16 - 8), Math.round(random() * 10 - 5));
+        createSmall(points[0].add(shift), false);
+        shift = new Point(Math.round(random() * 16 - 8), Math.round(random() * 10 - 5));
+        createSmall(points[1].add(shift), false);
+        shift = new Point(Math.round(random() * 16 - 8), Math.round(random() * 10 - 5));
+        createSmall(points[2].add(shift), true);
+        shift = new Point(Math.round(random() * 16 - 8), Math.round(random() * 10 - 5));
+        createSmall(points[3].add(shift), true);
+        
+        __observe.push(vLoc); //TEMP
+    }
     //#endregion
 
     //Процесс генерации
@@ -1292,6 +1756,7 @@ const generate = (width, height, seed, changes) => {
     lavaLakes(20, height / 2, 1 / 4000);
     treeGen(16, 19, Math.floor(width * 2 / 3));
 
+    // villageGen();
     underSpecial1Gen(200, 200, 5);
     oreGen();
     

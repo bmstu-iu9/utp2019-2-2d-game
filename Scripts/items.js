@@ -494,6 +494,93 @@ const items = {
         }
     },
 
+    '53': //Locked trapdoor
+    {
+        id: '53',
+        name: 'Locked trapdoor',
+        type: 'bedrock',
+        isBlock: true,
+        durability: 1000,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        texture: () => {
+            return getTextureCoordinates(12, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            if (player.hand.item === 280) {
+                player.deleteFromInvByIndex(player.fastInv[player.hand.index], 1);
+                gameArea.gameAreaMapSet(x, y, layout, 60);
+                for (let i = x + 1; gameArea.map[i][y][layout] === 53; i++) {
+                    gameArea.gameAreaMapSet(i, y, layout, 60);
+                }
+                for (let i = x - 1; gameArea.map[i][y][layout] === 53; i--) {
+                    gameArea.gameAreaMapSet(i, y, layout, 60);
+                }
+            }
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.map[x][y - 1][layout] === 61
+                        || gameArea.map[x][y - 1][layout] === 60
+                        || gameArea.canAttach(x, y - 1, layout));
+        },
+    },
+
+    '54': //Locked door
+    {
+        id: '54',
+        name: 'Locked door',
+        type: 'bedrock',
+        isBlock: true,
+        durability: 1000,
+        weight: WEIGHT_OF_BLOCKS,
+        isSolid: false,
+        isCollissed: true,
+        isClickable: true,
+        texture: () => {
+            return getTextureCoordinates(11, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            if (player.hand.item === 280) {
+                player.deleteFromInvByIndex(player.fastInv[player.hand.index], 1);
+                gameArea.gameAreaMapSet(x, y, layout, 62);
+                for (let i = y + 1; gameArea.map[x][i][layout] === 54; i++) {
+                    gameArea.gameAreaMapSet(x, i, layout, 62);
+                }
+                for (let i = y - 1; gameArea.map[x][i][layout] === 54; i--) {
+                    gameArea.gameAreaMapSet(x, i, layout, 62);
+                }
+            }
+        },
+        canPlace: (x, y, layout) => {
+            return (gameArea.map[x][y - 1][layout] === 61
+                        || gameArea.map[x][y - 1][layout] === 60
+                        || gameArea.canAttach(x, y - 1, layout));
+        },
+    },
+
+    '55':
+    {
+        id: '57',
+        name: 'Bricks with key',
+        type: 'stone',
+        isBlock: true,
+        isCollissed: true,
+        durability: 9,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        dropId: 280,
+        isClickable: true,
+        texture: () => {
+            return getTextureCoordinates(13, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            gameArea.gameAreaMapSet(x, y, layout, 21);
+            player.addToInv(createItem(280, 1));
+        }
+    },
+
     '56':
     {
         id: '56',
@@ -900,6 +987,16 @@ const items = {
         texture: () => {
             return getTextureCoordinates(12, 1)
         }
+    },
+
+    '280':
+    {
+        id: '280',
+        name: 'Red key',
+        texture: () => {
+            return getTextureCoordinates(2, 2)
+        },
+        weight: 1
     },
 
     '370':

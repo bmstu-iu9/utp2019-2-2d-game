@@ -63,6 +63,9 @@ const generate = (width, height, seed, changes) => {
     const TORCH_BLOCK = 19;
     const GLASS_BLOCK = 20;
     const STONE_BRICK_BLOCK = 21;
+    const LOCKED_TRAPDOOR_BLOCK = 53;
+    const LOCKED_DOOR_BLOCK = 54;
+    const BRICKS_WITH_KEY_BLOCK = 55;
     const DIAMOND_ORE_BLOCK = 56;
     const IRON_WOOD_BLOCK = 57;
     const GOLD_LEAF_BLOCK = 58;
@@ -1501,6 +1504,106 @@ const generate = (width, height, seed, changes) => {
         
         __observe.push(vLoc); //TEMP
     }
+
+    //Создание данжа
+    const dungeonGen = () => {
+        const vLoc = new Point(500, 800); //Bottom-left corner
+        const vWidth = 150;
+        const vHeight = 100;
+
+        let lCenterEnter, rCenterEnter; //Входы в центр
+
+        const clearZone = () => {
+            const clearBlock = (x, y) => {
+                setZone(x, y, CAVE_SPECIAL_ZONE);
+                setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BLOCK);
+                setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BLOCK);
+                setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BLOCK);
+            }
+            const vW_2 = vWidth * vWidth;
+            const vH_2 = vHeight * vHeight;
+            //Верхняя и нижняя границы
+            for (let i = 0; i <= vWidth; i++) {
+                let s = i - vWidth / 2;
+                let bound = 5 * Math.min((1 - (4 * s * s / vW_2)), Math.abs(Math.sin(i / 3)));
+                // bound += random() * 3 - 1;
+                for (let j = 0; j <= 2 + bound; j++) {
+                    clearBlock(vLoc.x + i, vLoc.y - j);
+                    clearBlock(vLoc.x + i, vLoc.y + vHeight + j);
+                }
+            }
+            //Правая и левая границы
+            for (let i = 0; i <= vHeight; i++) {
+                let s = i - vHeight / 2;
+                let bound = 5 * Math.min((1 - (4 * s * s / vH_2)), Math.abs(Math.sin(i / 3)));
+                // bound += random() * 3 - 1;
+                for (let j = 0; j <= 2 + bound; j++) {
+                    clearBlock(vLoc.x - j, vLoc.y + i);
+                    clearBlock(vLoc.x + vWidth + j, vLoc.y + i);
+                }
+            }
+            // // Заливка
+            // for (let i = 0; i < vWidth; i++)
+            //     for (let j = 0; j < vHeight; j++)
+            //         clearBlock(vLoc.x + i, vLoc.y + j);
+        }
+
+        clearZone();
+        let tpt = new Point(10, 10);
+        let tw = 50;
+        let th = 20;
+        for (let i = 0; i < tw; i++) {
+            for (let j = 0; j < th; j++) {
+                setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.BACK_LAYOUT, LEAVES_BLOCK);
+                // setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+            }
+            setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+        }
+        for (let i = 0; i < 4; i++) {
+            setBlock(vLoc.x + tpt.x + 5, vLoc.y + tpt.y + i + 1, GameArea.FIRST_LAYOUT, LOCKED_DOOR_BLOCK);
+        }
+        const blocksMap = {
+            'a': BRICKS_WITH_KEY_BLOCK,
+            'b': STONE_BRICK_BLOCK,
+            'c': COBBLESTONE_BLOCK,
+            'd': DOOR_BLOCK,
+            'g': GLASS_BLOCK,
+            'i': WATER_BLOCK,
+            'j': LAVA_BLOCK,
+            'h': LOCKED_TRAPDOOR_BLOCK,
+            'k': LOCKED_DOOR_BLOCK,
+            'l': TORCH_BLOCK,
+            'm': GRASS_BKOCK,
+            'n': DIRT_BLOCK,
+            'p': WOOD_PLANKS_BLOCK,
+            't': TRAPDOOR_BLOCK,
+            'y': SAND_BLOCK,    
+            'w': WOOD_BLOCK,
+        };
+        const fl = [
+            'b......bbbhhhhbbbb',
+            'b......b.........b',
+            'b......k.........b',
+            'a......k.........a',
+            'b......k.........b',
+            'b......k.........b',
+            'bbbbbbbbbbbbbbbbbb',
+        ].reverse();
+        const sl = [
+            'bbbbbbbbbbbbbbbbbb',
+            'bbbbbbbbbbbbbbbbbb',
+            'bbbbbbbbbbbbbbbbbb',
+            'bbbbbbbbbbbbbbbbbb',
+            'bbbbbbbbbbbbbbbbbb',
+            'bbbbbbbbbbbbbbbbbb',
+            'bbbbbbbbbbbbbbbbbb',
+        ].reverse();
+        drawByScheme(vLoc.add(tpt), blocksMap, fl, sl);
+        //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bjjjccjjjjjjjjccjjjjjjjjjjjbjjjbjjjcjjjjjjjjccjjjb","b..............................b.............c...b","b..............................b.................b","b............l..l....c.........b...........l..l..b","b..........................l.......c.............b","b..............c.................................b","b...c.........cc.....b.....b....c.............bbbb","bbbbcc...............b.....b.............c....bbbb","bbbbc................b..b..b......................",".............l..l....b..b..b....c............c....",".....c...............b..b..b.......c........cc....","....cc...............b..b..b.........l..l...cc....","....cc........cc.....b..b..b................cc...b","b...cc.....................b.......b..bb.....c...b","b...c......................b....cccc..bb.........b","b............l..l..........b..........bb.........b","b..l..l.....b....b...l..l..b...l....l.bb...l..l..b","b...........b....b.........b..........bb.........b","bbbbbbbbbbbbb....bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+        //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbcccbbbbbcbbccbbcccbccbbbbbbcbbbbbccbbcbbbccbcbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbbbccbbbbbbbbccbbcb","bbbbccccbbbbcbccbbbbbbccbbbcbbbbcbbcbbcbbbbbccbbbb","bcbbccbbccbbbbccbbbbccccbbccbbbbccbcbbbbbbcbccbbbb","bbbbccbbbbccbbcccbccbbccbbcbbbbbbbbbbbbbbbbbcccbbb","bbcbccbbbbbbccccccbbbbccbbbbbbbbcbbcbbbcbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbb.bbbbcbcbbbbbbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbc.bbcbbcbcbbbbbcbcccbcbb","bbbbccbbcbbbbbccbcbbbbccbcbbbbbbcccbbbbbbbbcccbbbb","bbbbccbcbbcbbbccbbcbbbccbbbbbbbbcbbcbcbbbbbbccbbbc","bbbbccbbbbcbbbccbbbbbbccbbbbbcbbcbbcbbbcbbbbccbbbb","bcbbccbcbbcbbbccbbbbbbccbbbbccbbccbcbbbbbbbbccbbbb","bbcbccbbbbbbbbccbbbbbbccbbbbbbbbcccbbbbbbbbbccbbbb","bcbbccbbbbbbccccccbbcbccbbbbbbbbbbcbbbbbbbbbccbcbb","bbbbccbbbbccbbccbbccbbccbbcbcbbbccccbbbbbbcbccbbbb","bbcbccbbccbbbbccbbbbccccbbcbbbcbbcbcbbbbbbbbccbbbb","bbbbccccbbbbbbccbbbbbbccbcbbbbbbbbcbbbbbcbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbccbcbbbbbbbcccbbbb","bbbbbbbbbbbbbbccbbbbbbbbbbbbbbbbbbbbbbbbb.bbb.bbbb"]        ;
+
+
+    }
     //#endregion
 
     //Процесс генерации
@@ -1511,7 +1614,8 @@ const generate = (width, height, seed, changes) => {
     lavaLakes(20, height / 2, 1 / 4000);
     treeGen(16, 19, Math.floor(width * 2 / 3));
 
-    villageGen();
+    // villageGen();
+    dungeonGen();
     underSpecial1Gen(200, 200, 5);
     oreGen();
     
@@ -1590,6 +1694,8 @@ const generate = (width, height, seed, changes) => {
     createShadows(9);
 
     console.timeEnd('World generation');
+    // __gameArea = new GameArea(worldMap, elevationMap, shadowMap, width, height);
+    // return __gameArea;
     return new GameArea(worldMap, elevationMap, shadowMap, width, height);
     //#endregion
 }

@@ -2,7 +2,7 @@ var __cheat_fullbright = true;
 var __cheat_spectator = true;
 var __cheat_seed = undefined;
 var __cheat_freePlacement = true;
-var __gameArea = undefined;
+// var __gameArea = undefined;
 var __cheat_noLayout = true;
 
 const cheat = {
@@ -80,9 +80,9 @@ const writeScheme = (x, y, w, h) => {
         let curF = [];
         let curS = [];
             for (let i = 0; i < w; i++) {
-            let t = __gameArea.get(x + i, y + j, GameArea.FIRST_LAYOUT);
+            let t = gameArea.get(x + i, y + j, GameArea.FIRST_LAYOUT);
             curF.push(t === undefined ? '.' : bMap[t]);
-            t = __gameArea.get(x + i, y + j, GameArea.SECOND_LAYOUT);
+            t = gameArea.get(x + i, y + j, GameArea.SECOND_LAYOUT);
             curS.push(t === undefined ? '.' : bMap[t]);
         }
         totalF.push(curF.join(''));

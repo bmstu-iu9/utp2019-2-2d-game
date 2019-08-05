@@ -59,7 +59,12 @@ const generate = (width, height, seed, changes) => {
     const COAL_ORE_BLOCK = 16;
     const WOOD_BLOCK = 17;
     const LEAVES_BLOCK = 18;
+    const TORCH_BLOCK = 19;
+    const GLASS_BLOCK = 20;
+    const STONE_BRICK_BLOCK = 21;
     const DIAMOND_ORE_BLOCK = 56;
+    const IRON_WOOD_BLOCK = 57;
+    const GOLD_LEAF_BLOCK = 58;
 
     const NONE_ZONE = 0;
     const LAKE_ZONE = 1;
@@ -1159,8 +1164,8 @@ const generate = (width, height, seed, changes) => {
                 const maxDepth = 4;
 
                 const setLeafBlock = (x, y) => {
-                    if (getBlock(x, y, GameArea.FIRST_LAYOUT) !== WOOD_BLOCK) {
-                        setBlock(x, y, GameArea.FIRST_LAYOUT, LEAVES_BLOCK);
+                    if (getBlock(x, y, GameArea.FIRST_LAYOUT) !== IRON_WOOD_BLOCK) {
+                        setBlock(x, y, GameArea.FIRST_LAYOUT, GOLD_LEAF_BLOCK);
                         setBlock(x, y, GameArea.SECOND_LAYOUT, AIR_BLOCK);
                     }
                 };
@@ -1176,7 +1181,7 @@ const generate = (width, height, seed, changes) => {
                         let theta = Math.atan2(interval.y, interval.x);
                         let curH = startPoint.y;
                         for (let x = 0; x < Math.abs(interval.x); x++) {
-                            setBlock(startPoint.x + x, Math.floor(curH), GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                            setBlock(startPoint.x + x, Math.floor(curH), GameArea.FIRST_LAYOUT, IRON_WOOD_BLOCK);
                             curH += theta;
                         }
                     }
@@ -1190,7 +1195,7 @@ const generate = (width, height, seed, changes) => {
                         let theta = Math.atan2(interval.x, interval.y);
                         let curW = startPoint.x;
                         for (let y = 0; y < Math.abs(interval.y); y++) {
-                            setBlock(Math.floor(curW), startPoint.y + y, GameArea.FIRST_LAYOUT, WOOD_BLOCK);
+                            setBlock(Math.floor(curW), startPoint.y + y, GameArea.FIRST_LAYOUT, IRON_WOOD_BLOCK);
                             curW += theta;
                         }
                     }

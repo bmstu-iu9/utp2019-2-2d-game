@@ -412,6 +412,7 @@ const items = {
         name: 'Leaf',
         type: 'leaf',
         isBlock: true,
+        isAlwaysGoodDestroy: true,
         dropId: '18',
         weight: WEIGHT_OF_BLOCKS,
         durability: 0.5,
@@ -420,6 +421,11 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(10, 0)
+        },
+        update: (x, y, l, gA, reason) => {
+            if (reason === "destroyAround") {
+                gA.goodDestroy(x, y, l, player);
+            }
         }
     },
 

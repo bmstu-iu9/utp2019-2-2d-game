@@ -218,7 +218,7 @@ class GameArea{
             }
 
             if (block.update !== undefined) {
-                block.update(x, y, layout, this);
+                block.update(x, y, layout, this, reason);
             }
 
             switch (block.type) {
@@ -226,40 +226,40 @@ class GameArea{
                     // Если блок дерева не видит под собой опоры в нижнем блоке, либо стоит на листве, плюс
                     // крайние нижние блоки - это не блоки дерева, то оно рушится
                 {
-                    if(block.id === '17'){
-                        if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
-                            for (let i = x - 1; i <= x + 1; i++) {
-                                if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
-                                    items[this.map[x][y - 1][layout]].type !== "wood")) {
-                                } else {
-                                    return;
-                                }
-                            }
-                            this.goodDestroy(x, y, layout, player);
-                        }
-                    }
+                    // if(block.id === '17'){
+                    //     if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
+                    //         for (let i = x - 1; i <= x + 1; i++) {
+                    //             if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
+                    //                 items[this.map[x][y - 1][layout]].type !== "wood")) {
+                    //             } else {
+                    //                 return;
+                    //             }
+                    //         }
+                    //         this.goodDestroy(x, y, layout, player);
+                    //     }
+                    // }
                 }
                 break;
                 case "leaf":
                     // Если блок листвы не видит под собой опоры в нижнем, нижнем левом и нижнем правом блоке в виде
                     // дерева или листвы или же в левом или правом, в виде дерева, то он рушится
                 {
-                    for (let i = x - 1; i <= x + 1; i++) {
-                        if (i >= 0 && i < this.width) {
-                            for (let j = y - 1; j <= y; j++) {
-                                if (i !== x && j !== y)
-                                    if (y - 1 >= 0 && j === y - 1) {
-                                        if (this.map[i][j][layout] === undefined ||
-                                            items[this.map[i][j][layout]].type !== "leaf" &&
-                                            items[this.map[i][j][layout]].type !== "wood") {
-                                        } else return;
-                                    } else if (this.map[i][j][layout] === undefined ||
-                                        items[this.map[i][j][layout]].type !== "wood") {
-                                    } else return;
-                            }
-                        }
-                    }
-                    this.destroyBlock(x, y, layout);
+                    // for (let i = x - 1; i <= x + 1; i++) {
+                    //     if (i >= 0 && i < this.width) {
+                    //         for (let j = y - 1; j <= y; j++) {
+                    //             if (i !== x && j !== y)
+                    //                 if (y - 1 >= 0 && j === y - 1) {
+                    //                     if (this.map[i][j][layout] === undefined ||
+                    //                         items[this.map[i][j][layout]].type !== "leaf" &&
+                    //                         items[this.map[i][j][layout]].type !== "wood") {
+                    //                     } else return;
+                    //                 } else if (this.map[i][j][layout] === undefined ||
+                    //                     items[this.map[i][j][layout]].type !== "wood") {
+                    //                 } else return;
+                    //         }
+                    //     }
+                    // }
+                    // this.destroyBlock(x, y, layout);
                 }
                     break;
                 case "water": {
@@ -402,7 +402,7 @@ class GameArea{
             if (items[lastBlock].destroyFunction) {
                 items[lastBlock].destroyFunction(x, y, layout);
             }
-            this.updateRadius(x, y, layout, player, "destroy");
+            this.updateRadius(x, y, layout, player, "destroyAround");
         }
 
         // К этому блоку можно приставлять другие
@@ -466,7 +466,7 @@ class GameArea{
                     }
                     this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 }
-                this.updateRadius(x, y, layout, "place");
+                this.updateRadius(x, y, layout, "placeAround");
                 this.updateBlock(x, y, layout, "place");
 
                 return true;

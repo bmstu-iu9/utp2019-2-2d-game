@@ -403,6 +403,11 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(9, 0)
+        },
+        update: (x, y, l, gA, reason) => {
+            if (reason === "destroyAround") {
+                gA.goodDestroy(x, y, l, player);
+            }
         }
     },
 

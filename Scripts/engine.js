@@ -41,6 +41,7 @@ image.onload = () => {
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
 
+
 	ОТРИСОВКА:
 Отрисовка чанка в буфер кадров (создание/обновление):
 .drawChunk(x, y, blocksOfChunk, lightChunk)
@@ -68,12 +69,15 @@ image.onload = () => {
 	dynamicLight - массив, состоящий из двух элементов, где первый элемент задаёт диаметр динамического освещения,
 		а второй параметр задаёт максимальное освещение в центральной точке (в месте, где находится игровой персонаж)
 
+
 	ПОГОДА:
-Запуск дождя:
+Плавный запуск дождя:
 .startRain()
 
-Остановка дождя:
+Плавная остановка дождя:
 .stopRain()
+Возвращает примерное время в секундах до окончания дождя.
+
 
 	ОТРИСОВКА ОБЪЕКТОВ (ИНТЕРФЕЙСА):
 Создать текстуру:
@@ -86,7 +90,6 @@ image.onload = () => {
 Получить размер экрана в пикселях:
 .getCanvasSize()
 Возвращает массив из двух элементов (ширина и высота экрана)
-
 
 Отправить объекты на отрисовку:
 .drawObjects(texture, array)
@@ -165,39 +168,10 @@ image.onload = () => {
 
 ***********************************************************************************************************************/
 
-/*
-Не трограть! Это важно!
-Указатели на атрибуты:
-
-SHADER 0:
-a_position: 0
-a_texCoord: 1
-
-SHADER 1:
-a_position: 0
-a_texCoord: 1
-
-SHADER 2:
-a_position: 0
-a_texCoord: 1
-
-SHADER 3:
-нет зависимостей
-
-SHADER 4:
-a_position: 0
-a_texCoord: 1
-
-SHADER 5:
-нет зависимостей
-
-UPD: будет удалено позже
-*/
-const _positionAttributeLocation = 0;
-const _texCoordAttributeLocation = 1;
 
 class Render {
 	constructor() {
+		throw new Error();
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl', {
 				premultipliedAlpha: false,
@@ -218,11 +192,14 @@ class Render {
 				throw new Error(ErrorMsg);
 			}
 		}
+		
+		// пытаемся получить доступ к расширению
 		this.ext = this.gl.getExtension('ANGLE_instanced_arrays');
 		if (!this.ext) {
 			alert("Ошибка: ANGLE_instanced_arrays. Обратитесь к Надиму!");
 		}
 		
+		// заливаем экран цветом 
 		this.resizeCanvas();
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -243,17 +220,13 @@ class Render {
 		// SHADER PROGRAM 0
 		const vertexShader0 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[0]);
 		const fragmentShader0 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[0]);
-		const linker0 = [
-			{
-				'id': _positionAttributeLocation,
-				'name': 'a_position'
-			},
-			{
-				'id': _texCoordAttributeLocation,
-				'name': 'a_texCoord'
-			}];
-		this.program[0] = this.createProgram(vertexShader0, fragmentShader0, linker0);
+		this.program[0] = this.createProgram(vertexShader0, fragmentShader0);
 		this.gl.useProgram(this.program[0]);
+		
+		this.attribute[0] = this.createAttributeLocation(this.program[0], [
+				'a_position',
+				'a_texCoord'
+			]); // получение атрибутов из шейдеров
 		
 		this.uniform[0] = this.createUniformLocation(this.program[0], [
 				'u_projectionMatrix',
@@ -265,17 +238,13 @@ class Render {
 		// SHADER PROGRAM 1
 		const vertexShader1 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[1]);
 		const fragmentShader1 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[1]);
-		const linker1 = [
-			{
-				'id': _positionAttributeLocation,
-				'name': 'a_position'
-			},
-			{
-				'id': _texCoordAttributeLocation,
-				'name': 'a_texCoord'
-			}];
-		this.program[1] = this.createProgram(vertexShader1, fragmentShader1, linker1);
+		this.program[1] = this.createProgram(vertexShader1, fragmentShader1);
 		this.gl.useProgram(this.program[1]);
+		
+		this.attribute[1] = this.createAttributeLocation(this.program[1], [
+				'a_position',
+				'a_texCoord'
+			]); // получение атрибутов из шейдеров
 		
 		this.uniform[1] = this.createUniformLocation(this.program[1], [
 				'u_projectionMatrix',
@@ -297,17 +266,13 @@ class Render {
 		// SHADER PROGRAM 2
 		const vertexShader2 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[2]);
 		const fragmentShader2 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[2]);
-		const linker2 = [
-			{
-				'id': _positionAttributeLocation,
-				'name': 'a_position'
-			},
-			{
-				'id': _texCoordAttributeLocation,
-				'name': 'a_texCoord'
-			}];
-		this.program[2] = this.createProgram(vertexShader2, fragmentShader2, linker2);
+		this.program[2] = this.createProgram(vertexShader2, fragmentShader2);
 		this.gl.useProgram(this.program[2]);
+		
+		this.attribute[2] = this.createAttributeLocation(this.program[2], [
+				'a_position',
+				'a_texCoord'
+			]); // получение атрибутов из шейдеров
 		
 		this.uniform[2] = this.createUniformLocation(this.program[2], [
 				'u_projectionMatrix',
@@ -342,16 +307,7 @@ class Render {
 		// SHADER PROGRAM 4
 		const vertexShader4 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[4]);
 		const fragmentShader4 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[4]);
-		const linker4 = [
-			{
-				'id': _positionAttributeLocation,
-				'name': 'a_position'
-			},
-			{
-				'id': _texCoordAttributeLocation,
-				'name': 'a_texCoord'
-			}];
-		this.program[4] = this.createProgram(vertexShader4, fragmentShader4, linker4);
+		this.program[4] = this.createProgram(vertexShader4, fragmentShader4);
 		this.gl.useProgram(this.program[4]);
 		
 		this.uniform[4] = this.createUniformLocation(this.program[4], [
@@ -387,16 +343,9 @@ class Render {
 		this.frameBufferTextures = {};
 		this.frameBuffer = this.gl.createFramebuffer();
 		
+		// указываем как упаковывать данные (кратность обработки)
 		const alignment = 2;
 		this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, alignment);
-		
-		const near = 0.01;
-		const far = 11;
-		this.gl.uniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, [
-			2.0, 0.0, 0.0, 0.0,
-			0.0, 2.0, 0.0, 0.0,
-			0.0, 0.0, -2.0 / (far - near), 0.0,
-			-1.0, -1.0, (far + near) / (near - far), 1.0]);
 		
 		// отрисовка объектов (интерфейс)
 		this.textureID = 8;
@@ -406,7 +355,6 @@ class Render {
 		// погода
 		this.rain = false;
 		this.speedRain = 4;
-		
 		this.weather = [];
 		this.weather[0] = this.gl.createBuffer();
 		this.weather[1] = 0;
@@ -427,7 +375,11 @@ class Render {
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_NEAREST);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+			
+			// генерируем текстуру из изображения
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, images[i]);
+			
+			// генерируем уменьшенные копии
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
 			
 			this.textures.push(texture);
@@ -461,6 +413,7 @@ class Render {
 		
 		const l = 0, h = this.size;
 		
+		// заполняем буферы
 		const arrayOfPosition = [
 			0, 0, // ID: 0
 			backgroundAsp, 0,
@@ -523,19 +476,21 @@ class Render {
 			this.IDs[arrayOfObjects[i].id] = i;
 		}
 		
+		this.gl.useProgram(this.program[0]);
+		
 		// создание буфера и атрибута координат позиций
 		this.positionBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(_positionAttributeLocation);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(this.attribute[0].a_position);
+		this.gl.vertexAttribPointer(this.attribute[0].a_position, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
 		this.texCoordBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(_texCoordAttributeLocation);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(this.attribute[0].a_texCoord);
+		this.gl.vertexAttribPointer(this.attribute[0].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
 	createAnimations(playerResolutionX, playerResolutionY, playerAnims) {
@@ -543,6 +498,9 @@ class Render {
 		const arrayOfPosition = [];
 		const arrayOfTexCoord = [];
 		
+		this.gl.useProgram(this.program[3]);
+		
+		// заполняем буферы
 		for (let i in playerAnims) {
 			arrayOfPosition.push(
 				0, playerAnims[i].body[2] / playerResolutionY,
@@ -593,25 +551,19 @@ class Render {
 		this.positionBufferPlayer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(_positionAttributeLocation);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(this.attribute[3].a_position);
+		this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// создание буфера и атрибута текстурных координат
 		this.texCoordBufferPlayer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
-		this.gl.enableVertexAttribArray(_texCoordAttributeLocation);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.enableVertexAttribArray(this.attribute[3].a_texCoord);
+		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
 		this.texturePlayer = this.gl.createTexture();
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
-		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 128, 128, 0, this.gl.RGBA,
-			this.gl.UNSIGNED_BYTE, null);
+		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 128, 128, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
@@ -619,12 +571,16 @@ class Render {
 	}
 	
 	getPlayerParts(head, body, legs) {
+		// используем шейдерную программу
 		this.gl.useProgram(this.program[3]);
+		
+		// задаём буферы
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
 		this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
 		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
+		// отрисовываем в буфер кадров
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
 			this.texturePlayer, 0);
@@ -635,7 +591,6 @@ class Render {
 		this.gl.drawArrays(this.gl.TRIANGLES, head * 18, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, body * 18 + 6, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, legs * 18 + 12, 6);
-		this.gl.useProgram(this.program[0]);
 	}
 	
 	drawChunk(x, y, blocksOfChunk, lightChunk) {
@@ -748,14 +703,10 @@ class Render {
 				this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 			} // TODO: Переделать под ANGLE_instanced_arrays
 		}
-		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 	}
 	
 	deleteChunk(x, y) {
+		// удаление чанка
 		const c = `${x}x${y}`;
 		if (this.arrayOfChunks[c] !== undefined) {
 			for (let i in this.arrayOfChunks[c].tex) {
@@ -779,12 +730,17 @@ class Render {
 	render(xc, yc, xp, yp, scale, time, deltaTime, lightOfDay, lightOfPlayer, slicePlayer, rotatePlayer, dynamicLight) {
 		this.resizeCanvas(); // подгоняем канвас под экран
 		
+		// используем шейдерную программу
+		this.gl.useProgram(this.program[0]);
+		
+		// задаём буферы отрисовки
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.vertexAttribPointer(this.attribute[0].a_position, 2, this.gl.FLOAT, false, 0, 0);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.vertexAttribPointer(this.attribute[0].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
 		// "вырезаем" кусок экрана для отображения
+		// TODO: избавиться, т.к. это нерационально
 		const ch = this.size / this.gl.canvas.height;
 		const asp = this.gl.canvas.width / this.gl.canvas.height;
 		const width = scale * asp;
@@ -792,7 +748,6 @@ class Render {
 		const right = xc * ch + width / 2;
 		const bottom = yc * ch - scale / 2;
 		const top = yc * ch + scale / 2;
-		this.gl.useProgram(this.program[0]);
 		const near = 0.01;
 		const far = 11;
 		this.gl.uniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, [
@@ -826,7 +781,7 @@ class Render {
 		
 		this.gl.useProgram(this.program[2]);
 		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-		const deltaY = (yp + 1.5 - yc) * this.size + this.gl.canvas.height / 2;
+		const deltaY = (yp - yc + 1.5) * this.size + this.gl.canvas.height / 2;
 		
 		this.gl.uniform4f(this.uniform[2].u_dynamicLight, deltaX, deltaY, dynamicLight[0] * this.size, dynamicLight[1]);
 		this.gl.uniform1f(this.uniform[2].u_sizeBlock, this.size);
@@ -836,10 +791,16 @@ class Render {
 			0.0, 0.0, -2.0 / (far - near), 0.0,
 			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 		this.gl.uniform1f(this.uniform[2].u_resolution, this.gl.canvas.height);
-		let ls = 0.65;
-		if (slicePlayer === 2) {
-			ls = 0.75;
+		
+		// яркость 2 слоя
+		let ls;
+		if (slicePlayer === 1) {
+			ls = 0.65; // если игрок на 1 слое
+		} else {
+			ls = 0.75; // если игрок на 2 слое
 		}
+		
+		// отрисовка 2 и 3 слоя
 		for (let c in this.arrayOfChunks) {
 			if (this.arrayOfChunks[c] !== undefined) {
 				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
@@ -880,6 +841,7 @@ class Render {
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 			this.gl.uniform1f(this.uniform[1].u_resolution, this.gl.canvas.height);
 			
+			// отрисовка 1 слоя с полупрозрачным кругом
 			for (let c in this.arrayOfChunks) {
 				if (this.arrayOfChunks[c] !== undefined) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
@@ -904,6 +866,7 @@ class Render {
 				0.0, 0.0, -2.0 / (far - near), 0.0,
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 			
+			// отрисовка 1 слоя без полупрозрачного круга
 			for (let c in this.arrayOfChunks) {
 				if (this.arrayOfChunks[c] !== undefined) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
@@ -931,7 +894,7 @@ class Render {
 			}
 		}
 		
-		this.gl.flush(); // очистка данных
+		this.gl.flush(); // очистка данных (?)
 		
 		// дождь
 		if (this.weather[3] > 0) {
@@ -945,6 +908,8 @@ class Render {
 			
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.weather[0]);
 			this.gl.vertexAttribPointer(this.attribute[5].a_id, 1, this.gl.FLOAT, false, 0, 0);
+			
+			// если количество капелек не хватает (из-за увеличения размера экрана), то пересоздаём буфер с ними
 			if (max > this.weather[1]) {
 				const wIDs = new Float32Array(max);
 				for (let i = 0; i < max; i++) {
@@ -987,6 +952,7 @@ class Render {
 	}
 	
 	startRain() {
+		// начинается дождь
 		if (this.weather[3] <= 0) {
 			this.weather[2] = this.gl.canvas.height / 2;
 			this.weather[3] = 1;
@@ -995,8 +961,9 @@ class Render {
 	}
 	
 	stopRain() {
+		// заканчивается дождь
 		this.rain = false;
-		return this.weather[3] / this.speedRain * 6;
+		return this.weather[3] / this.speedRain * 6; // примерное время в секундах до окончания дождя
 	}
 	
 	createShader(type, source) {
@@ -1007,6 +974,8 @@ class Render {
 		if (this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
 			return shader;
 		}
+		
+		// если не удалось создать шейдер, то выводим ошибку
 		let error = '\n';
 		if (type === this.gl.VERTEX_SHADER) {
 			error += 'VERTEX SHADER ERROR:\n';
@@ -1018,22 +987,6 @@ class Render {
 		error += this.gl.getShaderInfoLog(shader);
 		this.gl.deleteShader(shader);
 		throw new Error(error);
-	}
-	
-	createAttributeLocation(program, params) {
-		const attributeLocation = {};
-		for (let i in params) {
-			attributeLocation[params[i]] = this.gl.getAttribLocation(program, params[i]);
-		}
-		return attributeLocation;
-	}
-	
-	createUniformLocation(program, params) {
-		const uniformLocation = {};
-		for (let i in params) {
-			uniformLocation[params[i]] = this.gl.getUniformLocation(program, params[i]);
-		}
-		return uniformLocation;
 	}
 	
 	createProgram(vertexShader, fragmentShader, linker) {
@@ -1048,9 +1001,29 @@ class Render {
 		if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
 			return program;
 		}
+		
+		// если не удалось создать программу, то выводим ошибку
 		const error = '\nGLSL PROGRAM CREATE ERROR:\n' + this.gl.getProgramInfoLog(program);
 		this.gl.deleteProgram(program);
 		throw new Error(error);
+	}
+	
+	createAttributeLocation(program, params) {
+		// получение ссылок на атрибуты в шейдерах
+		const attributeLocation = {};
+		for (let i in params) {
+			attributeLocation[params[i]] = this.gl.getAttribLocation(program, params[i]);
+		}
+		return attributeLocation;
+	}
+	
+	createUniformLocation(program, params) {
+		// получение ссылок на uniform-переменные в шейдерах
+		const uniformLocation = {};
+		for (let i in params) {
+			uniformLocation[params[i]] = this.gl.getUniformLocation(program, params[i]);
+		}
+		return uniformLocation;
 	}
 	
 	resizeCanvas(multiplier) {
@@ -1064,7 +1037,7 @@ class Render {
 		}
 	}
 	
-	// отрисовка
+	// отрисовка объетов
 	createTexture(image, width, height) {
 		const texture = this.gl.createTexture();
 		this.textureID--;
@@ -1095,7 +1068,7 @@ class Render {
 		//this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		let arrayOfBuffer = [];
 		let textureOfBuffer = [];
-		let v = 0;
+		//let v = 0;
 		
 		let w, h;
 		let a, b;
@@ -1134,10 +1107,10 @@ class Render {
 			//v += 6;
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer0);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
-			this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer1);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
-			this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		this.gl.uniform1i(this.uniform[3].u_texture, 0);
@@ -1155,6 +1128,7 @@ class Render {
 		const w = 1 / this.gl.canvas.width;
 		const h = 1 / this.gl.canvas.height;
 		
+		// заполняем буфер для отрисовки
 		for (let i in array) {
 			arrayOfBuffer.push(
 				array[i].pa[0] * w, array[i].pa[1] * h,
@@ -1174,10 +1148,10 @@ class Render {
 		
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer0);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
-		this.gl.vertexAttribPointer(_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.vertexAttribPointer(this.attribute[4].a_position, 2, this.gl.FLOAT, false, 0, 0);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer1);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
-		this.gl.vertexAttribPointer(_texCoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.vertexAttribPointer(this.attribute[4].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
 		for (let i in array) {
 			if (array[i].hor) {

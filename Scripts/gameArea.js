@@ -193,7 +193,7 @@ class GameArea{
             return false;
         };
 
-        this.updateBlock = (x, y, layout, player) => {
+        this.updateBlock = (x, y, layout, player, reason) => {
             if (x < 0 || x >= this.width
                 || y < 0 || y >= this.height
                 || this.map[x][y][layout] === undefined
@@ -211,7 +211,7 @@ class GameArea{
                         if (id !== lastId) {
                             return;
                         }
-                        this.map[x][y][layout] = undefined;  // Без пересчета света
+                        this.gameAreaMapSet(x, y, layout, undefined);  // Без пересчета света
                         this.placeBlock(x, y - 1, layout, id);
                     }, GameArea.FALLING_BLOCKS * 1000);
                 }
@@ -376,12 +376,14 @@ class GameArea{
         }
 
         // Обновление окружения блока
-        this.updateRadius = (x, y, layout, player) => {
+        this.updateRadius = (x, y, layout, player, reason) => {
             for (let i = x - 1; i <= x + 1; i++) {
                 for (let j = y - 1; j <= y + 1; j++) {
                     if (i !== x || y !== j) {
-                        this.updateBlock(i, j, layout, player);
-                        if (layout === GameArea.FIRST_LAYOUT) this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player);
+                        this.updateBlock(i, j, layout, player, reason);
+                        if (layout === GameArea.FIRST_LAYOUT) {
+                            this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player, reason);
+                        }
                     }
                 }
             }
@@ -400,7 +402,7 @@ class GameArea{
             if (items[lastBlock].destroyFunction) {
                 items[lastBlock].destroyFunction(x, y, layout);
             }
-            this.updateRadius(x, y, layout, player);
+            this.updateRadius(x, y, layout, player, "destroy");
         }
 
         // К этому блоку можно приставлять другие
@@ -464,8 +466,8 @@ class GameArea{
                     }
                     this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 }
-                this.updateRadius(x, y, layout);
-                this.updateBlock(x, y, layout);
+                this.updateRadius(x, y, layout, "place");
+                this.updateBlock(x, y, layout, "place");
 
                 return true;
             }

@@ -143,7 +143,7 @@ const items = {
                     return;
                 }
                 if (gA.map[x][y + 1][l] !== undefined && gA.map[x][y][l] === 2) {
-                    gA.map[x][y][l] = undefined;
+                    gA.gameAreaMapSet(x, y, l, undefined);
                     gA.placeBlock(x, y, l, 3);
                 }
             }, GRASS_TIME_UPDATE * Math.random() * 1000);
@@ -175,7 +175,7 @@ const items = {
                     return;
                 }
                 if (gA.map[x][y + 1][l] === undefined && gA.map[x][y][l] === 3) {
-                    gA.map[x][y][l] = undefined;
+                    gA.gameAreaMapSet(x, y, l, undefined);
                     gA.placeBlock(x, y, l, 2);
                 }
             }, GRASS_TIME_UPDATE * Math.random() * 1000);
@@ -895,6 +895,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-0',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9000);
@@ -910,6 +911,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-1',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9001);
@@ -925,6 +927,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-2',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9002);
@@ -940,6 +943,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-3',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9003);
@@ -955,6 +959,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-4',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9004);
@@ -970,6 +975,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-5',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9005);
@@ -985,6 +991,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-6',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9006);
@@ -1000,6 +1007,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-7',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9007);
@@ -1015,6 +1023,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-8',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9008);
@@ -1030,6 +1039,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-9',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9009);
@@ -1045,6 +1055,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-10',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9010);
@@ -1060,6 +1071,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-11',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9011);
@@ -1075,6 +1087,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-12',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9012);
@@ -1090,6 +1103,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-13',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9013);
@@ -1105,6 +1119,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-14',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9014);
@@ -1120,6 +1135,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-15',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9015);
@@ -1135,6 +1151,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-16',
         update: (x, y, l, gA) => {
             items['8'].update(x, y, l, gA, 9016);

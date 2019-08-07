@@ -448,7 +448,6 @@ const items = {
             return getTextureCoordinates(13, 1)
         },
         canPlace: (x, y, layout) => {
-            console.log("can place");
             return layout === GameArea.FIRST_LAYOUT && gameArea.canAttach(x, y, GameArea.SECOND_LAYOUT);
         },
         weight: 1
@@ -475,6 +474,29 @@ const items = {
         weight: WEIGHT_OF_BLOCKS,
         texture: () => {
             return getTextureCoordinates(13, 0)
+        }
+    },
+
+    '22':
+    {
+        id: '22',
+        name: 'Chest',
+        type: 'wood',
+        isBlock: true,
+        isInventoryBlock: true,
+        capacity: 100,
+        isAlwaysGoodDestroy: true,
+        isCollissed: false,
+        isClickable: true,
+        durability: 3,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isCanInteractThrow: true,
+        texture: () => {
+            return getTextureCoordinates(13, 0) // ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ
+        },
+        interactFunction: (x, y, layout) => {
+            UIOpenChest(x, y, layout);
         }
     },
 
@@ -620,8 +642,8 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.map[x][y - 1][layout] === 61
-                        || gameArea.map[x][y - 1][layout] === 60
+            return (gameArea.map[x][y - 1][layout] === 62
+                        || gameArea.map[x][y - 1][layout] === 63
                         || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
@@ -661,8 +683,8 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.map[x][y - 1][layout] === 61
-                        || gameArea.map[x][y - 1][layout] === 60
+            return (gameArea.map[x][y - 1][layout] === 62
+                        || gameArea.map[x][y - 1][layout] === 63
                         || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {

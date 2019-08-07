@@ -62,6 +62,11 @@ let crafts = {
 		needCount: [ 4 ],
 		resultCount: 1
 	},
+	'22': {
+		needId: [ 5 ],
+		needCount: [ 8 ],
+		resultCount: 1
+	},
 	'267': {
 		needId: [ 5 ],
 		needCount: [ 2 ],

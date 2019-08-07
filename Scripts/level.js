@@ -47,6 +47,7 @@ const beginPlay = () => {
 			loadingResult.gameArea.height,
 			key,
 			BlocksGlobalChange);
+		gameArea.inventoryBlocks = loadingResult.gameArea.inventoryBlocks;
 		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
 
     	player = new Player();
@@ -94,8 +95,8 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	}
 }
 
+// На первом тике после инициализации мира
 const onStart = () => {
-
 	initUI();
 }
 
@@ -496,20 +497,18 @@ const mouseControl = () => {
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
 		if (player.blockAvailable(targetX, targetY, player.layout)) {
-   			// Установка блока
-		    if (player.place(targetX, targetY, layout)) {
-		    	lastPlaceBlockTime = currentTime;
-
-	            // Анимация
-	            player.setAnimation("body", "kick");
-		    }
-		} else {
+			// Взаимодействие с блоком
 			if (player.interact(targetX, targetY, layout)) {
 				lastPlaceBlockTime = currentTime;
 
 	            // Анимация
 	            player.setAnimation("body", "kick");
-			}
+			} else if (player.place(targetX, targetY, layout)) { // Установка блока
+		    	lastPlaceBlockTime = currentTime;
+
+	            // Анимация
+	            player.setAnimation("body", "kick");
+		    }
 		}
 	}
 }

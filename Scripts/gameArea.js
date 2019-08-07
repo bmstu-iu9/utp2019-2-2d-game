@@ -164,7 +164,91 @@ class GameArea{
                 this.addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3],
                     true);
             }
-        };
+        }
+
+        // Добавить предмет в инвентарь блока [x, y, layout]
+        this.addToInvBlock = (x, y, layout, item) => {
+            let inv = this.inventoryBlocks[ [x, y, layout] ];
+            // Вставляем предмет в инвентарь, если он стакается
+            if (item.count != undefined) {
+
+                // Если даже 1 не влезет
+                if (items[item.id].weight + inv[2] > inv[3]) {
+                    return item;
+                }
+                needChestRedraw = true;
+                for (let i = 0; i < inv[0].length; i++) {
+                    if (item.id == inv[0][i]) {
+                        if (items[item.id].weight * item.count + inv[2] <= inv[3]) {
+                            inv[1][i] += item.count;
+                            inv[2] += item.count * items[item.id].weight;
+                            return undefined;
+                        } else {
+                            inv[1][i] += inv[3] - inv[2];
+                            item.count -= inv[3] - inv[2];
+                            inv[2] = inv[3];
+                            return item;
+                        }
+                    }
+                }
+                for (let i = 0; i <= inv[0].length; i++) {
+                    if (inv[0][i] == undefined) {
+                        inv[0][i] = item.id;
+                        if (items[item.id].weight * item.count + inv[2] <= inv[3]) {
+                            inv[1][i] = item.count;
+                            inv[2] += item.count * items[item.id].weight;
+                            return undefined;
+                        } else {
+                            inv[1][i] = inv[3] - inv[2];
+                            item.count -= inv[3] - inv[2];
+                            inv[2] = inv[3];
+                            return item;
+                        }
+                    }
+                }
+            } else { //.................................................................... Не стакается
+                if (items[item.id].weight + inv[2] <= inv[3]) {
+                    for (let i = 0; i <= inv[0].length; i++) {
+                        if (inv[0][i] == undefined) {
+                            inv[0][i] = item;
+                            inv[1][i] = undefined;
+                            inv[2] += items[item.id].weight;
+                            return undefined;
+                        }
+                    }
+                } else {
+                    return item;
+                }
+            }
+        }
+
+        // Удалить count предметов в инвентаре блока [x, y, layout] по индексу index
+        this.deleteFromInvBlockByIndex = (x, y, layout, index, count) => {
+            let inv = this.inventoryBlocks[ [x, y, layout] ];
+            let drop;
+            if (inv[0][index] == undefined || inv[1][index] < count
+                    || inv[1][index] == undefined && count > 1) {
+                throw new Error(`Can not delete ${count} item(s) on index ${index}`);
+            } else {
+                drop = {
+                    "item" : inv[0][index],
+                    "count" : count
+                }
+                if (inv[1][index] == undefined || inv[1][index] == count) {
+                    if (inv[1][index] == undefined) {
+                        inv[2] -= items[inv[0][index].id].weight * count;
+                    } else {
+                        inv[2] -= items[inv[0][index]].weight * count;
+                    }
+                    inv[0][index] = undefined;
+                    inv[1][index] = undefined;
+                } else {
+                    inv[2] -= items[inv[0][index]].weight * count;
+                    inv[1][index] -= count;
+                }
+            }
+            return drop;
+        }
 
         // Делает блок воздуха = undefined
         this.makeAirBlock = () => {
@@ -535,6 +619,11 @@ class GameArea{
             }
 
             this.map[x][y][layout] = id;
+            if (items[id].isInventoryBlock) {
+                this.inventoryBlocks[[x, y, layout]] = [ [], [], 0, items[id].capacity ];
+            } else {
+                this.inventoryBlocks[[x, y, layout]] = undefined;
+            }
 			
 			// обновляем карту высот для погоды
 			if (layout == GameArea.FIRST_LAYOUT) {
@@ -603,6 +692,7 @@ const angleMax = (a1, a2) => {
 const gameAreaCopy = (gameArea, obj) => {
     gameArea.width = obj.width;
     gameArea.height = obj.height;
+    gameArea.inventoryBlocks = obj.inventoryBlocks;
 }
 
 // Константы уровня

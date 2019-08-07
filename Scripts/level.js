@@ -129,7 +129,7 @@ const UI = () => {
 	// Кнопки 1..8
 	for (let i = 1; i <= 8; i++) {
 		if (controller.numbers[i].active) {
-			if (player.hand.index != i - 1) {
+			if (player.hand.index !== i - 1) {
 				player.setHand(i - 1);
 			}
 			break;
@@ -175,7 +175,11 @@ const playerActionButtons = () => {
 
 	// Нажата E
 	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
-		player.interactWithNearest(layout);
+		if (chestOpened) {
+			UICloseChest();
+		} else {
+			player.interactWithNearest(layout);
+		}
 		lastPlaceBlockTime = currentTime;
 	}
 
@@ -398,6 +402,12 @@ const playerMovement = () => {
 	
 	player.x = roundToFunc(newX, blockSize, Math.round);
 	player.y = roundToFunc(newY, blockSize, Math.round);
+
+	// Закрыть интерфейс сундука, если игрок вышел за радиус досягаемости
+	if (chestOpened 
+			&& hypotenuse(Math.abs(player.x - lastChest.x), Math.abs(player.y - lastChest.y)) > Player.ACTION_RADIUS) {
+		UICloseChest();
+	}
 
 	// Плавное движение камеры
 	if (Math.abs(cameraX - newX) > 1) {

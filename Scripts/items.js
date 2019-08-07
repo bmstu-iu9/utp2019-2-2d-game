@@ -142,7 +142,8 @@ const items = {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] !== undefined && gA.map[x][y][l] === 2) {
+                if (gA.map[x][y + 1][l] !== undefined && items[gA.map[x][y + 1][l]].isCollissed
+                                                                            && gA.map[x][y][l] === 2) {
                     gA.gameAreaMapSet(x, y, l, undefined);
                     gA.placeBlock(x, y, l, 3);
                 }
@@ -174,7 +175,8 @@ const items = {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] === undefined && gA.map[x][y][l] === 3) {
+                if ((gA.map[x][y + 1][l] === undefined || !items[gA.map[x][y + 1][l]].isCollissed)
+                        && gA.map[x][y][l] === 3) {
                     gA.gameAreaMapSet(x, y, l, undefined);
                     gA.placeBlock(x, y, l, 2);
                 }
@@ -484,7 +486,7 @@ const items = {
         type: 'wood',
         isBlock: true,
         isInventoryBlock: true,
-        capacity: 100,
+        capacity: 150,
         isAlwaysGoodDestroy: true,
         isCollissed: false,
         isClickable: true,

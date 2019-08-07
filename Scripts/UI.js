@@ -19,6 +19,20 @@ let defaultHeight = 1080;
 
 let UIMap = new Map();
 
+const getBlockRect = (x, y) => {
+    let _size = render.getCanvasSize();
+    return {
+        pa: {
+            x: ((x - cameraX) * blockSize * cameraScale + _size[0] / 2) / _size[0],
+            y: ((y - cameraY) * blockSize * cameraScale + _size[1] / 2) / _size[1]
+        },
+        pb: {
+            x: ((x + 1 - cameraX) * blockSize * cameraScale + _size[0] / 2) / _size[0],
+            y: ((y + 1 - cameraY) * blockSize * cameraScale + _size[1] / 2) / _size[1]
+        }
+    }
+}
+
 setOnClickListener = (sprite, clickAction, holdAction, releaseAction, longHoldAction) => {
     sprite.click = clickAction;
     sprite.hold = holdAction;
@@ -27,6 +41,7 @@ setOnClickListener = (sprite, clickAction, holdAction, releaseAction, longHoldAc
     sprite.interactive = true;
 }
 
+// Обработка клика при отпускании ЛКМ
 const clickAction = (sprite) => {
     if (!sprite) return;
     if (sprite.click) {
@@ -36,6 +51,7 @@ const clickAction = (sprite) => {
     }
 }
 
+// Обработка длинного нажатия кнопки
 const longHoldAction = (sprite) => {
     if (!sprite) return;
     if (sprite.longHold) {
@@ -45,6 +61,7 @@ const longHoldAction = (sprite) => {
     }
 }
 
+// Обработка удержания кнопки
 const holdAction = (sprite) => {
     if (!sprite) return;
     if (sprite.hold) {
@@ -52,6 +69,7 @@ const holdAction = (sprite) => {
     }
 }
 
+// Обработка отводка курсора с кнопки
 const releaseAction = (sprite) => {
     if (!sprite) return;
     if (sprite.release) {
@@ -626,6 +644,10 @@ let needInvRedraw = false;
 let needChestRedraw = true;
 let inventoryOpened = false;
 let chestOpened = undefined;
+let lastChest = {
+    x: 0,
+    y: 0
+}
 let lastCanvasSize = [ 0, 0 ];
 const drawUI = () => {
     const _size = render.getCanvasSize();
@@ -1921,6 +1943,8 @@ const UIOpenChest = (x, y, layout) => {
         y: y,
         layout: layout
     }
+    lastChest.x = x;
+    lastChest.y = y;
 
     needInvRedraw = true;
 
@@ -1998,6 +2022,8 @@ const UIOpenChest = (x, y, layout) => {
     chestPanel.recountRect = (rect, indent, parent, image, props) => {
         props.opened.rect.pa.y = (props.opened.rect.pb.x - props.opened.rect.pa.x) / 8
                                     * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
+
+        props.closed.rect = getBlockRect(lastChest.x, lastChest.y);
 
         rect.pa = {
             x: props.closed.rect.pa.x + props.animationState * (props.opened.rect.pa.x - props.closed.rect.pa.x),

@@ -102,7 +102,7 @@ const onStart = () => {
 
 // Вызывается каждый кадр
 const eventTick = () => {
-
+	mouseMessage = undefined;
 	currentTime += deltaTime;
 	staminaNotUsed = true;
 	playerMovement();
@@ -421,6 +421,16 @@ const playerMovement = () => {
 
 let buttonHoldCounter = 0; // Отсчёт длинного нажатия на кнопку
 const mouseControl = () => {
+	// Наведение на сообщение
+	for (let i = _mouseMessageUIArr.length - 1; i >= 0; i--) {
+		if (_mouseMessageUIArr[i].pa[0] < controller.mouse.x
+			&& _mouseMessageUIArr[i].pb[0] > controller.mouse.x
+			&& _mouseMessageUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+			&& _mouseMessageUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+			console.log("kek")
+			showMouseMessage(_mouseMessageUIArr[i].message);
+		}
+	}
 
 	let layout = player.layout;
     if(controller.shift.active) {
@@ -450,7 +460,7 @@ const mouseControl = () => {
 					} else {
 						buttonHoldCounter = 0;
 					}
-					if (buttonHoldCounter > 1.5) { // Действие зажатия
+					if (buttonHoldCounter > buttonLongHoldLength) { // Действие зажатия
 						longHoldAction(sprite);
 					} else {
 						holdAction(sprite);

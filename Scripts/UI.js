@@ -14,6 +14,7 @@ let fullUI;  // Якорь в % + размер в пикселях
 let screenUI;
 let _renderingUIArr;
 let _interactiveUIArr = [];
+let _mouseMessageUIArr = [];
 let defaultWidth = 1920;
 let defaultHeight = 1080;
 
@@ -52,6 +53,7 @@ const clickAction = (sprite) => {
 }
 
 // Обработка длинного нажатия кнопки
+let buttonLongHoldLength = 0.5;
 const longHoldAction = (sprite) => {
     if (!sprite) return;
     if (sprite.longHold) {
@@ -101,6 +103,7 @@ class Sprite {
                     'cb': render.getCanvasSize()
                 };
                 _interactiveUIArr = [];
+                _mouseMessageUIArr = [];
                 isScreenUI = true;
             }
 
@@ -137,6 +140,14 @@ class Sprite {
                         'id': this.id
                     });
                 }
+                if (this.mouseMessage) {
+                    _mouseMessageUIArr.push({
+                        'sprite': this,
+                        'pa': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                        'pb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                        'message': this.mouseMessage
+                    });
+                }
 
                 for (let i = 0; i < this.children.length; i++) {
                     ans = ans.concat(this.children[i].draw({
@@ -146,6 +157,20 @@ class Sprite {
                         'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
                         'id': this.id
                     }));
+                }
+
+                // Добавляем элементы поверх всего интерфейса
+                if (isScreenUI) {
+                    // Сообщение у мышки
+                    if (mouseMessage) {
+                        ans = ans.concat(mouseMessage.draw({
+                            'pa': pa,
+                            'pb': pb,
+                            'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                            'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                            'id': this.id
+                        }));
+                    }
                 }
             }
             return ans;
@@ -181,6 +206,101 @@ class Sprite {
 Sprite.counter = 1;
 Sprite.pixelScale = render.getCanvasSize()[0] / defaultWidth;
 
+let mouseMessage;
+const showMouseMessage = (str) => {
+    let fontSize = 40;
+    let _size = render.getCanvasSize();
+    let mouseX = controller.mouse.x;
+    let mouseY = _size[1] - controller.mouse.y;
+
+    let height = 1;
+    let width = 0;
+    let counter = 0;
+    for(let i = 0; i < str.length; i++) {
+        if (str[i] === '\n') {
+            height++;
+            counter = 0;
+        } else {
+            counter++;
+            if (counter * 2 / 3 > width) width = counter * 2 / 3;
+        }
+    }
+
+    let panel = new Sprite(
+        [ [0, 0.51], [0.125, 0.615] ],
+        {
+            pa: {
+                x: mouseX / _size[0],
+                y: mouseY / _size[1]
+            },
+            pb: {
+                x: mouseX / _size[0],
+                y: mouseY / _size[1]
+            }
+        },
+        {
+            pa: {
+                x: controller.mouse.x > _size[0] / 2 ? (-width * fontSize - 30) : 10,
+                y: controller.mouse.y > _size[1] / 2 ? 10 : (-height * fontSize - 30)
+            },
+            pb: {
+                x: controller.mouse.x > _size[0] / 2 ? -10 : (width * fontSize + 30),
+                y: controller.mouse.y > _size[1] / 2 ? (height * fontSize + 30) : -10
+            }
+        });
+    let darkPanel = new Sprite(
+        [ [0.250, 0.51], [0.375, 0.615] ],
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 5,
+                y: 5
+            },
+            pb: {
+                x: -5,
+                y: -5
+            }
+        });
+    panel.add(darkPanel);
+
+    let contentPanel = new Sprite(
+        undefined,
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 10,
+                y: 10
+            },
+            pb: {
+                x: -10,
+                y: -10
+            }
+        });
+    contentPanel.add(createText(str));
+
+    darkPanel.add(contentPanel);
+
+    mouseMessage = panel;
+}
+
 // Инициализация интерфейса
 const initUI = () => {
     const _size = render.getCanvasSize(); // получаем размер экрана
@@ -204,32 +324,6 @@ const initUI = () => {
                 y: 0
             }
         });
-        
-        // Кастомное окно по середине
-        let actionPanel = new Sprite(
-            [ [0, 0.5], [0.125, 0.625] ],
-            {
-                pa: {
-                    x: 1 / 3,
-                    y: 0
-                },
-                pb: {
-                    x: 3 / 4,
-                    y: 1
-                }
-            },
-            {
-                pa: {
-                    x: 30,
-                    y: 20
-                },
-                pb: {
-                    x: - 30,
-                    y: - 20
-                }
-            });
-        UIMap.actionPanel = actionPanel;
-        //screenUI.add(actionPanel);
 
         // Быстрый инвентарь
         let fastInvPanel = new Sprite(
@@ -653,7 +747,6 @@ const drawUI = () => {
     const _size = render.getCanvasSize();
     Sprite.pixelScale = _size[0] / defaultWidth;
 
-
     // Анимации
     let animationSpeed = 5;
 
@@ -746,6 +839,8 @@ const drawUI = () => {
         needUIRedraw = false;
         lastCanvasSize = _size;
     }
+
+
 }
 
 const UISetActiveSlot = (index) => {
@@ -1865,6 +1960,17 @@ const reloadCraft = (isCraftingTable) => {
             "\n\nCount: " + crafts[availableCraft.ready[i]].resultCount + "\n"
             + items[availableCraft.ready[i]].name, i);
 
+        let id = availableCraft.ready[i];
+        let recipe = "";
+        for(let i = crafts[id].needId.length; i >= 0; i--) {
+            if (crafts[id].needId[i]) {
+                recipe += items[crafts[id].needId[i]].name + ": " + crafts[id].needCount[i] + "\n";
+            }
+        }
+        recipe += "Required:";
+
+        card.mouseMessage = recipe;
+
         card.indent.pa.y += scrollingContent.props.scrollX;
         card.indent.pb.y += scrollingContent.props.scrollX;
 
@@ -1916,6 +2022,17 @@ const reloadCraft = (isCraftingTable) => {
         let card = createItemCard(i + availableCraft.ready.length, availableCraft.notReady[i], 
             "Not enough resourses!\n\nCount: " + crafts[availableCraft.notReady[i]].resultCount + "\n"
             + items[availableCraft.notReady[i]].name, i);
+
+        let id = availableCraft.notReady[i];
+        let recipe = "";
+        for(let i = crafts[id].needId.length; i >= 0; i--) {
+            if (crafts[id].needId[i]) {
+                recipe += items[crafts[id].needId[i]].name + ": " + crafts[id].needCount[i] + "\n";
+            }
+        }
+        recipe += "Required:";
+
+        card.mouseMessage = recipe;
 
         card.indent.pa.y += scrollingContent.props.scrollX;
         card.indent.pb.y += scrollingContent.props.scrollX;

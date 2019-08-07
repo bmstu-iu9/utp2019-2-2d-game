@@ -427,7 +427,6 @@ const mouseControl = () => {
 			&& _mouseMessageUIArr[i].pb[0] > controller.mouse.x
 			&& _mouseMessageUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
 			&& _mouseMessageUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
-			console.log("kek")
 			showMouseMessage(_mouseMessageUIArr[i].message);
 		}
 	}

@@ -493,7 +493,7 @@ const items = {
         weight: WEIGHT_OF_BLOCKS,
         isCanInteractThrow: true,
         texture: () => {
-            return getTextureCoordinates(13, 0) // ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ
+            return getTextureCoordinates(14, 0)
         },
         interactFunction: (x, y, layout) => {
             if (chestOpened) {

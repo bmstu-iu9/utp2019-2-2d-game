@@ -1867,6 +1867,24 @@ const reloadCraft = (isCraftingTable) => {
         () => {
             card.image = [ [0.125, 0.51], [0.250, 0.615] ];
             needCraftRedraw = false;
+        },
+        () => {
+            let id = availableCraft.ready[i];
+            while (isReadyCraft(id, player.inv)) {
+                availableCraft = getCrafts(player.inv, isCraftingTable);
+                for(let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
+                    for(let j = 0; j < player.inv.items.length; j++) {
+                        if (+player.inv.items[j] === crafts[availableCraft.ready[i]].needId[k]) {
+                            player.deleteFromInvByIndex(j, crafts[availableCraft.ready[i]].needCount[k]);
+                            break;
+                        }
+                    }
+                }
+                player.addToInv(createItem(availableCraft.ready[i], crafts[availableCraft.ready[i]].resultCount));
+            }
+            needInvRedraw = true;
+            needCraftRedraw = true;
+            card.image = [ [0.125, 0.51], [0.250, 0.615] ];
         });
         scrollingContent.add(card);
     }

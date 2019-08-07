@@ -1,22 +1,5 @@
 // Список того, что можно крафтить по инвентарю
 const getCrafts = (inventory, isCraftingTable) => {
-	const isReady = (id) => {
-		let need = crafts[id];
-		for(let i = 0; i < need.needId.length; i++) {
-			let count = 0;
-			for(let j = 0; j < inventory.items.length; j++) {
-				if (inventory.items[j]) {
-					let invItemId = (inventory.items[j].id) ? inventory.items[j].id : inventory.items[j];
-					if (+invItemId === +need.needId[i]) {
-						count = (inventory.count[j]) ? inventory.count[j] : 1;
-						break;
-					}
-				} 
-			}
-			if (count < need.needCount[i]) return false;
-		}
-		return true;
-	}
 
 	const addToSet = (array, obj) => {
 		for(let i = 0; i < array.length; i++) {
@@ -35,7 +18,7 @@ const getCrafts = (inventory, isCraftingTable) => {
 		let canCraft = needForCraft[id];
 		if (canCraft) {
 			for(let j = 0; j < canCraft.length; j++) {
-				if (isReady(canCraft[j])) {
+				if (isReadyCraft(canCraft[j], inventory)) {
 					addToSet(ready, canCraft[j]);
 				} else {
 					addToSet(notReady, canCraft[j]);
@@ -48,6 +31,23 @@ const getCrafts = (inventory, isCraftingTable) => {
 		ready: ready,
 		notReady: notReady
 	}
+}
+const isReadyCraft = (id, inventory) => {
+	let need = crafts[id];
+	for(let i = 0; i < need.needId.length; i++) {
+		let count = 0;
+		for(let j = 0; j < inventory.items.length; j++) {
+			if (inventory.items[j]) {
+				let invItemId = (inventory.items[j].id) ? inventory.items[j].id : inventory.items[j];
+				if (+invItemId === +need.needId[i]) {
+					count = (inventory.count[j]) ? inventory.count[j] : 1;
+					break;
+				}
+			} 
+		}
+		if (count < need.needCount[i]) return false;
+	}
+	return true;
 }
 
 // Элемент -> что нужно для крафта

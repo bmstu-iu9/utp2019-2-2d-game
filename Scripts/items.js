@@ -496,7 +496,16 @@ const items = {
             return getTextureCoordinates(13, 0) // ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ ПОМЕНЯТЬ
         },
         interactFunction: (x, y, layout) => {
-            UIOpenChest(x, y, layout);
+            if (chestOpened) {
+                if (chestOpened.x === x && chestOpened.y === y && chestOpened.layout === layout) {
+                    UICloseChest();
+                } else {
+                    UIOpenChest(x, y, layout);
+                }
+            } else {
+                UIOpenChest(x, y, layout);
+            }
+            
         }
     },
 

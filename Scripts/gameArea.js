@@ -169,6 +169,7 @@ class GameArea{
         // Добавить предмет в инвентарь блока [x, y, layout]
         this.addToInvBlock = (x, y, layout, item) => {
             let inv = this.inventoryBlocks[ [x, y, layout] ];
+
             // Вставляем предмет в инвентарь, если он стакается
             if (item.count != undefined) {
 
@@ -184,24 +185,26 @@ class GameArea{
                             inv[2] += item.count * items[item.id].weight;
                             return undefined;
                         } else {
-                            inv[1][i] += inv[3] - inv[2];
-                            item.count -= inv[3] - inv[2];
-                            inv[2] = inv[3];
+                            let count = Math.floor((inv[3] - inv[2]) / items[item.id].weight);
+                            inv[1][i] += count;
+                            item.count -= count;
+                            inv[2] += count * items[item.id].weight;
                             return item;
                         }
                     }
                 }
                 for (let i = 0; i <= inv[0].length; i++) {
-                    if (inv[0][i] == undefined) {
+                    if (inv[0][i] === undefined) {
                         inv[0][i] = item.id;
                         if (items[item.id].weight * item.count + inv[2] <= inv[3]) {
                             inv[1][i] = item.count;
                             inv[2] += item.count * items[item.id].weight;
                             return undefined;
                         } else {
-                            inv[1][i] = inv[3] - inv[2];
-                            item.count -= inv[3] - inv[2];
-                            inv[2] = inv[3];
+                            let count = Math.floor((inv[3] - inv[2]) / items[item.id].weight);
+                            inv[1][i] = count;
+                            item.count -= count;
+                            inv[2] += count * items[item.id].weight;
                             return item;
                         }
                     }
@@ -231,7 +234,7 @@ class GameArea{
                 throw new Error(`Can not delete ${count} item(s) on index ${index}`);
             } else {
                 drop = {
-                    "item" : inv[0][index],
+                    "id" : inv[0][index],
                     "count" : count
                 }
                 if (inv[1][index] == undefined || inv[1][index] == count) {
@@ -244,6 +247,9 @@ class GameArea{
                     inv[1][index] = undefined;
                 } else {
                     inv[2] -= items[inv[0][index]].weight * count;
+                    if (!inv[1]) {
+                        inv[1] = 0;
+                    }
                     inv[1][index] -= count;
                 }
             }

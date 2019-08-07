@@ -306,9 +306,10 @@ class Player {
                             needInvRedraw = true;
                             return undefined;
                         } else {
-                            this.inv.count[i] += this.inv.capacity - this.inv.weight;
-                            item.count -= this.inv.capacity - this.inv.weight;
-                            this.inv.weight = this.inv.capacity;
+                            let count = Math.floor((this.inv.capacity - this.inv.weight) / items[item.id].weight);
+                            this.inv.count[i] += count;
+                            item.count -= count;
+                            this.inv.weight = count * items[item.id].weight;
                             this.setHand(this.hand.index);
                             needInvRedraw = true;
                             return item;
@@ -325,9 +326,10 @@ class Player {
                             needInvRedraw = true;
                             return undefined;
                         } else {
-                            this.inv.count[i] = this.inv.capacity - this.inv.weight;
-                            item.count -= this.inv.capacity - this.inv.weight;
-                            this.inv.weight = this.inv.capacity;
+                            let count = Math.floor((this.inv.capacity - this.inv.weight) / items[item.id].weight);
+                            this.inv.count[i] = count;
+                            item.count -= count;
+                            this.inv.weight = count * items[item.id].weight;
                             this.setHand(this.hand.index);
                             needInvRedraw = true;
                             return item;
@@ -360,7 +362,7 @@ class Player {
                 throw new Error(`Can not delete ${count} item(s) on index ${index}`);
             } else {
                 drop = {
-                    "item" : this.inv.items[index],
+                    "id" : this.inv.items[index],
                     "count" : count
                 }
                 if (this.inv.count[index] === undefined || this.inv.count[index] === count) {

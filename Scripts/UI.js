@@ -19,10 +19,11 @@ let defaultHeight = 1080;
 
 let UIMap = new Map();
 
-setOnClickListener = (sprite, clickAction, holdAction, releaseAction) => {
+setOnClickListener = (sprite, clickAction, holdAction, releaseAction, longHoldAction) => {
     sprite.click = clickAction;
     sprite.hold = holdAction;
     sprite.release = releaseAction;
+    sprite.longHold = longHoldAction;
     sprite.interactive = true;
 }
 
@@ -32,6 +33,15 @@ const clickAction = (sprite) => {
         sprite.click();
     } else if (sprite.release) {
         sprite.release();
+    }
+}
+
+const longHoldAction = (sprite) => {
+    if (!sprite) return;
+    if (sprite.longHold) {
+        sprite.longHold();
+    } else if (sprite.hold) {
+        sprite.hold();
     }
 }
 
@@ -1447,11 +1457,15 @@ const reloadInv = () => {
             () => {
                 deleteButton.image = [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ];
                 needInvRedraw = false;
+            },
+            () => {
+                player.deleteFromInvByIndex(i, player.inv.count[i]);
+                needChestRedraw = true;
             });
             card.add(deleteButton);
 
             let toChestButton = new Sprite(
-                [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ],
+                [ [0.626, 0.5635], [0.6875, 0.625] ],
                 {
                     pa: {
                         x: 1,
@@ -1474,22 +1488,36 @@ const reloadInv = () => {
                 });
             setOnClickListener(toChestButton, () => {
                 let item = player.deleteFromInvByIndex(i, 1);
-                console.log(item);
-                gameArea.addToInvBlock(chestOpened.x, chestOpened.y, chestOpened.layout, item);
+                item = gameArea.addToInvBlock(chestOpened.x, chestOpened.y, chestOpened.layout, item);
+                if (item) {
+                    player.addToInv(item);
+                }
                 needInvRedraw = true;
                 needChestRedraw = true;
 
-                toChestButton.image = [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ];
+                toChestButton.image = [ [0.626, 0.5635], [0.6875, 0.625] ];
             },
             () => {
-                toChestButton.image = [ [0.376 + 0.0625, 0.501 + 0.0625], [0.4375 + 0.0625, 0.5625 + 0.0625] ];
+                toChestButton.image = [ [0.626 + 0.0625, 0.5635], [0.6875 + 0.0625, 0.625] ];
                 needInvRedraw = false;
             },
             () => {
-                toChestButton.image = [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ];
+                toChestButton.image = [ [0.626, 0.5635], [0.6875, 0.625] ];
                 needInvRedraw = false;
+            },
+            () => {
+                toChestButton.image = [ [0.626, 0.5635], [0.6875, 0.625] ];
+                let item = player.deleteFromInvByIndex(i, player.inv.count[i]);
+                item = gameArea.addToInvBlock(chestOpened.x, chestOpened.y, chestOpened.layout, item);
+                if (item) {
+                    player.addToInv(item);
+                }
+                needInvRedraw = true;
+                needChestRedraw = true;
             });
-            card.add(toChestButton);
+            if (chestOpened) {
+                card.add(toChestButton);
+            }
 
             scrollingContent.add(card);
 
@@ -1875,6 +1903,9 @@ const UIOpenChest = (x, y, layout) => {
         y: y,
         layout: layout
     }
+
+    needInvRedraw = true;
+
     if (UIMap.chestPanel) screenUI.deleteChild(UIMap.chestPanel.id);
 
     let chestPanel = new Sprite(
@@ -2183,13 +2214,13 @@ const reloadChest = (x, y, layout) => {
                 card = createItemCard(insertIndex, inv[0][i].id,
                      "Weight: " + items[inv[0][i].id].weight + "\n"
                     + "\nDurability: " + inv[0][i].durability
-                    + "\n" +items[inv[0][i].id].name);
+                    + "\n" + items[inv[0][i].id].name);
 
             } else {
                 card = createItemCard(insertIndex, inv[0][i],
                     "Weight: " + items[inv[0][i]].weight * inv[1][i]
                     + "\n\n" + "Count: " + inv[1][i]
-                    + "\n"+items[inv[0][i]].name);
+                    + "\n" + items[inv[0][i]].name);
             }
 
             card.props = {
@@ -2200,8 +2231,9 @@ const reloadChest = (x, y, layout) => {
             }
 
             setOnClickListener(card, () => {
-                let back = player.addToInv(createItem(inv[0][i], inv[1][i]));
-                if (back) {
+                let item = gameArea.deleteFromInvBlockByIndex(x, y, layout, i, 1);
+                item = player.addToInv(item);
+                if (item) {
                     gameArea.addToInvBlock(x, y, layout, createItem(back.id, back.count));
                 }
                 needInvRedraw = true;
@@ -2215,6 +2247,16 @@ const reloadChest = (x, y, layout) => {
             () => {
                 card.image = [ [0.125, 0.51], [0.250, 0.615] ];
                 needChestRedraw = false;
+            },
+            () => {
+                let item = gameArea.deleteFromInvBlockByIndex(x, y, layout, i, inv[1][i]);
+                item = player.addToInv(item);
+                if (item) {
+                    gameArea.addToInvBlock(x, y, layout, item);
+                }
+                needInvRedraw = true;
+                needChestRedraw = true;
+                card.image = [ [0.125, 0.51], [0.250, 0.615] ];
             });
 
             card.indent.pa.y += scrollingContent.props.scrollX;
@@ -2255,6 +2297,10 @@ const reloadChest = (x, y, layout) => {
             () => {
                 deleteButton.image = [ [0.376, 0.501 + 0.0625], [0.4375, 0.5625 + 0.0625] ];
                 needChestRedraw = false;
+            },
+            () => {
+                gameArea.deleteFromInvBlockByIndex(x, y, layout, i, inv[1][i]);
+                needChestRedraw = true;
             });
             card.add(deleteButton);
             scrollingContent.add(card);
@@ -2267,4 +2313,5 @@ const reloadChest = (x, y, layout) => {
 
 const UICloseChest = () => {
     chestOpened = undefined;
+    needInvRedraw = true;
 }

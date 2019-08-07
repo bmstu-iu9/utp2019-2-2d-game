@@ -409,6 +409,7 @@ const playerMovement = () => {
 	
 }
 
+let buttonHoldCounter = 0; // Отсчёт длинного нажатия на кнопку
 const mouseControl = () => {
 
 	let layout = player.layout;
@@ -434,7 +435,16 @@ const mouseControl = () => {
 					let sprite = _interactiveUIArr[i].sprite;
 					let lastButton = UIMap.lastButton;
 					let activeElement = UIMap.activeElement;
-					holdAction(sprite);
+					if (sprite.longHold && lastButton === sprite) {
+						buttonHoldCounter += deltaTime;
+					} else {
+						buttonHoldCounter = 0;
+					}
+					if (buttonHoldCounter > 1.5) { // Действие зажатия
+						longHoldAction(sprite);
+					} else {
+						holdAction(sprite);
+					}
 
 					if (lastButton !== sprite) {
 						releaseAction(lastButton);
@@ -489,6 +499,7 @@ const mouseControl = () => {
 
     	clickAction(UIMap.lastButton);
 		UIMap.lastButton = undefined;
+		buttonHoldCounter = 0;
     }
 
 	// Когда зажата ПКМ

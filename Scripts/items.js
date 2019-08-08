@@ -406,9 +406,21 @@ const items = {
         texture: () => {
             return getTextureCoordinates(9, 0)
         },
-        update: (x, y, l, gA, reason) => {
-            if (reason === "destroyAround") {
-                gA.goodDestroy(x, y, l, player);
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 17) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 17) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+            if (gameArea.get(x - 1, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x - 1, y + 1, layout, player);
+            }
+            if (gameArea.get(x + 1, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x + 1, y + 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
             }
         }
     },
@@ -429,9 +441,18 @@ const items = {
         texture: () => {
             return getTextureCoordinates(10, 0)
         },
-        update: (x, y, l, gA, reason) => {
-            if (reason === "destroyAround") {
-                gA.goodDestroy(x, y, l, player);
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 18) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 18) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+            if (gameArea.get(x, y - 1, layout) === 18) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 18) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
             }
         }
     },

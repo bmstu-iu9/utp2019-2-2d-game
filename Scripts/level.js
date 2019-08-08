@@ -52,7 +52,19 @@ const beginPlay = () => {
 
     	player = new Player();
     	playerCopy(player, loadingResult.player);
-    	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+		slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+		for (let i in BlocksGlobalChange) {
+			gameArea.updateBlock(
+				BlocksGlobalChange[i].x,
+				BlocksGlobalChange[i].y,
+				BlocksGlobalChange[i].layout,
+				player);
+			gameArea.updateRadius(
+				BlocksGlobalChange[i].x,
+				BlocksGlobalChange[i].y,
+				BlocksGlobalChange[i].layout,
+				player);
+		}
 
     } else {
 		gameArea = generate(1000, 1000, key);
@@ -102,7 +114,7 @@ const onStart = () => {
 
 // Вызывается каждый кадр
 const eventTick = () => {
-
+	mouseMessage = undefined;
 	currentTime += deltaTime;
 	staminaNotUsed = true;
 	playerMovement();
@@ -116,6 +128,7 @@ const eventTick = () => {
 		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
 	
 	// В последнюю очередь
+	if (player.sp === player.maxSP) player.heal(0.5 * deltaTime);
 	// Анимации
 	animationsTickCount++;
 	player.animate();
@@ -167,10 +180,10 @@ const playerActionButtons = () => {
     }
 
 	if (controller.f.active) {  // Сохранение
-		saveWorld('world');
+		saveWorld('world').then(() => chooseWorld('world'));
 	}
 	if (controller.g.active) { // Удалить сохранение
-		deleteDatabase();
+		deleteWorld('world');
 	}
 
 	// Нажата E
@@ -189,7 +202,6 @@ const playerActionButtons = () => {
 		 	controller.invClick = true;
 		 	if (inventoryOpened) {
 		 		UICloseInv();
-		 		if (craftOpened) UICloseCraft();
 		 	} else {
 		 		UIOpenInv();
 		 	}
@@ -206,7 +218,6 @@ const playerActionButtons = () => {
 		 		UICloseCraft();
 		 	} else {
 		 		UIOpenCraft();
-		 		if (!inventoryOpened) UIOpenInv();
 		 	}
 		 }
 	} else {
@@ -408,6 +419,11 @@ const playerMovement = () => {
 			&& hypotenuse(Math.abs(player.x - lastChest.x), Math.abs(player.y - lastChest.y)) > Player.ACTION_RADIUS) {
 		UICloseChest();
 	}
+	// Закрыть интерфейс крафта, если игрок вышел за радиус досягаемости
+	if (craftOpened && lastCraftBlock && hypotenuse(Math.abs(player.x - lastCraftBlock.x),
+											Math.abs(player.y - lastCraftBlock.y)) > Player.ACTION_RADIUS) {
+		UICloseCraft();
+	}
 
 	// Плавное движение камеры
 	if (Math.abs(cameraX - newX) > 1) {
@@ -421,6 +437,15 @@ const playerMovement = () => {
 
 let buttonHoldCounter = 0; // Отсчёт длинного нажатия на кнопку
 const mouseControl = () => {
+	// Наведение на сообщение
+	for (let i = _mouseMessageUIArr.length - 1; i >= 0; i--) {
+		if (_mouseMessageUIArr[i].pa[0] < controller.mouse.x
+			&& _mouseMessageUIArr[i].pb[0] > controller.mouse.x
+			&& _mouseMessageUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+			&& _mouseMessageUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+			showMouseMessage(_mouseMessageUIArr[i].message);
+		}
+	}
 
 	let layout = player.layout;
     if(controller.shift.active) {
@@ -436,21 +461,24 @@ const mouseControl = () => {
 
 		// Нажатие по интерфейсу
 		let interactWithUI = false;
-		for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
-			if (_interactiveUIArr[i].pa[0] < controller.mouse.x
-				&& _interactiveUIArr[i].pb[0] > controller.mouse.x
-				&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
-				&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+		if (buttonHoldCounter <= buttonLongHoldLength) {
+			for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
+				if (_interactiveUIArr[i].pa[0] < controller.mouse.x
+						&& _interactiveUIArr[i].pb[0] > controller.mouse.x
+						&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+						&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
 					// action to click
 					let sprite = _interactiveUIArr[i].sprite;
 					let lastButton = UIMap.lastButton;
 					let activeElement = UIMap.activeElement;
+
 					if (sprite.longHold && lastButton === sprite) {
 						buttonHoldCounter += deltaTime;
 					} else {
 						buttonHoldCounter = 0;
 					}
-					if (buttonHoldCounter > 1.5) { // Действие зажатия
+
+					if (buttonHoldCounter >= buttonLongHoldLength) { // Действие зажатия
 						longHoldAction(sprite);
 					} else {
 						holdAction(sprite);
@@ -464,6 +492,7 @@ const mouseControl = () => {
 					interactWithUI = true;
 					break;
 				}
+			}
 		}
 
 		if (!interactWithUI) {
@@ -507,7 +536,9 @@ const mouseControl = () => {
     } else {
     	currentBlock = undefined;
 
-    	clickAction(UIMap.lastButton);
+    	if (buttonHoldCounter < buttonLongHoldLength) {
+    		clickAction(UIMap.lastButton);
+    	}
 		UIMap.lastButton = undefined;
 		buttonHoldCounter = 0;
     }

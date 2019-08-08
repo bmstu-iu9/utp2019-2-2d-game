@@ -283,7 +283,7 @@ class GameArea{
             return false;
         };
 
-        this.updateBlock = (x, y, layout, player, reason) => {
+        this.updateBlock = (x, y, layout, player) => {
             if (x < 0 || x >= this.width
                 || y < 0 || y >= this.height
                 || this.map[x][y][layout] === undefined
@@ -308,7 +308,7 @@ class GameArea{
             }
 
             if (block.update !== undefined) {
-                block.update(x, y, layout, this, reason);
+                block.update(x, y, layout, this);
             }
 
             switch (block.type) {
@@ -466,13 +466,13 @@ class GameArea{
         }
 
         // Обновление окружения блока
-        this.updateRadius = (x, y, layout, player, reason) => {
+        this.updateRadius = (x, y, layout, player) => {
             for (let i = x - 1; i <= x + 1; i++) {
                 for (let j = y - 1; j <= y + 1; j++) {
                     if (i !== x || y !== j) {
-                        this.updateBlock(i, j, layout, player, reason);
+                        this.updateBlock(i, j, layout, player);
                         if (layout === GameArea.FIRST_LAYOUT) {
-                            this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player, reason);
+                            this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player);
                         }
                     }
                 }
@@ -492,7 +492,7 @@ class GameArea{
             if (items[lastBlock].destroyFunction) {
                 items[lastBlock].destroyFunction(x, y, layout);
             }
-            this.updateRadius(x, y, layout, player, "destroyAround");
+            this.updateRadius(x, y, layout, player);
         }
 
         // К этому блоку можно приставлять другие
@@ -556,8 +556,8 @@ class GameArea{
                     }
                     this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 }
-                this.updateRadius(x, y, layout, "placeAround");
-                this.updateBlock(x, y, layout, "place");
+                this.updateRadius(x, y, layout);
+                this.updateBlock(x, y, layout);
 
                 return true;
             }

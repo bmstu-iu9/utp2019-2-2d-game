@@ -268,10 +268,10 @@ const preprocessing = () => {
 		elem.parentNode.removeChild(elem);
 	}
 
-	if (loadExist()) {
+	if (localStorage.choosedWorld !== undefined) {
 		const wait = async () => {
 			return new Promise (responce => {
-				loadWorld('world')
+				loadWorld(localStorage.choosedWorld)
 				.then(result => {
 					loadingResult = result;
 					responce();

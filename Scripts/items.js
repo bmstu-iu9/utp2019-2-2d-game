@@ -406,9 +406,21 @@ const items = {
         texture: () => {
             return getTextureCoordinates(9, 0)
         },
-        update: (x, y, l, gA, reason) => {
-            if (reason === "destroyAround") {
-                gA.goodDestroy(x, y, l, player);
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 17) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 17) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+            if (gameArea.get(x - 1, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x - 1, y + 1, layout, player);
+            }
+            if (gameArea.get(x + 1, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x + 1, y + 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
             }
         }
     },
@@ -429,9 +441,18 @@ const items = {
         texture: () => {
             return getTextureCoordinates(10, 0)
         },
-        update: (x, y, l, gA, reason) => {
-            if (reason === "destroyAround") {
-                gA.goodDestroy(x, y, l, player);
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 18) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 18) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+            if (gameArea.get(x, y - 1, layout) === 18) {
+                gameArea.goodDestroy(x, y - 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 18) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
             }
         }
     },
@@ -488,12 +509,11 @@ const items = {
         isInventoryBlock: true,
         capacity: 150,
         isAlwaysGoodDestroy: true,
-        isCollissed: false,
+        isCollissed: true,
         isClickable: true,
         durability: 3,
         isSolid: true,
         weight: WEIGHT_OF_BLOCKS,
-        isCanInteractThrow: true,
         texture: () => {
             return getTextureCoordinates(14, 0)
         },
@@ -508,6 +528,54 @@ const items = {
                 UIOpenChest(x, y, layout);
             }
             
+        }
+    },
+
+    '23':
+    {
+        id: '23',
+        name: 'Crafting Table',
+        type: 'wood',
+        isBlock: true,
+        isAlwaysGoodDestroy: true,
+        isCollissed: true,
+        isClickable: true,
+        durability: 2,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(15, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            if (craftOpened) {
+                UICloseCraft();
+            } else {
+                UIOpenCraft(x, y, layout);
+            }
+        }
+    },
+
+    '24':
+    {
+        id: '24',
+        name: 'Furnace',
+        type: 'stone',
+        isBlock: true,
+        isCollissed: true,
+        isClickable: true,
+        durability: 5,
+        brightness: 4,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(15, 1)
+        },
+        interactFunction: (x, y, layout) => {
+            if (craftOpened) {
+                UICloseCraft();
+            } else {
+                UIOpenCraft(x, y, layout);
+            }
         }
     },
 

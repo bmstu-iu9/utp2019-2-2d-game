@@ -1807,7 +1807,7 @@ const generate = (width, height, seed, changes) => {
             })] = [
                 {
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",".....bbbbbbbbbbbbbbbbbbbbb....","........bbbbbbbbbbbbbbb.......","..........bbbbbbbbbbb.........","...l......................l...","..............................","........l............l........","bbbb........l....l........bbbb","bbbbbbb................bbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",".bbbbbbbbbbbbbbbbbbbbbbbbbbbb.",".bbbbbbbbbbbbbbbbbbbbbbbbbbbb.",".bbbbbbbbbbbbbbbbbbbbbbbbbbbb.",".bbbbbbbbbbbbb..bbbbbbbbbbbbb.",".bbbbbbbbbbbbb..bbbbbbbbbbbbb.",".bbbbbbbbbbbbb..bbbbbbbbbbbbb.","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbb....bbbbbbbbbbbbb","bbb....bbbbb......bbbbbbbbbbbb","bbb.....bbb........bbbbbbbbbbb","bbb...........bbbbbbbbbbbbbbbb","bbb...........bbbbbbbbbbbbbbbb","bbbb..........bbbbbbbbbbbbbbbb","bbbbbb........bbbbbbbbbbbbbbbb","bbbbbbbbb....bbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbb....bbbbbbbbbbbbb","bbb....bbbbb......bbbbbbbbbbbb","bbb.....bbb........bbbbbbbbbbb","bbb............bbbbbbbbbbbbbbb","bbb............bbbbbbbbbbbbbbb","bbbb...........bbbbbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbbbbbb.....bbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                 }
             ];
 
@@ -1918,6 +1918,7 @@ const generate = (width, height, seed, changes) => {
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                 }
             ];
+
             let labyrynth = createLabyrynth();
             logLabyrynth(labyrynth);
             
@@ -1929,6 +1930,7 @@ const generate = (width, height, seed, changes) => {
                     drawByScheme(loc.add(i * cellW, j * cellH), blocksMap, room.firstL, room.secondL);
                 }
             }
+
             // drawByScheme(new Point(530, 730), blocksMap, rooms[getCellType(labyrynth[2][1])][0].firstL, rooms[getCellType(labyrynth[2][1])][0].secondL);
             // drawByScheme(new Point(530, 790), blocksMap, rooms[getCellType(labyrynth[0][1])][0].firstL, rooms[getCellType(labyrynth[0][1])][0].secondL);
             // drawByScheme(new Point(500, 760), blocksMap, rooms[getCellType(labyrynth[1][0])][0].firstL, rooms[getCellType(labyrynth[1][0])][0].secondL);
@@ -1937,63 +1939,7 @@ const generate = (width, height, seed, changes) => {
             // setBlock(500, 790, GameArea.FIRST_LAYOUT, WOOD_BLOCK)
         }
 
-        createMesh(vLoc, 30, 30, 6, 4); //Размеры клеток с учетом стен
-
-        // clearZone();
-        // let tpt = new Point(10, 10);
-        // let tw = 50;
-        // let th = 20;
-        // for (let i = 0; i < tw; i++) {
-        //     for (let j = 0; j < th; j++) {
-        //         setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.BACK_LAYOUT, LEAVES_BLOCK);
-        //         // setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
-        //     }
-        //     setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-        // }
-        // for (let i = 0; i < 4; i++) {
-        //     setBlock(vLoc.x + tpt.x + 5, vLoc.y + tpt.y + i + 1, GameArea.FIRST_LAYOUT, LOCKED_DOOR_BLOCK);
-        // }
-        // const blocksMap = {
-        //     'a': BRICKS_WITH_KEY_BLOCK,
-        //     'b': STONE_BRICK_BLOCK,
-        //     'c': COBBLESTONE_BLOCK,
-        //     'd': DOOR_BLOCK,
-        //     'g': GLASS_BLOCK,
-        //     'i': WATER_BLOCK,
-        //     'j': LAVA_BLOCK,
-        //     'h': LOCKED_TRAPDOOR_BLOCK,
-        //     'k': LOCKED_DOOR_BLOCK,
-        //     'l': TORCH_BLOCK,
-        //     'm': GRASS_BKOCK,
-        //     'n': DIRT_BLOCK,
-        //     'p': WOOD_PLANKS_BLOCK,
-        //     't': TRAPDOOR_BLOCK,
-        //     'y': SAND_BLOCK,    
-        //     'w': WOOD_BLOCK,
-        // };
-        // const fl = [
-        //     'b......bbbhhhhbbbb',
-        //     'b......b.........b',
-        //     'b......k.........b',
-        //     'a......k.........a',
-        //     'b......k.........b',
-        //     'b......k.........b',
-        //     'bbbbbbbbbbbbbbbbbb',
-        // ].reverse();
-        // const sl = [
-        //     'bbbbbbbbbbbbbbbbbb',
-        //     'bbbbbbbbbbbbbbbbbb',
-        //     'bbbbbbbbbbbbbbbbbb',
-        //     'bbbbbbbbbbbbbbbbbb',
-        //     'bbbbbbbbbbbbbbbbbb',
-        //     'bbbbbbbbbbbbbbbbbb',
-        //     'bbbbbbbbbbbbbbbbbb',
-        // ].reverse();
-        // drawByScheme(vLoc.add(tpt), blocksMap, fl, sl);
-        // //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bjjjccjjjjjjjjccjjjjjjjjjjjbjjjbjjjcjjjjjjjjccjjjb","b..............................b.............c...b","b..............................b.................b","b............l..l....c.........b...........l..l..b","b..........................l.......c.............b","b..............c.................................b","b...c.........cc.....b.....b....c.............bbbb","bbbbcc...............b.....b.............c....bbbb","bbbbc................b..b..b......................",".............l..l....b..b..b....c............c....",".....c...............b..b..b.......c........cc....","....cc...............b..b..b.........l..l...cc....","....cc........cc.....b..b..b................cc...b","b...cc.....................b.......b..bb.....c...b","b...c......................b....cccc..bb.........b","b............l..l..........b..........bb.........b","b..l..l.....b....b...l..l..b...l....l.bb...l..l..b","b...........b....b.........b..........bb.........b","bbbbbbbbbbbbb....bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
-        // //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbcccbbbbbcbbccbbcccbccbbbbbbcbbbbbccbbcbbbccbcbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbbbccbbbbbbbbccbbcb","bbbbccccbbbbcbccbbbbbbccbbbcbbbbcbbcbbcbbbbbccbbbb","bcbbccbbccbbbbccbbbbccccbbccbbbbccbcbbbbbbcbccbbbb","bbbbccbbbbccbbcccbccbbccbbcbbbbbbbbbbbbbbbbbcccbbb","bbcbccbbbbbbccccccbbbbccbbbbbbbbcbbcbbbcbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbb.bbbbcbcbbbbbbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbc.bbcbbcbcbbbbbcbcccbcbb","bbbbccbbcbbbbbccbcbbbbccbcbbbbbbcccbbbbbbbbcccbbbb","bbbbccbcbbcbbbccbbcbbbccbbbbbbbbcbbcbcbbbbbbccbbbc","bbbbccbbbbcbbbccbbbbbbccbbbbbcbbcbbcbbbcbbbbccbbbb","bcbbccbcbbcbbbccbbbbbbccbbbbccbbccbcbbbbbbbbccbbbb","bbcbccbbbbbbbbccbbbbbbccbbbbbbbbcccbbbbbbbbbccbbbb","bcbbccbbbbbbccccccbbcbccbbbbbbbbbbcbbbbbbbbbccbcbb","bbbbccbbbbccbbccbbccbbccbbcbcbbbccccbbbbbbcbccbbbb","bbcbccbbccbbbbccbbbbccccbbcbbbcbbcbcbbbbbbbbccbbbb","bbbbccccbbbbbbccbbbbbbccbcbbbbbbbbcbbbbbcbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbccbcbbbbbbbcccbbbb","bbbbbbbbbbbbbbccbbbbbbbbbbbbbbbbbbbbbbbbb.bbb.bbbb"]        ;
-
-
+        createMesh(vLoc, 30, 30, 6, 4);
     }
     //#endregion
 

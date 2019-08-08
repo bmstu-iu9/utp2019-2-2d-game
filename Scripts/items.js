@@ -488,12 +488,11 @@ const items = {
         isInventoryBlock: true,
         capacity: 150,
         isAlwaysGoodDestroy: true,
-        isCollissed: false,
+        isCollissed: true,
         isClickable: true,
         durability: 3,
         isSolid: true,
         weight: WEIGHT_OF_BLOCKS,
-        isCanInteractThrow: true,
         texture: () => {
             return getTextureCoordinates(14, 0)
         },
@@ -508,6 +507,30 @@ const items = {
                 UIOpenChest(x, y, layout);
             }
             
+        }
+    },
+
+    '23':
+    {
+        id: '23',
+        name: 'Crafting Table',
+        type: 'wood',
+        isBlock: true,
+        isAlwaysGoodDestroy: true,
+        isCollissed: true,
+        isClickable: true,
+        durability: 2,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(15, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            if (craftOpened) {
+                UICloseCraft();
+            } else {
+                UIOpenCraft(x, y, layout);
+            }
         }
     },
 

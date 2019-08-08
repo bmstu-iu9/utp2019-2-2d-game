@@ -20,7 +20,7 @@ let defaultHeight = 1080;
 
 let UIMap = new Map();
 
-const getBlockRect = (x, y) => {
+const getBlockRect = (x, y, width, height) => {
     let _size = render.getCanvasSize();
     return {
         pa: {
@@ -28,8 +28,8 @@ const getBlockRect = (x, y) => {
             y: ((y - cameraY) * blockSize * cameraScale + _size[1] / 2) / _size[1]
         },
         pb: {
-            x: ((x + 1 - cameraX) * blockSize * cameraScale + _size[0] / 2) / _size[0],
-            y: ((y + 1 - cameraY) * blockSize * cameraScale + _size[1] / 2) / _size[1]
+            x: ((x + width - cameraX) * blockSize * cameraScale + _size[0] / 2) / _size[0],
+            y: ((y + height - cameraY) * blockSize * cameraScale + _size[1] / 2) / _size[1]
         }
     }
 }
@@ -1652,9 +1652,27 @@ const UICloseInv = () => {
 // Меню крафтов
 let needCraftRedraw = false;
 let craftOpened = false;
-const UIOpenCraft = (isCraftingTable) => {
-    if (craftOpened) return;
+let isCraftingTable = false;
+let isFurnace = false;
+let lastCraftBlock = undefined;
+const UIOpenCraft = (x, y, layout) => {
+    if (craftOpened && lastCraftBlock
+                        && lastCraftBlock.x === x
+                        && lastCraftBlock.y === y
+                        && lastCraftBlock.layout === layout) return;
     craftOpened = true;
+    if (x !== undefined && y !== undefined && layout !== undefined) {
+        lastCraftBlock = {};
+        lastCraftBlock.x = x;
+        lastCraftBlock.y = y;
+        lastCraftBlock.layout = layout;
+    } else {
+        lastCraftBlock = undefined;
+    }
+
+    isCraftingTable = lastCraftBlock
+                        && gameArea.get(lastCraftBlock.x, lastCraftBlock.y, lastCraftBlock.layout) === 23;
+
     if (UIMap.craftPanel) screenUI.deleteChild(UIMap.craftPanel.id);
 
     // Панель крафтов
@@ -1730,6 +1748,20 @@ const UIOpenCraft = (isCraftingTable) => {
             }
         });
     craftPanel.recountRect = (rect, indent, parent, image, props) => {
+        if (lastCraftBlock) {
+            craftPanel.props.closed.rect = getBlockRect(lastCraftBlock.x, lastCraftBlock.y, 1, 1);
+            craftPanel.props.closed.indent = {
+                pa: {
+                    x: 0,
+                    y: 0
+                },
+                pb: {
+                    x: 0,
+                    y: 0
+                }
+            }
+        } 
+
         rect.pa = {
             x: props.closed.rect.pa.x + props.animationState * (props.opened.rect.pa.x - props.closed.rect.pa.x),
             y: props.closed.rect.pa.y + props.animationState * (props.opened.rect.pa.y - props.closed.rect.pa.y)
@@ -1750,6 +1782,31 @@ const UIOpenCraft = (isCraftingTable) => {
     }
     
     UIMap.craftPanel = craftPanel;
+
+    // Наличие блоков для крафта
+    let craftingTable = new Sprite(
+        isCraftingTable ? items[23].texture() : [ [0.250, 0.51], [0.375, 0.615] ],
+        {
+            pa: {
+                x: 1,
+                y: 1
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: -110,
+                y: -55
+            },
+            pb: {
+                x: -60,
+                y: -5
+            }
+        });
+    craftPanel.add(craftingTable);
     
     let craftScrollPanel = new Sprite(
         [ [0.250, 0.51], [0.375, 0.615] ],
@@ -1860,7 +1917,7 @@ const UIOpenCraft = (isCraftingTable) => {
             scrollX: 0
         });
     UIMap.craftScrollingContent = scrollingContent;
-    reloadCraft(isCraftingTable);
+    reloadCraft();
 
     let downButton = new Sprite(
         [ [0.4385, 0.5635], [0.375, 0.501] ],
@@ -1948,7 +2005,7 @@ const UIOpenCraft = (isCraftingTable) => {
     screenUI.add(craftPanel);
 }
 
-const reloadCraft = (isCraftingTable) => {
+const reloadCraft = () => {
     let scrollingContent = UIMap.craftScrollingContent;
     scrollingContent.deleteChildren();
 
@@ -2140,7 +2197,7 @@ const UIOpenChest = (x, y, layout) => {
         props.opened.rect.pa.y = (props.opened.rect.pb.x - props.opened.rect.pa.x) / 8
                                     * (parent.pb[0] - parent.pa[0]) / (parent.pb[1] - parent.pa[1]);
 
-        props.closed.rect = getBlockRect(lastChest.x, lastChest.y);
+        props.closed.rect = getBlockRect(lastChest.x, lastChest.y, 1, 1);
 
         rect.pa = {
             x: props.closed.rect.pa.x + props.animationState * (props.opened.rect.pa.x - props.closed.rect.pa.x),

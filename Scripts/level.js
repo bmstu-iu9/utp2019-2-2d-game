@@ -189,7 +189,6 @@ const playerActionButtons = () => {
 		 	controller.invClick = true;
 		 	if (inventoryOpened) {
 		 		UICloseInv();
-		 		if (craftOpened) UICloseCraft();
 		 	} else {
 		 		UIOpenInv();
 		 	}
@@ -206,7 +205,6 @@ const playerActionButtons = () => {
 		 		UICloseCraft();
 		 	} else {
 		 		UIOpenCraft();
-		 		if (!inventoryOpened) UIOpenInv();
 		 	}
 		 }
 	} else {
@@ -407,6 +405,11 @@ const playerMovement = () => {
 	if (chestOpened 
 			&& hypotenuse(Math.abs(player.x - lastChest.x), Math.abs(player.y - lastChest.y)) > Player.ACTION_RADIUS) {
 		UICloseChest();
+	}
+	// Закрыть интерфейс крафта, если игрок вышел за радиус досягаемости
+	if (craftOpened && lastCraftBlock && hypotenuse(Math.abs(player.x - lastCraftBlock.x),
+											Math.abs(player.y - lastCraftBlock.y)) > Player.ACTION_RADIUS) {
+		UICloseCraft();
 	}
 
 	// Плавное движение камеры

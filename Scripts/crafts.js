@@ -18,10 +18,13 @@ const getCrafts = (inventory, isCraftingTable) => {
 		let canCraft = needForCraft[id];
 		if (canCraft) {
 			for(let j = 0; j < canCraft.length; j++) {
-				if (isReadyCraft(canCraft[j], inventory)) {
-					addToSet(ready, canCraft[j]);
-				} else {
-					addToSet(notReady, canCraft[j]);
+				if ((crafts[canCraft[j]].needCradftingTable && isCraftingTable
+						|| !crafts[canCraft[j]].needCradftingTable)) {
+					if (isReadyCraft(canCraft[j], inventory)) {
+						addToSet(ready, canCraft[j]);
+					} else {
+						addToSet(notReady, canCraft[j]);
+					}
 				}
 			}
 		}
@@ -72,11 +75,13 @@ let crafts = {
 	'21': {
 		needId: [ 4 ],
 		needCount: [ 4 ],
+		needCradftingTable: true,
 		resultCount: 1
 	},
 	'22': {
 		needId: [ 5 ],
 		needCount: [ 8 ],
+		needCradftingTable: true,
 		resultCount: 1
 	},
 	'267': {
@@ -102,26 +107,31 @@ let crafts = {
 	'273': {
 		needId: [ 267, 4 ],
 		needCount: [ 1, 2 ],
+		needCradftingTable: true,
 		resultCount: 1
     },
 	'274': {
 		needId: [ 267, 4 ],
 		needCount: [ 1, 2 ],
+		needCradftingTable: true,
 		resultCount: 1
     },
 	'275': {
 		needId: [ 267, 4 ],
 		needCount: [ 1, 2 ],
+		needCradftingTable: true,
 		resultCount: 1
     },
     '63': {
     	needId: [ 5 ],
     	needCount: [ 5 ],
+		needCradftingTable: true,
     	resultCount: 3
     },
     '61': {
     	needId: [ 5 ],
     	needCount: [ 5 ],
+		needCradftingTable: true,
     	resultCount: 3
     },
     '19': {
@@ -132,18 +142,26 @@ let crafts = {
     '277': {
     	needId: [ 267, 264 ],
     	needCount: [ 1, 2 ],
+		needCradftingTable: true,
     	resultCount: 1
     },
     '278': {
     	needId: [ 267, 264 ],
     	needCount: [ 1, 2 ],
+		needCradftingTable: true,
     	resultCount: 1
     },
     '279': {
     	needId: [ 267, 264 ],
     	needCount: [ 1, 2 ],
+		needCradftingTable: true,
     	resultCount: 1
-    }
+    },
+    '23': {
+		needId: [ 5, 4 ],
+		needCount: [ 6, 1 ],
+		resultCount: 1
+	}
 }
 
 // Элемент -> объекты, которые из него крафтятся

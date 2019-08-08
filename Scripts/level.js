@@ -169,6 +169,7 @@ const playerActionButtons = () => {
 
 	if (controller.f.active) {  // Сохранение
 		saveWorld('world');
+		chooseWorld('world');
 	}
 	if (controller.g.active) { // Удалить сохранение
 		deleteWorld('world');

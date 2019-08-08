@@ -7,6 +7,7 @@ loadExist()                    Существует ли сохранение
 getLoadList()                  Получить массив с именами всех сохранений
 deleteDatabase()               Очистить БД
 saveWorld(имя сохранения)      Сохранить текущее состояние, перезаписывает состояние, если такое имя уже занято
+chooseWorld(имя сохранения)    После перезагрузки будет загружено данное сохранение
 loadWorld(имя сохранения)      Возвращает объект с состоянием мира
 deleteWorld(имя сохранения)    Удаляет сохранение
 
@@ -36,6 +37,14 @@ const deleteDatabase = () => {
 
     req.onerror = (event) => {
         console.error("Couldn't delete database: " + event);
+    }
+}
+
+const chooseWorld = (worldName) => {
+    if (worldName === undefined) {
+        delete localStorage.choosedWorld;
+    } else {
+        localStorage.choosedWorld = worldName;
     }
 }
 
@@ -164,5 +173,8 @@ const deleteWorld = (worldName) => {
         .transaction([DB_STORE_NAME], "readwrite")
         .objectStore(DB_STORE_NAME);
         req.delete(worldName);
+        if (localStorage.choosedWorld === worldName) {
+            chooseWorld(undefined);
+        }
     }
 }

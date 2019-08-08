@@ -526,6 +526,7 @@ class Render {
 		// заполняем буферы
 		for (let i in playerAnims) {
 			arrayOfPosition.push(
+				// голова
 				0, playerAnims[i].body[2] / playerResolutionY,
 				1, playerAnims[i].body[2] / playerResolutionY,
 				0, playerAnims[i].head[2] / playerResolutionY,
@@ -533,6 +534,7 @@ class Render {
 				1, playerAnims[i].body[2] / playerResolutionY,
 				1, playerAnims[i].head[2] / playerResolutionY,
 				
+				// тело
 				0, playerAnims[i].legs[2] / playerResolutionY,
 				1, playerAnims[i].legs[2] / playerResolutionY,
 				0, playerAnims[i].body[2] / playerResolutionY,
@@ -540,6 +542,7 @@ class Render {
 				1, playerAnims[i].legs[2] / playerResolutionY,
 				1, playerAnims[i].body[2] / playerResolutionY,
 				
+				// ноги
 				0, 0,
 				1, 0,
 				0, playerAnims[i].legs[2] / playerResolutionY,
@@ -548,6 +551,7 @@ class Render {
 				1, playerAnims[i].legs[2] / playerResolutionY);
 			
 			arrayOfTexCoord.push(
+				// голова
 				playerAnims[i].head[0][0], playerAnims[i].head[1][1],
 				playerAnims[i].head[1][0], playerAnims[i].head[1][1],
 				playerAnims[i].head[0][0], playerAnims[i].head[0][1],
@@ -555,6 +559,7 @@ class Render {
 				playerAnims[i].head[1][0], playerAnims[i].head[1][1],
 				playerAnims[i].head[1][0], playerAnims[i].head[0][1],
 				
+				// тело
 				playerAnims[i].body[0][0], playerAnims[i].body[1][1],
 				playerAnims[i].body[1][0], playerAnims[i].body[1][1],
 				playerAnims[i].body[0][0], playerAnims[i].body[0][1],
@@ -562,6 +567,7 @@ class Render {
 				playerAnims[i].body[1][0], playerAnims[i].body[1][1],
 				playerAnims[i].body[1][0], playerAnims[i].body[0][1],
 				
+				// ноги
 				playerAnims[i].legs[0][0], playerAnims[i].legs[1][1],
 				playerAnims[i].legs[1][0], playerAnims[i].legs[1][1],
 				playerAnims[i].legs[0][0], playerAnims[i].legs[0][1],
@@ -610,7 +616,7 @@ class Render {
 		this.gl.viewport(0, 0, this.playerResolution[0], this.playerResolution[1]);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]); // используем текстуру игрока
 		this.gl.drawArrays(this.gl.TRIANGLES, head * 18, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, body * 18 + 6, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, legs * 18 + 12, 6);
@@ -623,12 +629,15 @@ class Render {
 		
 		// буфер кадров
 		if (this.arrayOfChunks[c] === undefined) {
+			// при отсутствии буфера кадров создадим его
 			const texture = [], blockBuffer = [], texBuffer = [];
 			for (let i in blocksOfChunk) {
 				texture[i] = this.gl.createTexture();
 				this.gl.bindTexture(this.gl.TEXTURE_2D, texture[i]);
 				this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA,
 					this.gl.UNSIGNED_BYTE, null);
+				
+				// настройки изображения, хранимого в буфере кадров
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
@@ -641,10 +650,11 @@ class Render {
 			const light = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, light);
 			
+			// настройки мягкого освещения
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 			
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
 				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(this.widthChunk * this.heightChunk * 4));
@@ -659,6 +669,7 @@ class Render {
 			};
 		}
 		
+		// заполняем буфер света освещением
 		const length = lightChunk.length;
 		const array = new Uint8Array(length);
 		for (let i = 0; i < length; i++) {
@@ -678,7 +689,7 @@ class Render {
 		const w = 1 / this.widthChunk;
 		const h = 1 / this.heightChunk;
 		
-		// Отрисовка слоёв
+		// отрисовка слоёв
 		for (let i in this.arrayOfChunks[c].tex) {
 			const arrayOfBuffer = [];
 			const textureOfBuffer = [];

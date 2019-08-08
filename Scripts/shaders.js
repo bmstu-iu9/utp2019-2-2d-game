@@ -73,7 +73,7 @@ _fragmentShader[1] = `
 		float minAlpha = 0.2;
 		vec4 tex = texture2D(u_texture0, v_texCoord);
 		float tex2alpha = (texture2D(u_texture2, v_texCoord)).a;
-		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) / 2.0)).x;
 		vec2 delta = u_center - gl_FragCoord.xy;
 		float alpha = tex2alpha <= 0.01
 			? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0
@@ -114,7 +114,7 @@ _fragmentShader[2] = `
 
 	void main() {
 		vec4 tex = texture2D(u_texture0, v_texCoord);
-		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) / 2.0)).x;
 		float radius = u_dynamicLight.p;
 		float maxLight = u_dynamicLight.a;
 		vec2 delta = u_dynamicLight.xy - gl_FragCoord.xy;

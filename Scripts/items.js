@@ -142,8 +142,9 @@ const items = {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] !== undefined && gA.map[x][y][l] === 2) {
-                    gA.map[x][y][l] = undefined;
+                if (gA.map[x][y + 1][l] !== undefined && items[gA.map[x][y + 1][l]].isCollissed
+                                                                            && gA.map[x][y][l] === 2) {
+                    gA.gameAreaMapSet(x, y, l, undefined);
                     gA.placeBlock(x, y, l, 3);
                 }
             }, GRASS_TIME_UPDATE * Math.random() * 1000);
@@ -174,8 +175,9 @@ const items = {
                 if ((y + 1) >= gA.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] === undefined && gA.map[x][y][l] === 3) {
-                    gA.map[x][y][l] = undefined;
+                if ((gA.map[x][y + 1][l] === undefined || !items[gA.map[x][y + 1][l]].isCollissed)
+                        && gA.map[x][y][l] === 3) {
+                    gA.gameAreaMapSet(x, y, l, undefined);
                     gA.placeBlock(x, y, l, 2);
                 }
             }, GRASS_TIME_UPDATE * Math.random() * 1000);
@@ -403,6 +405,11 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(9, 0)
+        },
+        update: (x, y, l, gA, reason) => {
+            if (reason === "destroyAround") {
+                gA.goodDestroy(x, y, l, player);
+            }
         }
     },
 
@@ -412,6 +419,7 @@ const items = {
         name: 'Leaf',
         type: 'leaf',
         isBlock: true,
+        isAlwaysGoodDestroy: true,
         dropId: '18',
         weight: WEIGHT_OF_BLOCKS,
         durability: 0.5,
@@ -420,6 +428,11 @@ const items = {
         isSolid: true,
         texture: () => {
             return getTextureCoordinates(10, 0)
+        },
+        update: (x, y, l, gA, reason) => {
+            if (reason === "destroyAround") {
+                gA.goodDestroy(x, y, l, player);
+            }
         }
     },
 
@@ -437,7 +450,6 @@ const items = {
             return getTextureCoordinates(13, 1)
         },
         canPlace: (x, y, layout) => {
-            console.log("can place");
             return layout === GameArea.FIRST_LAYOUT && gameArea.canAttach(x, y, GameArea.SECOND_LAYOUT);
         },
         weight: 1
@@ -464,6 +476,38 @@ const items = {
         weight: WEIGHT_OF_BLOCKS,
         texture: () => {
             return getTextureCoordinates(13, 0)
+        }
+    },
+
+    '22':
+    {
+        id: '22',
+        name: 'Chest',
+        type: 'wood',
+        isBlock: true,
+        isInventoryBlock: true,
+        capacity: 150,
+        isAlwaysGoodDestroy: true,
+        isCollissed: false,
+        isClickable: true,
+        durability: 3,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        isCanInteractThrow: true,
+        texture: () => {
+            return getTextureCoordinates(14, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            if (chestOpened) {
+                if (chestOpened.x === x && chestOpened.y === y && chestOpened.layout === layout) {
+                    UICloseChest();
+                } else {
+                    UIOpenChest(x, y, layout);
+                }
+            } else {
+                UIOpenChest(x, y, layout);
+            }
+            
         }
     },
 
@@ -609,8 +653,8 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.map[x][y - 1][layout] === 61
-                        || gameArea.map[x][y - 1][layout] === 60
+            return (gameArea.map[x][y - 1][layout] === 62
+                        || gameArea.map[x][y - 1][layout] === 63
                         || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
@@ -650,8 +694,8 @@ const items = {
                     && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.map[x][y - 1][layout] === 61
-                        || gameArea.map[x][y - 1][layout] === 60
+            return (gameArea.map[x][y - 1][layout] === 62
+                        || gameArea.map[x][y - 1][layout] === 63
                         || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
@@ -895,6 +939,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-0',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9000);
@@ -910,6 +955,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-1',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9001);
@@ -925,6 +971,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-2',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9002);
@@ -940,6 +987,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-3',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9003);
@@ -955,6 +1003,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-4',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9004);
@@ -970,6 +1019,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-5',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9005);
@@ -985,6 +1035,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-6',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9006);
@@ -1000,6 +1051,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-7',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9007);
@@ -1015,6 +1067,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-8',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9008);
@@ -1030,6 +1083,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-9',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9009);
@@ -1045,6 +1099,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-10',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9010);
@@ -1060,6 +1115,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-11',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9011);
@@ -1075,6 +1131,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-12',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9012);
@@ -1090,6 +1147,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-13',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9013);
@@ -1105,6 +1163,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-14',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9014);
@@ -1120,6 +1179,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-15',
         update: (x, y, l, gA) => {
             fallingWaterUpdate(x, y, l, gA, 9015);
@@ -1135,6 +1195,7 @@ const items = {
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
+        density: 0.5,
         name: 'flowing-water-16',
         update: (x, y, l, gA) => {
             items['8'].update(x, y, l, gA, 9016);

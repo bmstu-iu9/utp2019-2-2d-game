@@ -306,9 +306,10 @@ class Player {
                             needInvRedraw = true;
                             return undefined;
                         } else {
-                            this.inv.count[i] += this.inv.capacity - this.inv.weight;
-                            item.count -= this.inv.capacity - this.inv.weight;
-                            this.inv.weight = this.inv.capacity;
+                            let count = Math.floor((this.inv.capacity - this.inv.weight) / items[item.id].weight);
+                            this.inv.count[i] += count;
+                            item.count -= count;
+                            this.inv.weight = count * items[item.id].weight;
                             this.setHand(this.hand.index);
                             needInvRedraw = true;
                             return item;
@@ -325,9 +326,10 @@ class Player {
                             needInvRedraw = true;
                             return undefined;
                         } else {
-                            this.inv.count[i] = this.inv.capacity - this.inv.weight;
-                            item.count -= this.inv.capacity - this.inv.weight;
-                            this.inv.weight = this.inv.capacity;
+                            let count = Math.floor((this.inv.capacity - this.inv.weight) / items[item.id].weight);
+                            this.inv.count[i] = count;
+                            item.count -= count;
+                            this.inv.weight = count * items[item.id].weight;
                             this.setHand(this.hand.index);
                             needInvRedraw = true;
                             return item;
@@ -355,16 +357,16 @@ class Player {
         // Удалить count предметов в инвентаре по индексу index
         this.deleteFromInvByIndex = (index, count) => {
             let drop;
-            if (this.inv.items[index] == undefined || this.inv.count[index] < count
-                    || this.inv.count[index] == undefined && count > 1) {
+            if (this.inv.items[index] === undefined || this.inv.count[index] < count
+                    || this.inv.count[index] === undefined && count >= 1) {
                 throw new Error(`Can not delete ${count} item(s) on index ${index}`);
             } else {
                 drop = {
-                    "item" : this.inv.items[index],
+                    "id" : this.inv.items[index],
                     "count" : count
                 }
-                if (this.inv.count[index] == undefined || this.inv.count[index] == count) {
-                    if (this.inv.count[index] == undefined) {
+                if (this.inv.count[index] === undefined || this.inv.count[index] === count) {
+                    if (this.inv.count[index] === undefined) {
                         this.inv.weight -= items[this.inv.items[index].id].weight * count;
                     } else {
                         this.inv.weight -= items[this.inv.items[index]].weight * count;

@@ -164,7 +164,97 @@ class GameArea{
                 this.addLightRound(lights[i][0], lights[i][1], lights[i][0], lights[i][1], lights[i][2], lights[i][3],
                     true);
             }
-        };
+        }
+
+        // Добавить предмет в инвентарь блока [x, y, layout]
+        this.addToInvBlock = (x, y, layout, item) => {
+            let inv = this.inventoryBlocks[ [x, y, layout] ];
+
+            // Вставляем предмет в инвентарь, если он стакается
+            if (item.count != undefined) {
+
+                // Если даже 1 не влезет
+                if (items[item.id].weight + inv[2] > inv[3]) {
+                    return item;
+                }
+                needChestRedraw = true;
+                for (let i = 0; i < inv[0].length; i++) {
+                    if (item.id == inv[0][i]) {
+                        if (items[item.id].weight * item.count + inv[2] <= inv[3]) {
+                            inv[1][i] += item.count;
+                            inv[2] += item.count * items[item.id].weight;
+                            return undefined;
+                        } else {
+                            let count = Math.floor((inv[3] - inv[2]) / items[item.id].weight);
+                            inv[1][i] += count;
+                            item.count -= count;
+                            inv[2] += count * items[item.id].weight;
+                            return item;
+                        }
+                    }
+                }
+                for (let i = 0; i <= inv[0].length; i++) {
+                    if (inv[0][i] === undefined) {
+                        inv[0][i] = item.id;
+                        if (items[item.id].weight * item.count + inv[2] <= inv[3]) {
+                            inv[1][i] = item.count;
+                            inv[2] += item.count * items[item.id].weight;
+                            return undefined;
+                        } else {
+                            let count = Math.floor((inv[3] - inv[2]) / items[item.id].weight);
+                            inv[1][i] = count;
+                            item.count -= count;
+                            inv[2] += count * items[item.id].weight;
+                            return item;
+                        }
+                    }
+                }
+            } else { //.................................................................... Не стакается
+                if (items[item.id].weight + inv[2] <= inv[3]) {
+                    for (let i = 0; i <= inv[0].length; i++) {
+                        if (inv[0][i] == undefined) {
+                            inv[0][i] = item;
+                            inv[1][i] = undefined;
+                            inv[2] += items[item.id].weight;
+                            return undefined;
+                        }
+                    }
+                } else {
+                    return item;
+                }
+            }
+        }
+
+        // Удалить count предметов в инвентаре блока [x, y, layout] по индексу index
+        this.deleteFromInvBlockByIndex = (x, y, layout, index, count) => {
+            let inv = this.inventoryBlocks[ [x, y, layout] ];
+            let drop;
+            if (inv[0][index] == undefined || inv[1][index] < count
+                    || inv[1][index] == undefined && count > 1) {
+                throw new Error(`Can not delete ${count} item(s) on index ${index}`);
+            } else {
+                drop = {
+                    "id" : inv[0][index],
+                    "count" : count
+                }
+                if (inv[1][index] == undefined || inv[1][index] == count) {
+                    if (inv[1][index] == undefined) {
+                        inv[2] -= items[inv[0][index].id].weight * count;
+                    } else {
+                        inv[2] -= items[inv[0][index]].weight * count;
+                    }
+                    inv[0][index] = undefined;
+                    inv[1][index] = undefined;
+                } else {
+                    inv[2] -= items[inv[0][index]].weight * count;
+                    if (!inv[1]) {
+                        inv[1] = 0;
+                    }
+                    inv[1][index] -= count;
+                }
+            }
+            return drop;
+        }
 
         // Делает блок воздуха = undefined
         this.makeAirBlock = () => {
@@ -193,7 +283,7 @@ class GameArea{
             return false;
         };
 
-        this.updateBlock = (x, y, layout, player) => {
+        this.updateBlock = (x, y, layout, player, reason) => {
             if (x < 0 || x >= this.width
                 || y < 0 || y >= this.height
                 || this.map[x][y][layout] === undefined
@@ -211,14 +301,14 @@ class GameArea{
                         if (id !== lastId) {
                             return;
                         }
-                        this.map[x][y][layout] = undefined;  // Без пересчета света
+                        this.gameAreaMapSet(x, y, layout, undefined);  // Без пересчета света
                         this.placeBlock(x, y - 1, layout, id);
                     }, GameArea.FALLING_BLOCKS * 1000);
                 }
             }
 
             if (block.update !== undefined) {
-                block.update(x, y, layout, this);
+                block.update(x, y, layout, this, reason);
             }
 
             switch (block.type) {
@@ -226,40 +316,40 @@ class GameArea{
                     // Если блок дерева не видит под собой опоры в нижнем блоке, либо стоит на листве, плюс
                     // крайние нижние блоки - это не блоки дерева, то оно рушится
                 {
-                    if(block.id === '17'){
-                        if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
-                            for (let i = x - 1; i <= x + 1; i++) {
-                                if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
-                                    items[this.map[x][y - 1][layout]].type !== "wood")) {
-                                } else {
-                                    return;
-                                }
-                            }
-                            this.goodDestroy(x, y, layout, player);
-                        }
-                    }
+                    // if(block.id === '17'){
+                    //     if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
+                    //         for (let i = x - 1; i <= x + 1; i++) {
+                    //             if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
+                    //                 items[this.map[x][y - 1][layout]].type !== "wood")) {
+                    //             } else {
+                    //                 return;
+                    //             }
+                    //         }
+                    //         this.goodDestroy(x, y, layout, player);
+                    //     }
+                    // }
                 }
                 break;
                 case "leaf":
                     // Если блок листвы не видит под собой опоры в нижнем, нижнем левом и нижнем правом блоке в виде
                     // дерева или листвы или же в левом или правом, в виде дерева, то он рушится
                 {
-                    for (let i = x - 1; i <= x + 1; i++) {
-                        if (i >= 0 && i < this.width) {
-                            for (let j = y - 1; j <= y; j++) {
-                                if (i !== x && j !== y)
-                                    if (y - 1 >= 0 && j === y - 1) {
-                                        if (this.map[i][j][layout] === undefined ||
-                                            items[this.map[i][j][layout]].type !== "leaf" &&
-                                            items[this.map[i][j][layout]].type !== "wood") {
-                                        } else return;
-                                    } else if (this.map[i][j][layout] === undefined ||
-                                        items[this.map[i][j][layout]].type !== "wood") {
-                                    } else return;
-                            }
-                        }
-                    }
-                    this.destroyBlock(x, y, layout);
+                    // for (let i = x - 1; i <= x + 1; i++) {
+                    //     if (i >= 0 && i < this.width) {
+                    //         for (let j = y - 1; j <= y; j++) {
+                    //             if (i !== x && j !== y)
+                    //                 if (y - 1 >= 0 && j === y - 1) {
+                    //                     if (this.map[i][j][layout] === undefined ||
+                    //                         items[this.map[i][j][layout]].type !== "leaf" &&
+                    //                         items[this.map[i][j][layout]].type !== "wood") {
+                    //                     } else return;
+                    //                 } else if (this.map[i][j][layout] === undefined ||
+                    //                     items[this.map[i][j][layout]].type !== "wood") {
+                    //                 } else return;
+                    //         }
+                    //     }
+                    // }
+                    // this.destroyBlock(x, y, layout);
                 }
                     break;
                 case "water": {
@@ -376,12 +466,14 @@ class GameArea{
         }
 
         // Обновление окружения блока
-        this.updateRadius = (x, y, layout, player) => {
+        this.updateRadius = (x, y, layout, player, reason) => {
             for (let i = x - 1; i <= x + 1; i++) {
                 for (let j = y - 1; j <= y + 1; j++) {
                     if (i !== x || y !== j) {
-                        this.updateBlock(i, j, layout, player);
-                        if (layout === GameArea.FIRST_LAYOUT) this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player);
+                        this.updateBlock(i, j, layout, player, reason);
+                        if (layout === GameArea.FIRST_LAYOUT) {
+                            this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player, reason);
+                        }
                     }
                 }
             }
@@ -400,7 +492,7 @@ class GameArea{
             if (items[lastBlock].destroyFunction) {
                 items[lastBlock].destroyFunction(x, y, layout);
             }
-            this.updateRadius(x, y, layout, player);
+            this.updateRadius(x, y, layout, player, "destroyAround");
         }
 
         // К этому блоку можно приставлять другие
@@ -464,8 +556,8 @@ class GameArea{
                     }
                     this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 }
-                this.updateRadius(x, y, layout);
-                this.updateBlock(x, y, layout);
+                this.updateRadius(x, y, layout, "placeAround");
+                this.updateBlock(x, y, layout, "place");
 
                 return true;
             }
@@ -533,6 +625,11 @@ class GameArea{
             }
 
             this.map[x][y][layout] = id;
+            if (items[id].isInventoryBlock) {
+                this.inventoryBlocks[[x, y, layout]] = [ [], [], 0, items[id].capacity ];
+            } else {
+                this.inventoryBlocks[[x, y, layout]] = undefined;
+            }
 			
 			// обновляем карту высот для погоды
 			if (layout == GameArea.FIRST_LAYOUT) {
@@ -601,6 +698,7 @@ const angleMax = (a1, a2) => {
 const gameAreaCopy = (gameArea, obj) => {
     gameArea.width = obj.width;
     gameArea.height = obj.height;
+    gameArea.inventoryBlocks = obj.inventoryBlocks;
 }
 
 // Константы уровня

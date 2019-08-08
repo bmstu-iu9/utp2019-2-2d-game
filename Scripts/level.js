@@ -171,7 +171,7 @@ const playerActionButtons = () => {
 		saveWorld('world');
 	}
 	if (controller.g.active) { // Удалить сохранение
-		deleteDatabase();
+		deleteWorld('world');
 	}
 
 	// Нажата E

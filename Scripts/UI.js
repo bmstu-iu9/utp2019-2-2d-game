@@ -1672,6 +1672,8 @@ const UIOpenCraft = (x, y, layout) => {
 
     isCraftingTable = lastCraftBlock
                         && gameArea.get(lastCraftBlock.x, lastCraftBlock.y, lastCraftBlock.layout) === 23;
+    isFurnace = lastCraftBlock
+                        && gameArea.get(lastCraftBlock.x, lastCraftBlock.y, lastCraftBlock.layout) === 24;
 
     if (UIMap.craftPanel) screenUI.deleteChild(UIMap.craftPanel.id);
 
@@ -1785,7 +1787,7 @@ const UIOpenCraft = (x, y, layout) => {
 
     // Наличие блоков для крафта
     let craftingTable = new Sprite(
-        isCraftingTable ? items[23].texture() : [ [0.250, 0.51], [0.375, 0.615] ],
+        isCraftingTable ? items[23].texture() : (isFurnace ? items[24].texture() : undefined),
         {
             pa: {
                 x: 1,
@@ -1852,7 +1854,7 @@ const UIOpenCraft = (x, y, layout) => {
                 y: -10
             }
         });
-    label.add(createText("Crafting"));
+    label.add(createText(isCraftingTable ? "Crafting Table" : (isFurnace ? "Furnace" : "Crafting")));
     UIMap.craftLabel = label;
     UIMap.craftPanel.add(label);
 
@@ -2009,7 +2011,7 @@ const reloadCraft = () => {
     let scrollingContent = UIMap.craftScrollingContent;
     scrollingContent.deleteChildren();
 
-    let availableCraft = getCrafts(player.inv, isCraftingTable);
+    let availableCraft = getCrafts(player.inv, isCraftingTable, isFurnace);
 
     // Добавляем готовые предметы
     for (let i = 0; i < availableCraft.ready.length; i++) {
@@ -2055,8 +2057,9 @@ const reloadCraft = () => {
         },
         () => {
             let id = availableCraft.ready[i];
-            while (id === getCrafts(player.inv, isCraftingTable).ready[i] && isReadyCraft(id, player.inv)) {
-                availableCraft = getCrafts(player.inv, isCraftingTable);
+            while (isReadyCraft(id, player.inv)) {
+                availableCraft = getCrafts(player.inv, isCraftingTable, isFurnace);
+                if (id !== availableCraft.ready[i]) break;
                 for(let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
                     for(let j = 0; j < player.inv.items.length; j++) {
                         if (+player.inv.items[j] === crafts[availableCraft.ready[i]].needId[k]) {

@@ -534,6 +534,30 @@ const items = {
         }
     },
 
+    '24':
+    {
+        id: '24',
+        name: 'Furnace',
+        type: 'stone',
+        isBlock: true,
+        isCollissed: true,
+        isClickable: true,
+        durability: 5,
+        brightness: 4,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(15, 1)
+        },
+        interactFunction: (x, y, layout) => {
+            if (craftOpened) {
+                UICloseCraft();
+            } else {
+                UIOpenCraft(x, y, layout);
+            }
+        }
+    },
+
     '56':
     {
         id: '56',

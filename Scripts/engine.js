@@ -171,7 +171,6 @@ image.onload = () => {
 
 class Render {
 	constructor() {
-		throw new Error();
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl', {
 				premultipliedAlpha: false,
@@ -183,20 +182,44 @@ class Render {
 					alpha: false
 				}); // иначе получаем доступ к experimental-webgl
 			if (!this.gl) {
-				const ErrorMsg = 'Browser is very old';
-				stop();
-				alert(ErrorMsg);
-				const debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
-				console.log(this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
-				console.log(this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
-				throw new Error(ErrorMsg);
+				canvas.parentNode.removeChild(canvas);
+				document.getElementById("loading").innerHTML =
+					`ERROR #1!<br>
+					Please create an issue for<br>
+					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
+						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
+					<h6>1: ${navigator.userAgent}<br>`;
+				throw new Error('Browser is very old');
 			}
 		}
 		
 		// пытаемся получить доступ к расширению
 		this.ext = this.gl.getExtension('ANGLE_instanced_arrays');
 		if (!this.ext) {
-			alert("Ошибка: ANGLE_instanced_arrays. Обратитесь к Надиму!");
+			const debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+			canvas.parentNode.removeChild(canvas);
+			if (debugInfo) {
+				document.getElementById("loading").innerHTML =
+					`ERROR #2!<br>
+					Please create an issue for<br>
+					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
+						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
+					<h6>1: ${navigator.userAgent}<br>
+					2: ${this.gl.getParameter(this.gl.VERSION)}<br>
+					3: ${this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)}<br>
+					4: ${this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}<br>`;
+				console.log(this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+				console.log(this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+			} else {
+				document.getElementById("loading").innerHTML =
+					`ERROR #3!<br>
+					Please create an issue for<br>
+					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
+						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
+					<h6>1: ${navigator.userAgent}<br>
+					2: ${this.gl.getParameter(this.gl.VERSION)}<br>`;
+			}
+			throw new Error('Browser is very old');
 		}
 		
 		// заливаем экран цветом 

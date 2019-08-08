@@ -11,9 +11,94 @@ const WOODEN_DURABILITY = 100;
 const STONE_DURABILITY = 150;
 const IRON_DURABILITY = 200;
 const DIAMOND_DURABILITY = 300;
+const textureSize = 512;
+const itemSize = 32;
+let _textureItems;
+const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с верхним концом [сек]
+const WATER_TIME_UPDATE = 0.2;
 
 
-let items = { 
+const createItem = (id, count) => {
+    if (items[id].isTool) {
+        return {
+            id: id,
+            durability: items[id].durability,
+            name: items[id].name
+        }
+    } else {
+        if (count) {
+            return {
+                id: id,
+                count: count
+            }
+        } else {
+            return {
+                id: id,
+                count: 1
+            }
+        }
+    }
+}
+
+
+// Never used
+const isWater = (id) => {
+    return (id >= 9000 && id <= 9016) || id === 8;
+}
+const firstLowerFullWater = (currentId, targetId) => {
+    if (currentId === 8) {
+        return false;
+    }
+    if (!isWater(currentId)) {
+        return true;
+    }
+    return ((currentId - 9000) % 8 > (targetId - 9000) % 8)
+        || (targetId === 9016 && currentId !== 9016);
+}
+const needPlaceWater = (targetId, id) => {
+    return targetId === undefined;
+}
+
+
+const fallingWaterUpdate = (x, y, l, gA, id) => {
+    setTimeout(() => {
+        if ((y + 1) < gA.height && firstLowerFullWater(gA.map[x][y + 1][l], id)
+            && (x - 1) >= 0 && firstLowerFullWater(gA.map[x - 1][y][l], id)
+            && (x + 1) < gA.width && firstLowerFullWater(gA.map[x + 1][y][l], id)) {
+    
+            gA.placeBlock(x, y, l, undefined);
+            return;
+        }
+        if ((y - 1) >= 0 && gA.map[x][y - 1][l] === 9016) {
+            return;
+        }
+
+        if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
+            // 16 - вода стоит
+            gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
+        } else {
+            if ((x - 1) >= 0 && id !== 9007 && needPlaceWater(gA.map[x - 1][y][l], id)) {
+                // 0 ... 7 - вода течет влево (0 - макс наполнена)
+                gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(id + 1));
+            }
+            if ((x + 1) < gA.height && id !== 9015 && needPlaceWater(gA.map[x + 1][y][l], id)) {
+                // 8 ... 15 - вода течет вправо (8 - макс наполнена)
+                gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(id + 1));
+            }
+        }
+    }, WATER_TIME_UPDATE * 1000);
+}
+
+
+const getTextureCoordinates = (x, y) => {
+    return [
+        [ (x * itemSize + 0.5) / textureSize, (y * itemSize + 0.5) / textureSize],
+        [ ((x + 1) * itemSize - 0.5) / textureSize, ((y + 1) * itemSize - 0.5) / textureSize],
+        _textureItems
+    ];
+}
+
+const items = { 
     undefined: {},
 
     '1':
@@ -27,7 +112,10 @@ let items = {
         durability: 7,
         brightness: 0,
         isCollissed: true,
-        isSolid: true
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(0, 0)
+        }
     },
 
     '2':
@@ -42,7 +130,25 @@ let items = {
         durability: 1.5,
         brightness: 0,
         isCollissed: true,
-        isSolid: true
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(1, 0)
+        },
+        update: (x, y, l, gA) => {
+            if (gA.map[x][y + 1][l] === undefined) {
+                return;
+            }
+            setTimeout(() => {
+                if ((y + 1) >= gA.height) {
+                    return;
+                }
+                if (gA.map[x][y + 1][l] !== undefined && items[gA.map[x][y + 1][l]].isCollissed
+                                                                            && gA.map[x][y][l] === 2) {
+                    gA.gameAreaMapSet(x, y, l, undefined);
+                    gA.placeBlock(x, y, l, 3);
+                }
+            }, GRASS_TIME_UPDATE * Math.random() * 1000);
+        }
     },
 
     '3':
@@ -57,7 +163,25 @@ let items = {
         durability: 1.5,
         brightness: 0,
         isCollissed: true,
-        isSolid: true
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(2, 0)
+        },
+        update: (x, y, l, gA) => {
+            if (gA.map[x][y + 1][l] !== undefined) {
+                return;
+            }
+            setTimeout(() => {
+                if ((y + 1) >= gA.height) {
+                    return;
+                }
+                if ((gA.map[x][y + 1][l] === undefined || !items[gA.map[x][y + 1][l]].isCollissed)
+                        && gA.map[x][y][l] === 3) {
+                    gA.gameAreaMapSet(x, y, l, undefined);
+                    gA.placeBlock(x, y, l, 2);
+                }
+            }, GRASS_TIME_UPDATE * Math.random() * 1000);
+        }
     },
 
     '4':
@@ -73,7 +197,10 @@ let items = {
         durability: 7,
         brightness: 0,
         isCollissed: true,
-        isSolid: true
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(3, 0)
+        }
     },
 
     '5':
@@ -82,11 +209,17 @@ let items = {
         name: 'Wood Planks',
         type: 'wood',
         isBlock: true,
+        isCollissed: true,
+        durability: 3,
         isAlwaysGoodDestroy: true,
         dropId: '5',
+        isSolid: true,
         weight: WEIGHT_OF_BLOCKS,
         meltingId: '263',
-        costOfMelting: '50'
+        costOfMelting: '50',
+        texture: () => {
+            return getTextureCoordinates(4, 0)
+        }
     },
 
     '7':
@@ -99,7 +232,10 @@ let items = {
         durability: 1000,
         brightness: 0,
         isCollissed: true,
-        isSolid: true
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(6, 0)
+        }
     },
 
     '8':
@@ -113,9 +249,36 @@ let items = {
         brightness: 6,
         isCollissed: false,
         isCanInteractThrow: true,
-        hasGravity: true,
+        hasGravity: false,
         density: 0.5,
-        isNaturalLight: true
+        isNaturalLight: true,
+        update: (x, y, l, gA, id = 8) => {
+            setTimeout(() => {
+                if (id === 9016
+                    && (y + 1) < gA.height && !isWater(gA.map[x][y + 1][l])) {
+            
+                    gA.placeBlock(x, y, l, undefined);
+                    return;
+                }
+                if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
+                    return;
+                }
+
+                if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
+                    // 16 - вода стоит
+                    gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
+                } else {
+                    if ((x - 1) >= 0 && needPlaceWater(gA.map[x - 1][y][l], id)) {
+                        // 0 ... 7 - вода течет влево (0 - макс наполнена)
+                        gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(9000));
+                    }
+                    if ((x + 1) < gA.height && needPlaceWater(gA.map[x + 1][y][l], id)) {
+                        // 8 ... 16 - вода течет вправо (8 - макс наполнена)
+                        gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(9000 + 8));
+                    }
+                }
+            }, WATER_TIME_UPDATE * 1000);
+        }
     },
 
     '9':
@@ -170,7 +333,11 @@ let items = {
         durability: 1.2,
         brightness: 0,
         isCollissed: true,
-        isSolid: true
+        isSolid: true,
+        hasGravity: true,
+        texture: () => {
+            return getTextureCoordinates(5, 0)
+        }
     },
 
     '14':
@@ -181,8 +348,13 @@ let items = {
         isBlock: true,
         dropId: '14',
         weight: WEIGHT_OF_BLOCKS,
+        isCollissed: true,
+        durability: 10,
         meltingId: '266',
-        costOfMelting: '100'
+        costOfMelting: '100',
+        texture: () => {
+            return getTextureCoordinates(7, 0)
+        }
     },
 
     '15':
@@ -193,8 +365,13 @@ let items = {
         isBlock: true,
         dropId: '15',
         weight: WEIGHT_OF_BLOCKS,
+        isCollissed: true,
+        durability: 12,
         meltingId: '265',
-        costOfMelting: '100'
+        costOfMelting: '100',
+        texture: () => {
+            return getTextureCoordinates(8, 0)
+        }
     },
 
     '16':
@@ -225,7 +402,15 @@ let items = {
         durability: 4,
         brightness: 0,
         isCollissed: true,
-        isSolid: true
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(9, 0)
+        },
+        update: (x, y, l, gA, reason) => {
+            if (reason === "destroyAround") {
+                gA.goodDestroy(x, y, l, player);
+            }
+        }
     },
 
     '18':
@@ -234,20 +419,143 @@ let items = {
         name: 'Leaf',
         type: 'leaf',
         isBlock: true,
+        isAlwaysGoodDestroy: true,
         dropId: '18',
         weight: WEIGHT_OF_BLOCKS,
         durability: 0.5,
         brightness: 0,
         isCollissed: false,
-        isSolid: true
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(10, 0)
+        },
+        update: (x, y, l, gA, reason) => {
+            if (reason === "destroyAround") {
+                gA.goodDestroy(x, y, l, player);
+            }
+        }
+    },
+
+    '19': {
+        id: '19',
+        name: 'Torch',
+        type: 'other',
+        isBlock: true,
+        brightness: 9,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isAlwaysGoodDestroy: true,
+        isSolid: true,
+        texture: () => {
+            return getTextureCoordinates(13, 1)
+        },
+        canPlace: (x, y, layout) => {
+            return layout === GameArea.FIRST_LAYOUT && gameArea.canAttach(x, y, GameArea.SECOND_LAYOUT);
+        },
+        weight: 1
     },
 
     '20': 
     {
         id: '20',
         name: 'Glass',
+        type: 'other',
         isBlock: true,
         weight: WEIGHT_OF_BLOCKS
+    },
+
+    '21':
+    {
+        id: '21',
+        name: 'Stone bricks',
+        type: 'stone',
+        isBlock: true,
+        isCollissed: true,
+        durability: 9,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(13, 0)
+        }
+    },
+
+    '22':
+    {
+        id: '22',
+        name: 'Chest',
+        type: 'wood',
+        isBlock: true,
+        isInventoryBlock: true,
+        capacity: 150,
+        isAlwaysGoodDestroy: true,
+        isCollissed: true,
+        isClickable: true,
+        durability: 3,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(14, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            if (chestOpened) {
+                if (chestOpened.x === x && chestOpened.y === y && chestOpened.layout === layout) {
+                    UICloseChest();
+                } else {
+                    UIOpenChest(x, y, layout);
+                }
+            } else {
+                UIOpenChest(x, y, layout);
+            }
+            
+        }
+    },
+
+    '23':
+    {
+        id: '23',
+        name: 'Crafting Table',
+        type: 'wood',
+        isBlock: true,
+        isAlwaysGoodDestroy: true,
+        isCollissed: true,
+        isClickable: true,
+        durability: 2,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(15, 0)
+        },
+        interactFunction: (x, y, layout) => {
+            if (craftOpened) {
+                UICloseCraft();
+            } else {
+                UIOpenCraft(x, y, layout);
+            }
+        }
+    },
+
+    '24':
+    {
+        id: '24',
+        name: 'Furnace',
+        type: 'stone',
+        isBlock: true,
+        isCollissed: true,
+        isClickable: true,
+        durability: 5,
+        brightness: 4,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(15, 1)
+        },
+        interactFunction: (x, y, layout) => {
+            if (craftOpened) {
+                UICloseCraft();
+            } else {
+                UIOpenCraft(x, y, layout);
+            }
+        }
     },
 
     '56':
@@ -255,8 +563,36 @@ let items = {
         id: '56',
         name: 'Diamond Ore',
         type: 'stone',
+        durability: 15,
+        isCollissed: true,
+        dropId: 264,
         isBlock: true,
-        dropId: '264',
+        weight: WEIGHT_OF_BLOCKS
+    },
+
+    '57':
+    {
+        id: '57',
+        name: 'Iron wood',
+        type: 'stone',
+        durability: 15,
+        isBlock: true,
+        isCollissed: true,
+        dropId: 15,
+        weight: WEIGHT_OF_BLOCKS
+    },
+
+    '58':
+    {
+        id: '58',
+        name: 'Gold leaf',
+        type: 'stone',
+        durability: 12,
+        dropId: 264,
+        isBlock: true,
+        brightness: 6,
+        isCollissed: true,
+        dropId: 14,
         weight: WEIGHT_OF_BLOCKS
     },
 
@@ -282,16 +618,12 @@ let items = {
                     && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.get(x + 1, y, layout) !== undefined
-                    && (gameArea.map[x + 1][y][layout] === 61
+            return (gameArea.map[x + 1][y][layout] === 61
                         || gameArea.map[x + 1][y][layout] === 60
-                        || (items[gameArea.map[x + 1][y][layout]].isSolid
-                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
-                || (gameArea.get(x - 1, y, layout) !== undefined
-                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.canAttach(x + 1, y, layout))
+                || (gameArea.map[x - 1][y][layout] === 61
                         || gameArea.map[x - 1][y][layout] === 60
-                        || (items[gameArea.map[x - 1][y][layout]].isSolid
-                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+                        || gameArea.canAttach(x - 1, y, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
@@ -313,10 +645,13 @@ let items = {
         durability: 3,
         isAlwaysGoodDestroy: true,
         weight: WEIGHT_OF_BLOCKS,
-        isSolid: true,
+        isSolid: false,
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,
+        texture: () => {
+            return getTextureCoordinates(12, 0)
+        },
         interactFunction: (x, y, layout) => {
             gameArea.gameAreaMapSet(x, y, layout, 60);
 
@@ -326,16 +661,12 @@ let items = {
                     && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
         },
         canPlace: (x, y, layout) => {
-            return (gameArea.get(x + 1, y, layout) !== undefined
-                    && (gameArea.map[x + 1][y][layout] === 61
+            return (gameArea.map[x + 1][y][layout] === 61
                         || gameArea.map[x + 1][y][layout] === 60
-                        || (items[gameArea.map[x + 1][y][layout]].isSolid
-                           && items[gameArea.map[x + 1][y][layout]].isCollissed)))
-                || (gameArea.get(x - 1, y, layout) !== undefined
-                    && (gameArea.map[x - 1][y][layout] === 61
+                        || gameArea.canAttach(x + 1, y, layout))
+                || (gameArea.map[x - 1][y][layout] === 61
                         || gameArea.map[x - 1][y][layout] === 60
-                        || (items[gameArea.map[x - 1][y][layout]].isSolid
-                           && items[gameArea.map[x - 1][y][layout]].isCollissed)));
+                        || gameArea.canAttach(x - 1, y, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x - 1, y, layout) === 61 || gameArea.get(x - 1, y, layout) === 60) {
@@ -369,11 +700,9 @@ let items = {
                     && gameArea.map[x][y - 1][layout] === 62) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
-                    && (gameArea.map[x][y - 1][layout] === 63
-                        || gameArea.map[x][y - 1][layout] === 62
-                        || (items[gameArea.map[x][y - 1][layout]].isSolid
-                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+            return (gameArea.map[x][y - 1][layout] === 62
+                        || gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
@@ -399,6 +728,9 @@ let items = {
         isCollissed: false,
         isClickable: true,
         isCanInteractThrow: true,
+        texture: () => {
+            return getTextureCoordinates(11, 0)
+        },
         interactFunction: (x, y, layout) => {
             gameArea.gameAreaMapSet(x, y, layout, 62);
 
@@ -409,11 +741,9 @@ let items = {
                     && gameArea.map[x][y - 1][layout] === 63) gameArea.interactWithBlock(x, y - 1, layout);
         },
         canPlace: (x, y, layout) => {
-            return gameArea.exist(x, y - 1) && gameArea.map[x][y - 1][layout] !== undefined
-                    && (gameArea.map[x][y - 1][layout] === 63
-                        || gameArea.map[x][y - 1][layout] === 62
-                        || (items[gameArea.map[x][y - 1][layout]].isSolid
-                           && items[gameArea.map[x][y - 1][layout]].isCollissed));
+            return (gameArea.map[x][y - 1][layout] === 62
+                        || gameArea.map[x][y - 1][layout] === 63
+                        || gameArea.canAttach(x, y - 1, layout));
         },
         destroyFunction: (x, y, layout) => {
             if (gameArea.get(x, y - 1, layout) === 63 || gameArea.get(x, y - 1, layout) === 62) {
@@ -433,7 +763,10 @@ let items = {
         isTool: true,
         durability: IRON_DURABILITY,
         efficiency: IRON_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(7, 1)
+        }
     },
 
     '257':
@@ -444,7 +777,10 @@ let items = {
         isTool: true,
         durability: IRON_DURABILITY,
         efficiency: IRON_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(8, 1)
+        }
     },
 
     '258':
@@ -455,21 +791,30 @@ let items = {
         isTool: true,
         durability: IRON_DURABILITY,
         efficiency: IRON_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(9, 1)
+        }
     },
 
     '263':
     { 
         id: '263',
         name: 'Coal', 
-        weight: WEIGHT_OF_ORES
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(0, 2)
+        }
     },
 
     '264': 
     { 
         id: '264',
         name: 'Diamond', 
-        weight: WEIGHT_OF_ORES
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(1, 2)
+        }
     },
 
     '265': 
@@ -486,6 +831,15 @@ let items = {
         weight: WEIGHT_OF_ORES
     },
 
+    '267': {
+        id: '267',
+        name: 'Shaft',
+        texture: () => {
+            return getTextureCoordinates(0, 1)
+        },
+        weight: 1
+    },
+
     '269':
     {
         id: '269',
@@ -494,7 +848,10 @@ let items = {
         isTool: true,
         durability: WOODEN_DURABILITY,
         efficiency: WOODEN_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(1, 1)
+        }
     },
 
     '270':
@@ -505,7 +862,10 @@ let items = {
         isTool: true,
         durability: WOODEN_DURABILITY,
         efficiency: WOODEN_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(2, 1)
+        }
     },
 
     '271':
@@ -516,7 +876,10 @@ let items = {
         isTool: true,
         durability: WOODEN_DURABILITY,
         efficiency: WOODEN_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(3, 1)
+        }
     },
 
     '273':
@@ -527,7 +890,10 @@ let items = {
         isTool: true,
         durability: STONE_DURABILITY,
         efficiency: STONE_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(4, 1)
+        }
     },
 
     '274':
@@ -538,7 +904,10 @@ let items = {
         isTool: true,
         durability: STONE_DURABILITY,
         efficiency: STONE_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(5, 1)
+        }
     },
 
     '275':
@@ -549,7 +918,10 @@ let items = {
         isTool: true,
         durability: STONE_DURABILITY,
         efficiency: STONE_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(6, 1)
+        }
     },
 
     '277':
@@ -560,7 +932,10 @@ let items = {
         isTool: true,
         durability: DIAMOND_DURABILITY,
         efficiency: DIAMOND_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(10, 1)
+        }
     },
 
     '278':
@@ -571,7 +946,10 @@ let items = {
         isTool: true,
         durability: DIAMOND_DURABILITY,
         efficiency: DIAMOND_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(11, 1)
+        }
     },
 
     '279':
@@ -582,7 +960,10 @@ let items = {
         isTool: true,
         durability: DIAMOND_DURABILITY,
         efficiency: DIAMOND_EFFICIENCY,
-        weight: WEIGHT_OF_INSTRUMENTS
+        weight: WEIGHT_OF_INSTRUMENTS,
+        texture: () => {
+            return getTextureCoordinates(12, 1)
+        }
     },
 
     '370':
@@ -603,8 +984,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-0'
+        density: 0.5,
+        name: 'flowing-water-0',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9000);
+        }
     },
 
     '9001':
@@ -614,8 +1000,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-1'
+        density: 0.5,
+        name: 'flowing-water-1',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9001);
+        }
     },
 
     '9002':
@@ -625,8 +1016,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-2'
+        density: 0.5,
+        name: 'flowing-water-2',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9002);
+        }
     },
 
     '9003':
@@ -636,8 +1032,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-3'
+        density: 0.5,
+        name: 'flowing-water-3',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9003);
+        }
     },
 
     '9004':
@@ -647,8 +1048,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-4'
+        density: 0.5,
+        name: 'flowing-water-4',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9004);
+        }
     },
 
     '9005':
@@ -658,8 +1064,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-5'
+        density: 0.5,
+        name: 'flowing-water-5',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9005);
+        }
     },
 
     '9006':
@@ -669,8 +1080,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-6'
+        density: 0.5,
+        name: 'flowing-water-6',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9006);
+        }
     },
 
     '9007':
@@ -680,8 +1096,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-7'
+        density: 0.5,
+        name: 'flowing-water-7',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9007);
+        }
     },
 
     '9008':
@@ -691,8 +1112,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-8'
+        density: 0.5,
+        name: 'flowing-water-8',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9008);
+        }
     },
 
     '9009':
@@ -702,8 +1128,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-9'
+        density: 0.5,
+        name: 'flowing-water-9',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9009);
+        }
     },
 
     '9010':
@@ -713,8 +1144,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-10'
+        density: 0.5,
+        name: 'flowing-water-10',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9010);
+        }
     },
 
     '9011':
@@ -724,8 +1160,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-11'
+        density: 0.5,
+        name: 'flowing-water-11',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9011);
+        }
     },
 
     '9012':
@@ -735,8 +1176,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-12'
+        density: 0.5,
+        name: 'flowing-water-12',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9012);
+        }
     },
 
     '9013':
@@ -746,8 +1192,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-13'
+        density: 0.5,
+        name: 'flowing-water-13',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9013);
+        }
     },
 
     '9014':
@@ -757,8 +1208,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-14'
+        density: 0.5,
+        name: 'flowing-water-14',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9014);
+        }
     },
 
     '9015':
@@ -768,8 +1224,13 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-15'
+        density: 0.5,
+        name: 'flowing-water-15',
+        update: (x, y, l, gA) => {
+            fallingWaterUpdate(x, y, l, gA, 9015);
+        }
     },
 
     '9016':
@@ -779,84 +1240,90 @@ let items = {
         durability: 1,
         brightness: 6,
         isCollissed: false,
+        isCanInteractThrow: true,
         isNaturalLight: true,
-        name: 'flowing-water-16'
-    },
-
-    '9017':
-    {
-        id: '9017',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-17'
-    },
-
-    '9018':
-    {
-        id: '9018',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-18'
-    },
-
-    '9019':
-    {
-        id: '9019',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-19'
-    },
-
-    '9020':
-    {
-        id: '9020',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-20'
-    },
-
-    '9021':
-    {
-        id: '9021',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-21'
-    },
-
-    '9022':
-    {
-        id: '9022',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-22'
-    },
-
-    '9023':
-    {
-        id: '9023',
-        type: 'flowingWater',
-        durability: 1,
-        brightness: 6,
-        isCollissed: false,
-        isNaturalLight: true,
-        name: 'flowing-water-23'
+        density: 0.5,
+        name: 'flowing-water-16',
+        update: (x, y, l, gA) => {
+            items['8'].update(x, y, l, gA, 9016);
+        }
     }
+
+    // TODO : вояснить необходимость
+    // '9017':
+    // {
+    //     id: '9017',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-17'
+    // },
+
+    // '9018':
+    // {
+    //     id: '9018',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-18'
+    // },
+
+    // '9019':
+    // {
+    //     id: '9019',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-19'
+    // },
+
+    // '9020':
+    // {
+    //     id: '9020',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-20'
+    // },
+
+    // '9021':
+    // {
+    //     id: '9021',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-21'
+    // },
+
+    // '9022':
+    // {
+    //     id: '9022',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-22'
+    // },
+
+    // '9023':
+    // {
+    //     id: '9023',
+    //     type: 'flowingWater',
+    //     durability: 1,
+    //     brightness: 6,
+    //     isCollissed: false,
+    //     isNaturalLight: true,
+    //     name: 'flowing-water-23'
+    // }
 }

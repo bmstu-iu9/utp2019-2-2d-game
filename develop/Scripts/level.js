@@ -16,12 +16,12 @@ let key = Date.now(); 		// Ключ генерации
 let currentTime = 0; 			// Текущее время в миллисекундах
 let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
-let layoutSwitcher = false;
 let BlocksGlobalChange = {};
+let staminaNotUsed = true;
 
 // Вызывается при запуске игры
 const beginPlay = () => {
-    // Управление
+	// Управление
     this.controller = new Controller();
     const KDU = (event) => {
     	controller.keyDownUp(event);
@@ -47,11 +47,13 @@ const beginPlay = () => {
 			loadingResult.gameArea.height,
 			key,
 			BlocksGlobalChange);
+		gameArea.inventoryBlocks = loadingResult.gameArea.inventoryBlocks;
 		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
 
     	player = new Player();
     	playerCopy(player, loadingResult.player);
     	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+
     } else {
 		gameArea = generate(1000, 1000, key);
 
@@ -62,23 +64,10 @@ const beginPlay = () => {
     	}
 
     	player = new Player(px, py);
-    	player.addToInv({
-    		"id" : 278,
-    		"durability" : items[278].durability,
-    		"name" : "Iron pickaxe"
-    	});
-
-    	player.addToInv({
-    		id: 63,
-    		count: 20
-    	});
-
-    	player.addToInv({
-    		id: 61,
-    		count: 20
-    	});
-    }
-
+	}
+	
+	
+	// player.addToInv(items[8]);
 	cameraSet(player.x, player.y);
 	
 	elevationCalculate(); // расчитывает карту высот для погоды
@@ -106,9 +95,16 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	}
 }
 
+// На первом тике после инициализации мира
+const onStart = () => {
+	initUI();
+}
+
 // Вызывается каждый кадр
 const eventTick = () => {
+	mouseMessage = undefined;
 	currentTime += deltaTime;
+	staminaNotUsed = true;
 	playerMovement();
 	mouseControl();
 	UI();
@@ -120,6 +116,7 @@ const eventTick = () => {
 		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
 	
 	// В последнюю очередь
+	if (player.sp === player.maxSP) player.heal(0.5 * deltaTime);
 	// Анимации
 	animationsTickCount++;
 	player.animate();
@@ -133,7 +130,7 @@ const UI = () => {
 	// Кнопки 1..8
 	for (let i = 1; i <= 8; i++) {
 		if (controller.numbers[i].active) {
-			if (player.hand.index != i - 1) {
+			if (player.hand.index !== i - 1) {
 				player.setHand(i - 1);
 			}
 			break;
@@ -161,11 +158,62 @@ const worldChange = () => {
 
 // Действия при нажатии клавиш действия
 const playerActionButtons = () => {
+	let layout = player.layout;
+    if(controller.shift.active) {
+    	if(player.layout === GameArea.FIRST_LAYOUT) {
+    		layout = GameArea.SECOND_LAYOUT;
+    	} else {
+    		layout = GameArea.BACK_LAYOUT;
+    	}
+    }
+
 	if (controller.f.active) {  // Сохранение
 		saveWorld('world');
 	}
 	if (controller.g.active) { // Удалить сохранение
 		deleteDatabase();
+	}
+
+	// Нажата E
+	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
+		if (chestOpened) {
+			UICloseChest();
+		} else {
+			player.interactWithNearest(layout);
+		}
+		lastPlaceBlockTime = currentTime;
+	}
+
+	// Нажата клавиша I
+	if(controller.inv.active) {
+		 if(!controller.invClick) {
+		 	controller.invClick = true;
+		 	if (inventoryOpened) {
+		 		UICloseInv();
+		 	} else {
+		 		UIOpenInv();
+		 	}
+		 }
+	} else {
+		controller.invClick = false;
+	}
+
+	// Нажата клавиша O
+	if(controller.craft.active) {
+		 if(!controller.craftClick) {
+		 	controller.craftClick = true;
+		 	if (craftOpened) {
+		 		UICloseCraft();
+		 	} else {
+		 		UIOpenCraft();
+		 	}
+		 }
+	} else {
+		controller.craftClick = false;
+	}
+
+	if (staminaNotUsed) {
+    	player.updateSP(player.sp + 4 * deltaTime);
 	}
 }
 
@@ -173,8 +221,8 @@ const playerActionButtons = () => {
 const playerMovement = () => {
 
 	if(controller.down.active) {
-		 if(!layoutSwitcher) {
-		 	layoutSwitcher = true;
+		 if(!controller.downClick) {
+		 	controller.downClick = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
 		 	if(player.canStay(player.fx, player.fy, layout)) {
 		 		player.layout = layout;
@@ -182,7 +230,7 @@ const playerMovement = () => {
 		 	}
 		 }
 	} else {
-		layoutSwitcher = false;
+		controller.downClick = false;
 	}
 
 	// Координаты блока, в котором голова
@@ -192,10 +240,11 @@ const playerMovement = () => {
 	// Урон от удушья 
 	if (gameArea.map[headX][headY][player.layout]
 		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
+			|| items[gameArea.map[headX][headY][player.layout]].type == "flowingWater"
 			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {
-		player.bp = Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100);
+		player.updateBP(Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100));
 	}
 	let liquidK = player.getLiquidK();
 
@@ -204,18 +253,36 @@ const playerMovement = () => {
 			player.vy = Math.max(player.vy, 0);
 			if (controller.up.active) {
 				if (controller.shift.active) {
-					player.vy = Player.JUMP_SPEED * 2 / 3;
+					if (player.sp >= Player.JUMP_SPEED * 2 / 3 / 10) {
+						player.vy = Player.JUMP_SPEED * 2 / 3;
+
+						// Уменьшение выносливости
+	                	player.updateSP(player.sp - Player.JUMP_SPEED * 2 / 3 / 10);
+	                	staminaNotUsed = false;
+					}
 				} else {
-					player.vy = Player.JUMP_SPEED;
+					if (player.sp >= Player.JUMP_SPEED / 5) {
+						player.vy = Player.JUMP_SPEED;
+
+						// Уменьшение выносливости
+	                	player.updateSP(player.sp - Player.JUMP_SPEED / 10);
+	                	staminaNotUsed = false;
+	                }
 				}
 			}
 		} else {
-			if (controller.up.active && player.vy > 0) { //.............................. Удержание прыжка
+			if (controller.up.active && player.vy > 0 && player.sp >= 3 * deltaTime) { // Удержание прыжка
 				player.vy -= GameArea.GRAVITY * deltaTime * 2 / 3;
+
+				// Уменьшение выносливости
+	            player.updateSP(player.sp - 3 * deltaTime);
+                staminaNotUsed = false;
 			} else {
+				player.vy -= Math.max(- Player.JUMP_SPEED * 4, GameArea.GRAVITY * deltaTime);
 				if (player.vy > - Player.JUMP_SPEED * 4) {
-					player.vy -= GameArea.GRAVITY * deltaTime;
+					
 				}
+				staminaNotUsed = false;
 			}
 		}
 		if (controller.shift.active) { // На шифте
@@ -327,13 +394,24 @@ const playerMovement = () => {
 	player.fx = newX;
 	player.fy = newY;
 
-	// Анимация падения
+	// Анимация + звук падения
 	if (!player.onGround()) {
 		player.setAnimation("legs", "jump");
 	}
 	
 	player.x = roundToFunc(newX, blockSize, Math.round);
 	player.y = roundToFunc(newY, blockSize, Math.round);
+
+	// Закрыть интерфейс сундука, если игрок вышел за радиус досягаемости
+	if (chestOpened 
+			&& hypotenuse(Math.abs(player.x - lastChest.x), Math.abs(player.y - lastChest.y)) > Player.ACTION_RADIUS) {
+		UICloseChest();
+	}
+	// Закрыть интерфейс крафта, если игрок вышел за радиус досягаемости
+	if (craftOpened && lastCraftBlock && hypotenuse(Math.abs(player.x - lastCraftBlock.x),
+											Math.abs(player.y - lastCraftBlock.y)) > Player.ACTION_RADIUS) {
+		UICloseCraft();
+	}
 
 	// Плавное движение камеры
 	if (Math.abs(cameraX - newX) > 1) {
@@ -345,7 +423,17 @@ const playerMovement = () => {
 	
 }
 
+let buttonHoldCounter = 0; // Отсчёт длинного нажатия на кнопку
 const mouseControl = () => {
+	// Наведение на сообщение
+	for (let i = _mouseMessageUIArr.length - 1; i >= 0; i--) {
+		if (_mouseMessageUIArr[i].pa[0] < controller.mouse.x
+			&& _mouseMessageUIArr[i].pb[0] > controller.mouse.x
+			&& _mouseMessageUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+			&& _mouseMessageUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+			showMouseMessage(_mouseMessageUIArr[i].message);
+		}
+	}
 
 	let layout = player.layout;
     if(controller.shift.active) {
@@ -359,37 +447,88 @@ const mouseControl = () => {
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
 
+		// Нажатие по интерфейсу
+		let interactWithUI = false;
+		if (buttonHoldCounter <= buttonLongHoldLength) {
+			for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
+				if (_interactiveUIArr[i].pa[0] < controller.mouse.x
+						&& _interactiveUIArr[i].pb[0] > controller.mouse.x
+						&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+						&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+					// action to click
+					let sprite = _interactiveUIArr[i].sprite;
+					let lastButton = UIMap.lastButton;
+					let activeElement = UIMap.activeElement;
 
-    	const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
-    	let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
-    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)) {
-            // Анимация
-            player.setAnimation("body", "kick");
+					if (sprite.longHold && lastButton === sprite) {
+						buttonHoldCounter += deltaTime;
+					} else {
+						buttonHoldCounter = 0;
+					}
 
-    		// Разрушение
-    		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
-    			currentBlock = {
-    				x: targetX, y: targetY, layout: layout,
-    				type: items[gameArea.map[targetX][targetY][layout]].type,
-    				durability: items[gameArea.map[targetX][targetY][layout]].durability
-    			}
-    			let effK = ((player.hand.item && player.hand.info.isTool
-    				&& currentBlock.type == player.hand.info.type))
-    			? player.hand.info.efficiency : 1;
-    			currentBlock.durability -= deltaTime * effK;
-    		} else if (currentBlock.durability > 0) {
-    			let effK = ((player.hand.item && player.hand.info.isTool
-    				&& currentBlock.type == player.hand.info.type))
-    			? player.hand.info.efficiency : 1;
-    			currentBlock.durability -= deltaTime * effK;
-    		} else {
-    			currentBlock = undefined;
-    			player.destroy(targetX, targetY, layout);
-    		}
-    	}
+					if (buttonHoldCounter >= buttonLongHoldLength) { // Действие зажатия
+						longHoldAction(sprite);
+					} else {
+						holdAction(sprite);
+					}
+
+					if (lastButton !== sprite) {
+						releaseAction(lastButton);
+					}
+
+					UIMap.lastButton = sprite;
+					interactWithUI = true;
+					break;
+				}
+			}
+		}
+
+		if (!interactWithUI) {
+			releaseAction(UIMap.lastButton);
+			UIMap.lastButton = undefined;
+
+			let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
+	    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y
+	    																					+ Player.HEIGHT / 2);
+	    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
+	      		&& player.sp > 0) {
+	            // Анимация
+	            player.setAnimation("body", "kick");
+
+	            // Уменьшение выносливости
+	            player.updateSP(player.sp - 4 * deltaTime);
+	            staminaNotUsed = false;
+
+	    		// Разрушение
+	    		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
+	    			currentBlock = {
+	    				x: targetX, y: targetY, layout: layout,
+	    				type: items[gameArea.map[targetX][targetY][layout]].type,
+	    				durability: items[gameArea.map[targetX][targetY][layout]].durability
+	    			}
+	    			let effK = ((player.hand.item && player.hand.info.isTool
+	    				&& currentBlock.type == player.hand.info.type))
+	    			? player.hand.info.efficiency : 1;
+	    			currentBlock.durability -= deltaTime * effK;
+	    		} else if (currentBlock.durability > 0) {
+	    			let effK = ((player.hand.item && player.hand.info.isTool
+	    				&& currentBlock.type == player.hand.info.type))
+	    			? player.hand.info.efficiency : 1;
+	    			currentBlock.durability -= deltaTime * effK;
+	    		} else {
+	    			currentBlock = undefined;
+	    			player.destroy(targetX, targetY, layout);
+	    		}
+	    	}
+		}
     } else {
     	currentBlock = undefined;
+
+    	if (buttonHoldCounter < buttonLongHoldLength) {
+    		clickAction(UIMap.lastButton);
+    	}
+		UIMap.lastButton = undefined;
+		buttonHoldCounter = 0;
     }
 
 	// Когда зажата ПКМ
@@ -397,30 +536,19 @@ const mouseControl = () => {
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
-		if (gameArea.canPlace(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, layout)) {
-		       if ((gameArea.canDestroy(targetX - 1, targetY, layout) //............................... Есть блок рядом
-		       	|| gameArea.canDestroy(targetX + 1, targetY, layout)
-		       	|| gameArea.canDestroy(targetX, targetY - 1, layout)
-		       	|| gameArea.canDestroy(targetX, targetY + 1, layout))) {
-    			// Установка блока
-		       	player.place(targetX, targetY, layout);
-		       	lastPlaceBlockTime = currentTime;
+		if (player.blockAvailable(targetX, targetY, player.layout)) {
+			// Взаимодействие с блоком
+			if (player.interact(targetX, targetY, layout)) {
+				lastPlaceBlockTime = currentTime;
 
-                // Анимация
-                player.setAnimation("body", "kick");
+	            // Анимация
+	            player.setAnimation("body", "kick");
+			} else if (player.place(targetX, targetY, layout)) { // Установка блока
+		    	lastPlaceBlockTime = currentTime;
+
+	            // Анимация
+	            player.setAnimation("body", "kick");
 		    }
-		} else {
-			player.interact(targetX, targetY, layout);
-			lastPlaceBlockTime = currentTime;
-
-            // Анимация
-            player.setAnimation("body", "kick");
 		}
-	}
-
-	// Нажата E
-	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
-		player.interactWithNearest(layout);
-		lastPlaceBlockTime = currentTime;
 	}
 }

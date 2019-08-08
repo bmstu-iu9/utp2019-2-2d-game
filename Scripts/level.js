@@ -445,21 +445,24 @@ const mouseControl = () => {
 
 		// Нажатие по интерфейсу
 		let interactWithUI = false;
-		for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
-			if (_interactiveUIArr[i].pa[0] < controller.mouse.x
-				&& _interactiveUIArr[i].pb[0] > controller.mouse.x
-				&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
-				&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+		if (buttonHoldCounter <= buttonLongHoldLength) {
+			for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
+				if (_interactiveUIArr[i].pa[0] < controller.mouse.x
+						&& _interactiveUIArr[i].pb[0] > controller.mouse.x
+						&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+						&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
 					// action to click
 					let sprite = _interactiveUIArr[i].sprite;
 					let lastButton = UIMap.lastButton;
 					let activeElement = UIMap.activeElement;
+
 					if (sprite.longHold && lastButton === sprite) {
 						buttonHoldCounter += deltaTime;
 					} else {
 						buttonHoldCounter = 0;
 					}
-					if (buttonHoldCounter > buttonLongHoldLength) { // Действие зажатия
+
+					if (buttonHoldCounter >= buttonLongHoldLength) { // Действие зажатия
 						longHoldAction(sprite);
 					} else {
 						holdAction(sprite);
@@ -473,6 +476,7 @@ const mouseControl = () => {
 					interactWithUI = true;
 					break;
 				}
+			}
 		}
 
 		if (!interactWithUI) {
@@ -516,7 +520,9 @@ const mouseControl = () => {
     } else {
     	currentBlock = undefined;
 
-    	clickAction(UIMap.lastButton);
+    	if (buttonHoldCounter < buttonLongHoldLength) {
+    		clickAction(UIMap.lastButton);
+    	}
 		UIMap.lastButton = undefined;
 		buttonHoldCounter = 0;
     }

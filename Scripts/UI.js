@@ -1998,7 +1998,7 @@ const reloadCraft = (isCraftingTable) => {
         },
         () => {
             let id = availableCraft.ready[i];
-            while (isReadyCraft(id, player.inv)) {
+            while (id === getCrafts(player.inv, isCraftingTable).ready[i] && isReadyCraft(id, player.inv)) {
                 availableCraft = getCrafts(player.inv, isCraftingTable);
                 for(let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
                     for(let j = 0; j < player.inv.items.length; j++) {

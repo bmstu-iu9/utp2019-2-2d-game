@@ -28,8 +28,20 @@ const getCrafts = (inventory, isCraftingTable) => {
 	}
 
 	return {
-		ready: ready,
-		notReady: notReady
+		ready: ready.sort((a, b) => {
+			if (items[a].name > items[b].name) {
+				return 1;
+			} else {
+				return -1;
+			}
+		}),
+		notReady: notReady.sort((a, b) => {
+			if (items[a].name > items[b].name) {
+				return 1;
+			} else {
+				return -1;
+			}
+		}),
 	}
 }
 const isReadyCraft = (id, inventory) => {

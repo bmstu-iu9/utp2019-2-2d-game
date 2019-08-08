@@ -3,7 +3,7 @@ var __observe = [];
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
     console.time('World generation');
-    seed = 1565010173969;
+    // seed = 1565285065350;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -206,8 +206,10 @@ const generate = (width, height, seed, changes) => {
                 for (let j = 0; j < scheme[i].length; j++) {
                     if (scheme[i][j] === ' ')
                         continue;
-                    if (scheme[i][j] === '.')
+                    if (scheme[i][j] === '.') {
                         setBlock(loc.x + j, loc.y + i, layer, AIR_BLOCK);
+                        continue;
+                    }
                     if (blocks[scheme[i][j]] === undefined)
                         continue; //Или throw? Или в log?
                     setBlock(loc.x + j, loc.y + i, layer, blocks[scheme[i][j]]);
@@ -1507,11 +1509,9 @@ const generate = (width, height, seed, changes) => {
 
     //Создание данжа
     const dungeonGen = () => {
-        const vLoc = new Point(500, 800); //Bottom-left corner
+        const vLoc = new Point(500, 700); //Bottom-left corner
         const vWidth = 150;
         const vHeight = 100;
-
-        let lCenterEnter, rCenterEnter; //Входы в центр
 
         const clearZone = () => {
             const clearBlock = (x, y) => {
@@ -1548,59 +1548,450 @@ const generate = (width, height, seed, changes) => {
             //         clearBlock(vLoc.x + i, vLoc.y + j);
         }
 
-        clearZone();
-        let tpt = new Point(10, 10);
-        let tw = 50;
-        let th = 20;
-        for (let i = 0; i < tw; i++) {
-            for (let j = 0; j < th; j++) {
-                setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.BACK_LAYOUT, LEAVES_BLOCK);
-                // setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+        const createMesh = (loc, cellW, cellH, cellX, cellY) => { //+Лабиринт
+            const createEmptyCell = (loc, holes) => {
+                for (let i = 0; i < cellW; i++) {
+                    //Горизонтальные стены
+                    setBlock(loc.x + i, loc.y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(loc.x + i, loc.y + cellH - 1, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    //Задняя стена
+                    for (let j = 0; j < cellH; j++) {
+                        setBlock(loc.x + i, loc.y + j, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                        setBlock(loc.x + i, loc.y + j, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                        setBlock(loc.x + i, loc.y + j, GameArea.BACK_LAYOUT, STONE_BRICK_BLOCK);
+                    }
+                }
+                //Вертикальные стены
+                for (let i = 0; i < cellH; i++) {
+                    setBlock(loc.x, loc.y + i, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(loc.x + cellW - 1, loc.y + i, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                }
+                //Проходы
+                if (!holes.right || !holes.left) {
+                    let center = loc.y + Math.floor(cellH / 2);
+                    for (let i = -3; i <= 2; i++) {
+                        if (!holes.left)
+                            setBlock(loc.x, center + i, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                        if (!holes.right)
+                            setBlock(loc.x + cellW - 1, center + i, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    }
+                }
+                if (!holes.top || !holes.bottom) {
+                    let center = loc.x + Math.floor(cellW / 2);
+                    for (let i = -3; i <= 2; i++) {
+                        if (!holes.bottom)
+                            setBlock(center + i, loc.y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                        if (!holes.top)
+                            setBlock(center + i, loc.y + cellH - 1, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    }
+                }
             }
-            setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+            const createLabyrynth = () => { //Алгоритм Эллера (TODO: можно посмотреть другие)
+                let arr = [];
+                arr[0] = [];
+                for (let i = 0; i < cellX; i++) {
+                    arr[0][i] = { 
+                        mark: i,
+                        top: true
+                    };
+                }
+                arr[0][0].left = true;
+                arr[0][cellX - 1].right = true;
+                let markCounter = cellX;
+                for (let i = 0; i < cellY; i++) {
+                    //Боковые границы
+                    for (let j = 0; j < cellX - 1; j++) {
+                        if (arr[i][j].mark === arr[i][j + 1].mark || random() < 0.5) {
+                            arr[i][j].right = true;
+                            arr[i][j + 1].left = true;
+                        }
+                        else {
+                            arr[i][j].right = false;
+                            arr[i][j + 1].left = false;
+                            let oldMark = arr[i][j + 1].mark;
+                            for (let k = 0; k < cellX; k++) {
+                                if (arr[i][k].mark === oldMark)
+                                    arr[i][k].mark = arr[i][j].mark;
+                            }
+                        }
+                    }
+                    //Нижние границы
+                    let opens = [];
+                    for (let j = 0; j < cellX; j++) {
+                        if (opens[arr[i][j].mark] === undefined)
+                            opens[arr[i][j].mark] = 1;
+                        else
+                            opens[arr[i][j].mark]++;
+                    }
+                    for (let j = 0; j < cellX; j++) {
+                        if (opens[arr[i][j].mark] === 1 || random() < 0.5) {
+                            arr[i][j].bottom = false;
+                        }
+                        else {
+                            arr[i][j].bottom = true;
+                            opens[arr[i][j].mark]--;
+                        }
+                    }
+                    //Подготовка следующей линии
+                    if (i !== cellY - 1) {
+                        arr[i + 1] = [];
+                        for (let j = 0; j < cellX; j++) {
+                            if (!arr[i][j].bottom) {
+                                arr[i + 1][j] = {
+                                    top: false,
+                                    mark: arr[i][j].mark
+                                };
+                            }
+                            else {
+                                arr[i + 1][j] = {
+                                    top: true,
+                                    mark: markCounter++
+                                };
+                            }
+                        }
+                        arr[i + 1][0].left = true;
+                        arr[i + 1][cellX - 1].right = true;
+                    }
+                    else {
+                        for (let j = 0; j < cellX; j++) {
+                            arr[i][j].bottom = true;
+                            if (j !== cellX - 1 && arr[i][j + 1].mark !== arr[i][j].mark) {
+                                arr[i][j].right = false;
+                                arr[i][j + 1].left = false;
+                                let oldMark = arr[i][j + 1].mark
+                                for (let k = 0; k < cellX; k++) {
+                                    if (arr[i][k].mark === oldMark)
+                                        arr[i][k].mark = arr[i][j].mark;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return arr;
+            }
+            const logLabyrynth = (cellsScheme) => {
+                let t = [];
+                for (let j = 0; j < cellY; j++) {
+                    for (let i = 0; i < cellX; i++) {
+                        if (cellsScheme[j][i].top)
+                            t.push("+--+");
+                        else
+                            t.push("+  +");
+                    }
+                    t.push("\n");
+                    for (let i = 0; i < cellX; i++) {
+                        if (cellsScheme[j][i].left)
+                            t.push("|");
+                        else
+                            t.push(" ");
+                        if (cellsScheme[j][i].mark <= 9)
+                            t.push("0" + cellsScheme[j][i].mark);
+                        else
+                            t.push(cellsScheme[j][i].mark);
+                        if (cellsScheme[j][i].right)
+                            t.push("|");
+                        else
+                            t.push(" ");
+                    }
+                    t.push("\n");
+                    for (let i = 0; i < cellX; i++) {
+                        if (cellsScheme[j][i].bottom)
+                            t.push("+--+");
+                        else
+                            t.push("+  +");
+                    }
+                    t.push("\n");
+                }
+                console.log(t.join(""));
+            }
+            const getCellType = (cell) => {
+                let t = 0;
+                if (cell.top)
+                    t += 1;
+                if (cell.right)
+                    t += 2;
+                if (cell.bottom)
+                    t += 4;
+                if (cell.left)
+                    t += 8;
+                return t;
+            }
+
+            const blocksMap = {
+                'a': BRICKS_WITH_KEY_BLOCK,
+                'b': STONE_BRICK_BLOCK,
+                'c': COBBLESTONE_BLOCK,
+                'd': DOOR_BLOCK,
+                'g': GLASS_BLOCK,
+                'i': WATER_BLOCK,
+                'j': LAVA_BLOCK,
+                'h': LOCKED_TRAPDOOR_BLOCK,
+                'k': LOCKED_DOOR_BLOCK,
+                'l': TORCH_BLOCK,
+                'm': GRASS_BKOCK,
+                'n': DIRT_BLOCK,
+                'p': WOOD_PLANKS_BLOCK,
+                't': TRAPDOOR_BLOCK,
+                'y': SAND_BLOCK,    
+                'w': WOOD_BLOCK,
+            };
+
+            const rooms = [];
+
+            rooms[getCellType({ //Один вход сверху
+                top: false,
+                right: true,
+                bottom: true,
+                left: true
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbb.........l....l.........bbb","bb..........................bb","bb....l................l....bb","bb............bb............bb","bb..........bbbbbb..........bb","bbb.....bbbbbbbbbbbbbb.....bbb","b.............bb.............b","b............................b","b............................b","b.....l................l.....b","bb..........................bb","bb.........bbb..l.b.........bb","bbb.......bb......bb.......bbb","bbbb.....bbb......bbb.....bbbb","bbbbb...bbbb......bbbb...bbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbb...bbbbb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbb..bbbbbbbbb...bb","bb..bbbbbbbbbb..bbbbbbbbbb..bb","bb...bbbbbbbbb..bbbbbbbbb...bb","bb...bbbbbbbbb..bbbbbbbbb...bb","bb...bbbbbb........bbbbbb...bb","bb..bbbbbb....bb....bbbbbb..bb","bb.bbbbbb...bbbbbb...bbbbbb.bb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","bb..bbbbbb.bbbbbbbb.bbbbbb..bb","bb..bbbbb..bbbbbbbb..bbbbb..bb","bbb..bbb..bbbbbbbbbb..bbb..bbb","bbbb.....bbbbbbbbbbbb.....bbbb","bbbbb...bbbbbbbbbbbbbb...bbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Один вход снизу
+                top: true,
+                right: true,
+                bottom: false,
+                left: true
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbb....b.l..bbb....bbbbbbb","bbbb......................bbbb","bbbb......................bbbb","bbbb..l....l......l....l..bbbb","bbbb......................bbbb","bbbb....b.............b...bbbb","bbbb.....bbbbbbbbbbbbb....bbbb","bbbb......................bbbb","bbbb......................bbbb","bbbb.....l..........l.....bbbb","bbbbb....................bbbbb","bbbbbbb................bbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbb..bbb..........bbb..bbbbb","bbbbb.....bbbb..bbbb.....bbbbb","bbbbb....................bbbbb","bbbbbb..................bbbbbb","bbbbbbb................bbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+            
+            rooms[getCellType({ //Один вход справа
+                top: true,
+                right: false,
+                bottom: true,
+                left: true
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbb................bbbbbbb","bbbbbb..................bbbbbb","bbbbb....................bbbbb","bbbb.........l....l.....bbbbbb","bbbb...................bbbbbbb","bbbb.....bb..........bbbbbbbbb","bbbb...l..bb..bbbb..bbbbbbbbbb","bbbb.......bbbbbbbbbbbbbbbbbbb","bbbb........bbbbbbbbbbbbbbbbbb","bbbbb.........................","bbbbbbb.......................","bbbbbbbbb.....................","bbbbbbbbb.....l.....l.....l...","bbbbbbb.......................","bbbbb.........................","bbbb........bbbbbbbbbbbbbbbbbb","bbbb.......bb........bbbbbbbbb","bbbb...l..bb..........bbbbbbbb","bbbb.....bb............bbbbbbb","bbbb...................bbbbbbb","bbbbb........l..l......bbbbbbb","bbbbbb........bb......bbbbbbbb","bbbbbbb......bbbb....bbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+            
+            rooms[getCellType({ //Один вход слева
+                top: true,
+                right: true,
+                bottom: true,
+                left: false
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbb................bbbbbbb","bbbbbb..................bbbbbb","bbbbb....................bbbbb","bbbbbb.....l....l.........bbbb","bbbbbbb...................bbbb","bbbbbbbbb..........bb.....bbbb","bbbbbbbbbb..bbbb..bb..l...bbbb","bbbbbbbbbbbbbbbbbbb.......bbbb","bbbbbbbbbbbbbbbbbb........bbbb",".........................bbbbb",".......................bbbbbbb",".....................bbbbbbbbb","...l.....l.....l.....bbbbbbbbb",".......................bbbbbbb",".........................bbbbb","bbbbbbbbbbbbbbbbbb........bbbb","bbbbbbbbb........bb.......bbbb","bbbbbbbb..........bb..l...bbbb","bbbbbbb............bb.....bbbb","bbbbbbb...................bbbb","bbbbbbb......l..l........bbbbb","bbbbbbbb......bb........bbbbbb","bbbbbbbbb....bbbb......bbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+            
+            rooms[getCellType({ //Входы сверху и снизу
+                top: false,
+                right: true,
+                bottom: false,
+                left: true
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbb........bbbbbbbbbb","bbbbbbbbbbbbb........bbbbbbbbb","bbbbbbbbbbbbbbb...l...bbbbbbbb","bbbbbbbbbbbbbb........bbbbbbbb","bbbbbbbbbbbb..........bbbbbbbb","bbbbbbbbbb...........bbbbbbbbb","bbbbbbbb............bbbbbbbbbb","bbbbbbb......l.....bbbbbbbbbbb","bbbbbb............bbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbb........bbbbbbbbbbbbbbbbb","bbbb.......bbbbbbbbbbbbbbbbbbb","bbbb...l..bbbbbbbbbbbbbbbbbbbb","bbbb.......bbbbbbbbbbbbbbbbbbb","bbbbb........bbbbbbbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbbb..........bbbbbbbbbbbbbb","bbbbbbb......l..bbbbbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbbbb......bbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы справа и слева
+                top: true,
+                right: false,
+                bottom: true,
+                left: false,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",".....bbbbbbbbbbbbbbbbbbbbb....","........bbbbbbbbbbbbbbb.......","..........bbbbbbbbbbb.........","...l......................l...","..............................","........l............l........","bbbb........l....l........bbbb","bbbbbbb................bbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",".bbbbbbbbbbbbbbbbbbbbbbbbbbbb.",".bbbbbbbbbbbbbbbbbbbbbbbbbbbb.",".bbbbbbbbbbbbbbbbbbbbbbbbbbbb.",".bbbbbbbbbbbbb..bbbbbbbbbbbbb.",".bbbbbbbbbbbbb..bbbbbbbbbbbbb.",".bbbbbbbbbbbbb..bbbbbbbbbbbbb.","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbb....bbbbbbbbbbbbb","bbb....bbbbb......bbbbbbbbbbbb","bbb.....bbb........bbbbbbbbbbb","bbb...........bbbbbbbbbbbbbbbb","bbb...........bbbbbbbbbbbbbbbb","bbbb..........bbbbbbbbbbbbbbbb","bbbbbb........bbbbbbbbbbbbbbbb","bbbbbbbbb....bbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы сверху и справа
+                top: false,
+                right: false,
+                bottom: true,
+                left: true,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbb........bbbbbbbb","bbbbbbbbbbbbb.........bbbbbbbb","bbbbbbbbbbbb.....l....bbbbbbbb","bbbbbbbbbb............bbbbbbbb","bbbbbbbbb...........bbbbbbbbbb","bbbbbbb...........bbbbbbbb....","bbbbbb...l......bbbbbbbb......","bbbbbb........bbbbbbbb........","bbbbbb......bbbbbbb......l....","bbbbbb....bbbbbb..............","bbbbbb......bb................","bbbbbb....................bbbb","bbbbbb...l.......l......bbbbbb","bbbbbb................bbbbbbbb","bbbbbbb............bbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbbbb..l....bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы сверху и слева
+                top: false,
+                right: true,
+                bottom: true,
+                left: false,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbb....bbbbbbbbbbbbbbbb","bbbbbbbbb........bbbbbbbbbbbbb","bbbbbbbbb...l.....bbbbbbbbbbbb","bbbbbbbbb...........bbbbbbbbbb","bbbbbbbbbb...........bbbbbbbbb","....bbbbbbbb...........bbbbbbb","......bbbbbbbb......l...bbbbbb","........bbbbbbbb........bbbbbb","....l......bbbbbbb......bbbbbb","..............bbbbbb....bbbbbb","................bb......bbbbbb","bbbb....................bbbbbb","bbbbbb......l.......l...bbbbbb","bbbbbbbb................bbbbbb","bbbbbbbbbbb............bbbbbbb","bbbbbbbbbbbb..........bbbbbbbb","bbbbbbbbbbbb....bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+            
+            rooms[getCellType({ //Входы снизу и слева
+                top: true,
+                right: true,
+                bottom: false,
+                left: false,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbb................bbbbbbb","bbbbbbb...l........l...bbbbbbb","bbbbbbb......bbbb......bbbbbbb","bbbbbbb.....bbbbbb.....bbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","...bbbbbbb....bb....bbbbbbbbbb",".....bbbbbb.l....l.bbbbbbbbbbb",".......bbbb........bbbbbbbbbbb","..l......bb........bbbbbbbbbbb","..........bb......bbbbbbbbbbbb","..................bbbbbbbbbbbb","bb................bbbbbbbbbbbb","bbbb.....l........bbbbbbbbbbbb","bbbbbb...........bbbbbbbbbbbbb","bbbbbbb.........bbbbbbbbbbbbbb","bbbbbbbb.......bbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы снизу и справа
+                top: true,
+                right: false,
+                bottom: false,
+                left: true,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbb................bbbbbbb","bbbbbbb...l........l...bbbbbbb","bbbbbbb......bbbb......bbbbbbb","bbbbbbb.....bbbbbb.....bbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbbb....bb....bbbbbbb...","bbbbbbbbbbb.l....l.bbbbbb.....","bbbbbbbbbbb........bbbb.......","bbbbbbbbbbb........bb......l..","bbbbbbbbbbbb......bb..........","bbbbbbbbbbbb..................","bbbbbbbbbbbb................bb","bbbbbbbbbbbb........l.....bbbb","bbbbbbbbbbbbb...........bbbbbb","bbbbbbbbbbbbbb.........bbbbbbb","bbbbbbbbbbbbbbb.......bbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы слева, справа и снизу
+                top: true,
+                right: false,
+                bottom: false,
+                left: false,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbb..............bbbbbbbb","bbbb......................bbbb","bbb.......l........l.......bbb","bbb..........bbbb..........bbb","bbb.........bbbbbb.........bbb","bbb....b......bb......b....bbb","bbbb..bb......bb......bb..bbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","...bbbbbbb....bb....bbbbbbb...",".....bbbbbb.l....l.bbbbbb.....",".......bbbb........bbbb.......","...l.....bb........bb......l..","..........bb......bb..........","..............................","bbb.........................bb","bbbbb....l..........l.....bbbb","bbbbbb..................bbbbbb","bbbbbbb................bbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbb..l....l..bbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы слева, справа и снизу
+                top: false,
+                right: false,
+                bottom: true,
+                left: false,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbb...........bbbbbbbbbb","bbbbbbb..............bbbbbbbbb","bbbbb.........l.......bbbbbbbb","bbb....................bbbbbbb","b.......l.....b.........bbbbbb",".............bbb....l.........","..........bbbbbbb.............","........bbbbbbbbbb............","...l.....bbbbbbbbbb.......l...","..........bbbbbbbbbb..........","...........bbbbbbbbbbb........","bb..........bbbbbbbbbbbbbbbbbb","bbbb.........bbbbbbbbbbbbbbbbb","bbbbbb........bbbbbbbbbbbbbbbb","bbbbbbb...l....bbbbbbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbb........bbbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы слева, сверху и снизу
+                top: false,
+                right: true,
+                bottom: false,
+                left: false,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbb..........bbbbbbbbbbbb","bbbbbbb...........bbbbbbbbbbbb","bbbbbb......l.....bbbbbbbbbbbb","bbbbbb...........bbbbbbbbbbbbb","bbbbb...........bbbbbbbbbbbbbb","bbbb...l....bbbbbbbbbbbbbbbbbb","bbb........bbbbbbbbbbbbbbbbbbb","..........bbbbbbbbbbbbbbbbbbbb",".........bbbbbbbbbbbbbbbbbbbbb","........bbbbbbbbbbbbbbbbbbbbbb","..l.....bbbbbbbbbbbbbbbbbbbbbb",".........bbbbbbbbbbbbbbbbbbbbb","..........bbbbbbb.....bbbbbbbb","bbb........bbbbb.......bbbbbbb","bbbb...l................bbbbbb","bbbbb..............l....bbbbbb","bbbbbb.......l.........bbbbbbb","bbbbbb................bbbbbbbb","bbbbbbb............bbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Входы слева, сверху и снизу
+                top: false,
+                right: false,
+                bottom: false,
+                left: true,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb.........bbbbbbbbbbb","bbbbbbbbb.............bbbbbbbb","bbbbbbbb...............bbbbbbb","bbbbbbb..........l......bbbbbb","bbbbbb..................bbbbbb","bbbbb....l...............bbbbb","bbbb.........bbbbb....l...bbbb","bbb.........bbbbbbb........bbb","bbb........bbbbbbbbb..........","bb........bbbb....bbb.........","bb.......bbbbb.....bbb........","bb...l..bbbbbb.............l..","bb.......bbbbb....l...........","bb.........bbb................","bb..........bbb............bbb","bbb..........bbbb.........bbbb","bbbb......l...bbbbb......bbbbb","bbbbb.........bbbbbbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbbbb.........bbbbbbbbbbbbbb","bbbbbbbb.........bbbbbbbbbbbbb","bbbbbbbbb.........bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+
+            rooms[getCellType({ //Крест (Deus vult!)
+                top: false,
+                right: false,
+                bottom: false,
+                left: false,
+            })] = [
+                {
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb",".......bbbbb.l..bbb...........","........bbbb..................","........bbbb..................","..l......bbb..........l....l..","..........bb..................","..........bbbb..l.............","bb......................bbbbbb","bb.....l...............bbbbbbb","bb..................bbbbbbbbbb","bbb................bbbbbbbbbbb","bbbb..............bbbbbbbbbbbb","bbbbbbbbbb...l..bbbbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                }
+            ];
+            let labyrynth = createLabyrynth();
+            logLabyrynth(labyrynth);
+            
+            for (let i = 0; i < cellX; i++) {
+                for (let j = 0; j < cellY; j++) {
+                    let type = getCellType(labyrynth[cellY - j - 1][i]);
+                    let room = rooms[type][0];
+                    createEmptyCell(loc.add(i * cellW, j * cellH), type);
+                    drawByScheme(loc.add(i * cellW, j * cellH), blocksMap, room.firstL, room.secondL);
+                }
+            }
+            // drawByScheme(new Point(530, 730), blocksMap, rooms[getCellType(labyrynth[2][1])][0].firstL, rooms[getCellType(labyrynth[2][1])][0].secondL);
+            // drawByScheme(new Point(530, 790), blocksMap, rooms[getCellType(labyrynth[0][1])][0].firstL, rooms[getCellType(labyrynth[0][1])][0].secondL);
+            // drawByScheme(new Point(500, 760), blocksMap, rooms[getCellType(labyrynth[1][0])][0].firstL, rooms[getCellType(labyrynth[1][0])][0].secondL);
+            // drawByScheme(new Point(560, 760), blocksMap, rooms[getCellType(labyrynth[1][2])][0].firstL, rooms[getCellType(labyrynth[1][2])][0].secondL);
+            // drawByScheme(new Point(530, 760), blocksMap, rooms[getCellType(labyrynth[1][1])][0].firstL, rooms[getCellType(labyrynth[1][1])][0].secondL);
+            // setBlock(500, 790, GameArea.FIRST_LAYOUT, WOOD_BLOCK)
         }
-        for (let i = 0; i < 4; i++) {
-            setBlock(vLoc.x + tpt.x + 5, vLoc.y + tpt.y + i + 1, GameArea.FIRST_LAYOUT, LOCKED_DOOR_BLOCK);
-        }
-        const blocksMap = {
-            'a': BRICKS_WITH_KEY_BLOCK,
-            'b': STONE_BRICK_BLOCK,
-            'c': COBBLESTONE_BLOCK,
-            'd': DOOR_BLOCK,
-            'g': GLASS_BLOCK,
-            'i': WATER_BLOCK,
-            'j': LAVA_BLOCK,
-            'h': LOCKED_TRAPDOOR_BLOCK,
-            'k': LOCKED_DOOR_BLOCK,
-            'l': TORCH_BLOCK,
-            'm': GRASS_BKOCK,
-            'n': DIRT_BLOCK,
-            'p': WOOD_PLANKS_BLOCK,
-            't': TRAPDOOR_BLOCK,
-            'y': SAND_BLOCK,    
-            'w': WOOD_BLOCK,
-        };
-        const fl = [
-            'b......bbbhhhhbbbb',
-            'b......b.........b',
-            'b......k.........b',
-            'a......k.........a',
-            'b......k.........b',
-            'b......k.........b',
-            'bbbbbbbbbbbbbbbbbb',
-        ].reverse();
-        const sl = [
-            'bbbbbbbbbbbbbbbbbb',
-            'bbbbbbbbbbbbbbbbbb',
-            'bbbbbbbbbbbbbbbbbb',
-            'bbbbbbbbbbbbbbbbbb',
-            'bbbbbbbbbbbbbbbbbb',
-            'bbbbbbbbbbbbbbbbbb',
-            'bbbbbbbbbbbbbbbbbb',
-        ].reverse();
-        drawByScheme(vLoc.add(tpt), blocksMap, fl, sl);
-        //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bjjjccjjjjjjjjccjjjjjjjjjjjbjjjbjjjcjjjjjjjjccjjjb","b..............................b.............c...b","b..............................b.................b","b............l..l....c.........b...........l..l..b","b..........................l.......c.............b","b..............c.................................b","b...c.........cc.....b.....b....c.............bbbb","bbbbcc...............b.....b.............c....bbbb","bbbbc................b..b..b......................",".............l..l....b..b..b....c............c....",".....c...............b..b..b.......c........cc....","....cc...............b..b..b.........l..l...cc....","....cc........cc.....b..b..b................cc...b","b...cc.....................b.......b..bb.....c...b","b...c......................b....cccc..bb.........b","b............l..l..........b..........bb.........b","b..l..l.....b....b...l..l..b...l....l.bb...l..l..b","b...........b....b.........b..........bb.........b","bbbbbbbbbbbbb....bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
-        //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbcccbbbbbcbbccbbcccbccbbbbbbcbbbbbccbbcbbbccbcbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbbbccbbbbbbbbccbbcb","bbbbccccbbbbcbccbbbbbbccbbbcbbbbcbbcbbcbbbbbccbbbb","bcbbccbbccbbbbccbbbbccccbbccbbbbccbcbbbbbbcbccbbbb","bbbbccbbbbccbbcccbccbbccbbcbbbbbbbbbbbbbbbbbcccbbb","bbcbccbbbbbbccccccbbbbccbbbbbbbbcbbcbbbcbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbb.bbbbcbcbbbbbbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbc.bbcbbcbcbbbbbcbcccbcbb","bbbbccbbcbbbbbccbcbbbbccbcbbbbbbcccbbbbbbbbcccbbbb","bbbbccbcbbcbbbccbbcbbbccbbbbbbbbcbbcbcbbbbbbccbbbc","bbbbccbbbbcbbbccbbbbbbccbbbbbcbbcbbcbbbcbbbbccbbbb","bcbbccbcbbcbbbccbbbbbbccbbbbccbbccbcbbbbbbbbccbbbb","bbcbccbbbbbbbbccbbbbbbccbbbbbbbbcccbbbbbbbbbccbbbb","bcbbccbbbbbbccccccbbcbccbbbbbbbbbbcbbbbbbbbbccbcbb","bbbbccbbbbccbbccbbccbbccbbcbcbbbccccbbbbbbcbccbbbb","bbcbccbbccbbbbccbbbbccccbbcbbbcbbcbcbbbbbbbbccbbbb","bbbbccccbbbbbbccbbbbbbccbcbbbbbbbbcbbbbbcbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbccbcbbbbbbbcccbbbb","bbbbbbbbbbbbbbccbbbbbbbbbbbbbbbbbbbbbbbbb.bbb.bbbb"]        ;
+
+        createMesh(vLoc, 30, 30, 6, 4); //Размеры клеток с учетом стен
+
+        // clearZone();
+        // let tpt = new Point(10, 10);
+        // let tw = 50;
+        // let th = 20;
+        // for (let i = 0; i < tw; i++) {
+        //     for (let j = 0; j < th; j++) {
+        //         setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.BACK_LAYOUT, LEAVES_BLOCK);
+        //         // setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y + j, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+        //     }
+        //     setBlock(vLoc.x + tpt.x + i, vLoc.y + tpt.y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+        // }
+        // for (let i = 0; i < 4; i++) {
+        //     setBlock(vLoc.x + tpt.x + 5, vLoc.y + tpt.y + i + 1, GameArea.FIRST_LAYOUT, LOCKED_DOOR_BLOCK);
+        // }
+        // const blocksMap = {
+        //     'a': BRICKS_WITH_KEY_BLOCK,
+        //     'b': STONE_BRICK_BLOCK,
+        //     'c': COBBLESTONE_BLOCK,
+        //     'd': DOOR_BLOCK,
+        //     'g': GLASS_BLOCK,
+        //     'i': WATER_BLOCK,
+        //     'j': LAVA_BLOCK,
+        //     'h': LOCKED_TRAPDOOR_BLOCK,
+        //     'k': LOCKED_DOOR_BLOCK,
+        //     'l': TORCH_BLOCK,
+        //     'm': GRASS_BKOCK,
+        //     'n': DIRT_BLOCK,
+        //     'p': WOOD_PLANKS_BLOCK,
+        //     't': TRAPDOOR_BLOCK,
+        //     'y': SAND_BLOCK,    
+        //     'w': WOOD_BLOCK,
+        // };
+        // const fl = [
+        //     'b......bbbhhhhbbbb',
+        //     'b......b.........b',
+        //     'b......k.........b',
+        //     'a......k.........a',
+        //     'b......k.........b',
+        //     'b......k.........b',
+        //     'bbbbbbbbbbbbbbbbbb',
+        // ].reverse();
+        // const sl = [
+        //     'bbbbbbbbbbbbbbbbbb',
+        //     'bbbbbbbbbbbbbbbbbb',
+        //     'bbbbbbbbbbbbbbbbbb',
+        //     'bbbbbbbbbbbbbbbbbb',
+        //     'bbbbbbbbbbbbbbbbbb',
+        //     'bbbbbbbbbbbbbbbbbb',
+        //     'bbbbbbbbbbbbbbbbbb',
+        // ].reverse();
+        // drawByScheme(vLoc.add(tpt), blocksMap, fl, sl);
+        // //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bjjjccjjjjjjjjccjjjjjjjjjjjbjjjbjjjcjjjjjjjjccjjjb","b..............................b.............c...b","b..............................b.................b","b............l..l....c.........b...........l..l..b","b..........................l.......c.............b","b..............c.................................b","b...c.........cc.....b.....b....c.............bbbb","bbbbcc...............b.....b.............c....bbbb","bbbbc................b..b..b......................",".............l..l....b..b..b....c............c....",".....c...............b..b..b.......c........cc....","....cc...............b..b..b.........l..l...cc....","....cc........cc.....b..b..b................cc...b","b...cc.....................b.......b..bb.....c...b","b...c......................b....cccc..bb.........b","b............l..l..........b..........bb.........b","b..l..l.....b....b...l..l..b...l....l.bb...l..l..b","b...........b....b.........b..........bb.........b","bbbbbbbbbbbbb....bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+        // //["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbcccbbbbbcbbccbbcccbccbbbbbbcbbbbbccbbcbbbccbcbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbbbccbbbbbbbbccbbcb","bbbbccccbbbbcbccbbbbbbccbbbcbbbbcbbcbbcbbbbbccbbbb","bcbbccbbccbbbbccbbbbccccbbccbbbbccbcbbbbbbcbccbbbb","bbbbccbbbbccbbcccbccbbccbbcbbbbbbbbbbbbbbbbbcccbbb","bbcbccbbbbbbccccccbbbbccbbbbbbbbcbbcbbbcbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbb.bbbbcbcbbbbbbbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbc.bbcbbcbcbbbbbcbcccbcbb","bbbbccbbcbbbbbccbcbbbbccbcbbbbbbcccbbbbbbbbcccbbbb","bbbbccbcbbcbbbccbbcbbbccbbbbbbbbcbbcbcbbbbbbccbbbc","bbbbccbbbbcbbbccbbbbbbccbbbbbcbbcbbcbbbcbbbbccbbbb","bcbbccbcbbcbbbccbbbbbbccbbbbccbbccbcbbbbbbbbccbbbb","bbcbccbbbbbbbbccbbbbbbccbbbbbbbbcccbbbbbbbbbccbbbb","bcbbccbbbbbbccccccbbcbccbbbbbbbbbbcbbbbbbbbbccbcbb","bbbbccbbbbccbbccbbccbbccbbcbcbbbccccbbbbbbcbccbbbb","bbcbccbbccbbbbccbbbbccccbbcbbbcbbcbcbbbbbbbbccbbbb","bbbbccccbbbbbbccbbbbbbccbcbbbbbbbbcbbbbbcbbbccbbbb","bbbbccbbbbbbbbccbbbbbbccbbbbbbbbccbcbbbbbbbcccbbbb","bbbbbbbbbbbbbbccbbbbbbbbbbbbbbbbbbbbbbbbb.bbb.bbbb"]        ;
 
 
     }

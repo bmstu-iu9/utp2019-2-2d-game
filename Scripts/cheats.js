@@ -35,7 +35,7 @@ const cheat = {
     },
     freePlacement() {
         __cheat_freePlacement = !__cheat_freePlacement;
-        console.log(`Set bright to ${__cheat_fullbright ? "fullbright" : "normal"}`);
+        console.log(`Set fullplacement to ${__cheat_freePlacement ? "fullbright" : "normal"}`);
     },
     get(id, count = 1) {
         player.addToInv(createItem(id, count));

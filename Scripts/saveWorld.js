@@ -41,6 +41,9 @@ const deleteDatabase = () => {
 }
 
 const chooseWorld = (worldName) => {
+    if (getLoadList().indexOf(worldName) === -1) {
+        console.error(worldName + " does not exit");
+    }
     if (worldName === undefined) {
         delete localStorage.choosedWorld;
     } else {
@@ -48,7 +51,7 @@ const chooseWorld = (worldName) => {
     }
 }
 
-const saveWorld = (worldName) => {
+const saveWorld = async (worldName) => {
     if (!window.indexedDB) {
         window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
     }
@@ -118,6 +121,9 @@ const loadWorld = (worldName) => {
         }
 
         request.onsuccess = (event) => {
+            if (getLoadList().indexOf(worldName) === -1) {
+                console.error(worldName + " does not exit");
+            }
             _db = event.target.result;
 
             let req = _db

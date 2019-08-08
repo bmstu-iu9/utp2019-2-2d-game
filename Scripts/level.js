@@ -52,7 +52,19 @@ const beginPlay = () => {
 
     	player = new Player();
     	playerCopy(player, loadingResult.player);
-    	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+		slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+		for (let i in BlocksGlobalChange) {
+			gameArea.updateBlock(
+				BlocksGlobalChange[i].x,
+				BlocksGlobalChange[i].y,
+				BlocksGlobalChange[i].layout,
+				player);
+			gameArea.updateRadius(
+				BlocksGlobalChange[i].x,
+				BlocksGlobalChange[i].y,
+				BlocksGlobalChange[i].layout,
+				player);
+		}
 
     } else {
 		gameArea = generate(1000, 1000, key);
@@ -168,8 +180,7 @@ const playerActionButtons = () => {
     }
 
 	if (controller.f.active) {  // Сохранение
-		saveWorld('world');
-		chooseWorld('world');
+		saveWorld('world').then(() => chooseWorld('world'));
 	}
 	if (controller.g.active) { // Удалить сохранение
 		deleteWorld('world');

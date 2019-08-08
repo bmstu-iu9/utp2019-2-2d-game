@@ -116,6 +116,7 @@ const eventTick = () => {
 		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
 	
 	// В последнюю очередь
+	if (player.sp === player.maxSP) player.heal(0.5 * deltaTime);
 	// Анимации
 	animationsTickCount++;
 	player.animate();

@@ -476,6 +476,7 @@ class Player {
 
         // Восстановление здоровья
         this.heal = (count) => {
+            UISetBar(this.hp / this.maxHP, UIMap.healthBar, 202, 16, 1, 0);
             this.hp = Math.min(this.hp + count, 100);
         }
 

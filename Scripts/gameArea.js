@@ -233,7 +233,7 @@ class GameArea{
                     || inv[1][index] == undefined && count > 1) {
                 throw new Error(`Can not delete ${count} item(s) on index ${index}`);
             } else {
-                drop = {
+                drop = inv[0][index].id ? inv[0][index] : {
                     "id" : inv[0][index],
                     "count" : count
                 }

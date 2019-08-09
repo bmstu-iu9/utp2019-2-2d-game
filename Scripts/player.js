@@ -358,10 +358,10 @@ class Player {
         this.deleteFromInvByIndex = (index, count) => {
             let drop;
             if (this.inv.items[index] === undefined || this.inv.count[index] < count
-                    || this.inv.count[index] === undefined && count >= 1) {
+                    || this.inv.count[index] === undefined && count > 1) {
                 throw new Error(`Can not delete ${count} item(s) on index ${index}`);
             } else {
-                drop = {
+                drop = this.inv.items[index].id ? this.inv.items[index] : {
                     "id" : this.inv.items[index],
                     "count" : count
                 }

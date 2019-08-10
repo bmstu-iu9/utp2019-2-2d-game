@@ -18,7 +18,7 @@ const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с в�
 const WATER_TIME_UPDATE = 0.2;
 const LEAF_TIME_ALIVE = 1;  // Рандомный промежуток с верхним концом [сек]
 const LEAF_UNDEAD_PART = 0.3;
-
+const WATER_DESTROY_LIST = [18, 19, 370];  // id, которые смывает вода
 
 const createItem = (id, count) => {
     if (items[id].isTool) {
@@ -44,7 +44,6 @@ const createItem = (id, count) => {
 
 
 // Water
-const waterDestroyList = [12];  // id, которые смывает вода
 const isWater = (id) => {
     return id === 8 || (id >= 9000 && id <= 9023);
 }
@@ -88,7 +87,7 @@ const waterFlowing = (x, y, l, id) => {
             }
 
             const currentWaterFullest = (x, y) => {
-                return !isWater(gameArea.get(x, y, l)) || idFull > waterFull(gameArea.get(x, y, l));
+                return !isWater(gameArea.get(x, y, l)) || idFull >= waterFull(gameArea.get(x, y, l));
             }
             if (idFull !== 8
                 && (currentWaterFullest(x, y + 1) || (y + 1) >= gameArea.height)
@@ -105,11 +104,13 @@ const waterFlowing = (x, y, l, id) => {
             if (waterFull(gameArea.map[x][y - 1][l]) !== 8) {
                 gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
             }
+        } else if ((y - 1) >= 0 && WATER_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
+            gameArea.destroyBlock(x, y - 1, l, player, "water destroy list");
+            gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
         } else {
             const idRotate = rotateWater(id);
             const flow = (X) => {
-                if (X >= 0 && (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l])
-                || waterDestroyList.indexOf(gameArea.map[X][y][l]) !== -1)) {
+                if (X >= 0 && (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l]))) {
 
                     if (idFull === 0.5) {
                         return;
@@ -145,19 +146,33 @@ const waterFlowing = (x, y, l, id) => {
                                     gameArea.makeFlowingWaterBlock(createWater(idFull - 1, idRotate)));
                             }
                         }
+                    } else if (X >= 0 && WATER_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
+
+                        if (isInteger(idFull)) {
+                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
+                        } else if (X - x === idRotate) {
+                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
+                        } else {
+                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
+                        }
                     } else {
 
                         if (isInteger(idFull)) {
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
-                        } else if (X - x === idRotate){
+                        } else if (X - x === idRotate) {
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
                         } else {
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
                         }
-
                     }
                 }
             }
@@ -194,8 +209,9 @@ const fallingLeaf = (x, y, layout) => {
         }
         setTimeout(() => {
             if (time === undefined) {
-                if ((y - 1) >= 0 && gameArea.map[x][y - 1][layout] === undefined
-                && gameArea.map[x][y][layout] === 18) {
+                if ((y - 1) >= 0 && gameArea.map[x][y][layout] === 18
+                && (gameArea.map[x][y - 1][layout] === undefined
+                    || !items[gameArea.map[x][y - 1][layout]].isCollissed)) {
                     gameArea.destroyBlock(x, y, layout, player, "leafFall");
                     gameArea.placeBlock(x, y - 1, layout, 18);
                     fall(x, y - 1, undefined);
@@ -567,7 +583,7 @@ const items = {
             return getTextureCoordinates(10, 0)
         },
         destroyFunction: (x, y, layout, reason) => {
-            if (reason !== "leafFall") {
+            if (reason === undefined) {
                 if (gameArea.get(x - 1, y, layout) === 18) {
                     gameArea.goodDestroy(x - 1, y, layout, player);
                 }

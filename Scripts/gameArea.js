@@ -293,8 +293,9 @@ class GameArea{
             const block = items[this.map[x][y][layout]];
 
             if (block.hasGravity) {
-                // Если нет блока снизу
-                if ((y - 1) >= 0 && this.map[x][y - 1][layout] === undefined) {
+                // Если нет блока с коллизией снизу
+                if ((y - 1) >= 0 && (this.map[x][y - 1][layout] === undefined
+                    || !items[this.map[x][y - 1][layout]].isCollissed)) {
                     const lastId = this.map[x][y][layout];
                     setTimeout(() => {
                         const id = this.map[x][y][layout];

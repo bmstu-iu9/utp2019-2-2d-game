@@ -100,7 +100,8 @@ const waterFlowing = (x, y, l, id) => {
             }
         }
 
-        if ((y - 1) >= 0 && (gameArea.map[x][y - 1][l] === undefined || isWater(gameArea.map[x][y - 1][l]))) {
+        if ((y - 1) >= 0 && (gameArea.map[x][y - 1][l] === undefined
+            || (isWater(gameArea.map[x][y - 1][l]) && gameArea.map[x][y - 1][l] !== 8))) {
             if (waterFull(gameArea.map[x][y - 1][l]) !== 8) {
                 gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
             }

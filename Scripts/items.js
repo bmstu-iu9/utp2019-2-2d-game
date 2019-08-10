@@ -922,14 +922,20 @@ const items = {
     { 
         id: '265', 
         name: 'Iron', 
-        weight: WEIGHT_OF_ORES
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(2, 2)
+        }
     },
 
     '266': 
     { 
         id: '266', 
         name: 'Gold', 
-        weight: WEIGHT_OF_ORES
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(3, 2)
+        }
     },
 
     '267': {

@@ -88,8 +88,8 @@ let crafts = {
 		resultCount: 2
 	},
 	'21': {
-		needId: [ 4 ],
-		needCount: [ 4 ],
+		needId: [ 1 ],
+		needCount: [ 1 ],
 		needCradftingTable: true,
 		resultCount: 1
 	},
@@ -115,6 +115,18 @@ let crafts = {
 		needCount: [ 1, 1 ],
 		needFurance: true,
 		resultCount: 3
+	},
+	'265': {
+		needId: [ 15, 263 ],
+		needCount: [ 1, 1 ],
+		needFurance: true,
+		resultCount: 1
+	},
+	'266': {
+		needId: [ 14, 263 ],
+		needCount: [ 1, 1 ],
+		needFurance: true,
+		resultCount: 1
 	},
 	'267': {
 		needId: [ 5 ],
@@ -185,6 +197,24 @@ let crafts = {
     },
     '279': {
     	needId: [ 267, 264 ],
+    	needCount: [ 1, 2 ],
+		needCradftingTable: true,
+    	resultCount: 1
+    },
+    '256': {
+    	needId: [ 267, 265 ],
+    	needCount: [ 1, 2 ],
+		needCradftingTable: true,
+    	resultCount: 1
+    },
+    '257': {
+    	needId: [ 267, 265 ],
+    	needCount: [ 1, 2 ],
+		needCradftingTable: true,
+    	resultCount: 1
+    },
+    '258': {
+    	needId: [ 267, 265 ],
     	needCount: [ 1, 2 ],
 		needCradftingTable: true,
     	resultCount: 1

@@ -301,7 +301,7 @@ class GameArea{
                         if (id !== lastId) {
                             return;
                         }
-                        this.destroyBlock(x, y, layout, player);  // Без пересчета света
+                        this.destroyBlock(x, y, layout, player);
                         this.placeBlock(x, y - 1, layout, id);
                     }, GameArea.FALLING_BLOCKS * 1000);
                 }

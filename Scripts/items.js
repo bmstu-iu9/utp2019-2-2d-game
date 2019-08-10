@@ -79,40 +79,33 @@ const isInteger = (num) => {
     return (num ^ 0) === num;
 }
 const waterFlowing = (x, y, l, id) => {
-    // if (id === 9016
-                //     && (y + 1) < gA.height && !isWater(gA.map[x][y + 1][l])) {
-            
-                //     gA.placeBlock(x, y, l, undefined);
-                //     return;
-                // }
-                // if ((y - 1) >= 0 && isWater(gA.map[x][y - 1][l])) {
-                //     if (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] < 9016) {
-                //         gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
-                //     }
-                //     return;
-                // }
-
-                // if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
-                //     // 16 - вода стоит
-                //     gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
-                // } else {
-                //     if ((x - 1) >= 0 && (gA.map[x - 1][y][l] === undefined
-                //     || (isWater(gA.map[x - 1][y][l]) && !firstLowerFullWater(id, gA.map[x - 1][y][l])))) {
-                //         // 0 ... 7 - вода течет влево (0 - макс наполнена)
-                //         gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(9000));
-                //     }
-                //     if ((x + 1) < gA.height && needPlaceWater(gA.map[x + 1][y][l], id)) {
-                //         // 8 ... 16 - вода течет вправо (8 - макс наполнена)
-                //         gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(9000 + 8));
-                //     }
-                // }
     setTimeout(() => {
+        const idFull = waterFull(id);
+        if (id !== 8 && isWater(id)) {
+            if (idFull === 8 && !isWater(gameArea.get(x, y + 1, l))) {
+                gameArea.destroyBlock(x, y, l, player);
+                return;
+            }
+
+            const currentWaterFullest = (x, y) => {
+                return !isWater(gameArea.get(x, y, l)) || idFull > waterFull(gameArea.get(x, y, l));
+            }
+            if (idFull !== 8
+                && (currentWaterFullest(x, y + 1) || (y + 1) >= gameArea.height)
+                && (currentWaterFullest(x + 1, y) || (x + 1) >= gameArea.width)
+                && (currentWaterFullest(x - 1, y) || (x - 1) < 0)) {
+
+                gameArea.destroyBlock(x, y, l, player);
+                return;
+            }
+        }
+
         if ((y - 1) >= 0 && (gameArea.map[x][y - 1][l] === undefined || isWater(gameArea.map[x][y - 1][l]))) {
             if (waterFull(gameArea.map[x][y - 1][l]) !== 8) {
                 gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
             }
         } else {
-            const idFull = waterFull(id), idRotate = rotateWater(id);
+            const idRotate = rotateWater(id);
             const flow = (X) => {
                 if (X >= 0 && (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l])
                 || waterDestroyList.indexOf(gameArea.map[X][y][l]) !== -1)) {
@@ -988,7 +981,7 @@ const items = {
         weight: WEIGHT_OF_ORES,
         texture: () => {
             return getTextureCoordinates(3, 2)
-        
+        }
     },
 
     '267': {

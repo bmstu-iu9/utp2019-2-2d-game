@@ -308,7 +308,7 @@ class GameArea{
             }
 
             if (block.update !== undefined) {
-                block.update(x, y, layout, this);
+                block.update(x, y, layout);
             }
 
             switch (block.type) {

@@ -301,7 +301,7 @@ class GameArea{
                         if (id !== lastId) {
                             return;
                         }
-                        this.gameAreaMapSet(x, y, layout, undefined);  // Без пересчета света
+                        this.destroyBlock(x, y, layout, player);  // Без пересчета света
                         this.placeBlock(x, y - 1, layout, id);
                     }, GameArea.FALLING_BLOCKS * 1000);
                 }
@@ -480,7 +480,7 @@ class GameArea{
         }
 
         // Действие при разрушении блока
-        this.destroyBlock = (x, y, layout, player) => {
+        this.destroyBlock = (x, y, layout, player, reason) => {
             if (!this.exist(x, y)) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
@@ -490,7 +490,7 @@ class GameArea{
                 this.addLightRound(x, y, x, y, 9, true, false);
             }
             if (items[lastBlock].destroyFunction) {
-                items[lastBlock].destroyFunction(x, y, layout);
+                items[lastBlock].destroyFunction(x, y, layout, reason);
             }
             this.updateRadius(x, y, layout, player);
         }

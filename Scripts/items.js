@@ -16,6 +16,7 @@ const itemSize = 32;
 let _textureItems;
 const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с верхним концом [сек]
 const WATER_TIME_UPDATE = 0.2;
+const LEAF_TIME_ALIVE = 1;  // Рандомный промежуток с верхним концом [сек]
 
 
 const createItem = (id, count) => {
@@ -41,7 +42,7 @@ const createItem = (id, count) => {
 }
 
 
-// Never used
+// Water
 const isWater = (id) => {
     return (id >= 9000 && id <= 9016) || id === 8;
 }
@@ -58,8 +59,6 @@ const firstLowerFullWater = (currentId, targetId) => {
 const needPlaceWater = (targetId, id) => {
     return targetId === undefined;
 }
-
-
 const fallingWaterUpdate = (x, y, l, gA, id) => {
     setTimeout(() => {
         if ((y + 1) < gA.height && firstLowerFullWater(gA.map[x][y + 1][l], id)
@@ -87,6 +86,48 @@ const fallingWaterUpdate = (x, y, l, gA, id) => {
             }
         }
     }, WATER_TIME_UPDATE * 1000);
+}
+
+
+// Leaf
+const fallingLeaf = (x, y, layout) => {
+    let visit = {};
+    const dfs = (x, y) => {
+        if (visit[x + "x" + y] === undefined && gameArea.get(x, y, layout) === 18) {
+            visit[x + "x" + y] = {
+                x: x,
+                y: y
+            };
+            dfs(x + 1, y);
+            dfs(x - 1, y);
+            dfs(x, y + 1);
+            dfs(x, y - 1);
+        }
+    }
+    dfs(x, y);
+    const fall = (x, y, time) => {
+        if (time <= 0) {
+            if (gameArea.map[x][y][layout] === 18) {
+                gameArea.destroyBlock(x, y, layout, player, "leafFall");
+            }
+            return;
+        }
+        setTimeout(() => {
+            if ((y - 1) >= 0 && gameArea.map[x][y - 1][layout] === undefined && gameArea.map[x][y][layout] === 18) {
+                gameArea.destroyBlock(x, y, layout, player, "leafFall");
+                gameArea.placeBlock(x, y - 1, layout, 18);
+                fall(x, y - 1, time - GameArea.FALLING_BLOCKS);
+            } else {
+                fall(x, y, time - GameArea.FALLING_BLOCKS);
+            }
+            
+        }, GameArea.FALLING_BLOCKS * 1000);
+    }
+    for (let i in visit) {
+        if (gameArea.map[visit[i].x][visit[i].y][layout] === 18) {
+            fall(visit[i].x, visit[i].y, LEAF_TIME_ALIVE * Math.random());
+        }
+    }
 }
 
 
@@ -260,7 +301,10 @@ const items = {
                     gA.placeBlock(x, y, l, undefined);
                     return;
                 }
-                if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
+                if ((y - 1) >= 0 && isWater(gA.map[x][y - 1][l])) {
+                    if (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] < 9016) {
+                        gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
+                    }
                     return;
                 }
 
@@ -422,6 +466,19 @@ const items = {
             if (gameArea.get(x, y + 1, layout) === 17) {
                 gameArea.goodDestroy(x, y + 1, layout, player);
             }
+            // leaf
+            if (gameArea.get(x - 1, y, layout) === 18) {
+                fallingLeaf(x - 1, y, layout);
+            }
+            if (gameArea.get(x + 1, y, layout) === 18) {
+                fallingLeaf(x + 1, y, layout);
+            }
+            if (gameArea.get(x, y + 1, layout) === 18) {
+                fallingLeaf(x, y + 1, layout);
+            }
+            if (gameArea.get(x, y - 1, layout) === 18) {
+                fallingLeaf(x, y - 1, layout);
+            }
         }
     },
 
@@ -441,18 +498,20 @@ const items = {
         texture: () => {
             return getTextureCoordinates(10, 0)
         },
-        destroyFunction: (x, y, layout) => {
-            if (gameArea.get(x - 1, y, layout) === 18) {
-                gameArea.goodDestroy(x - 1, y, layout, player);
-            }
-            if (gameArea.get(x + 1, y, layout) === 18) {
-                gameArea.goodDestroy(x + 1, y, layout, player);
-            }
-            if (gameArea.get(x, y - 1, layout) === 18) {
-                gameArea.goodDestroy(x, y - 1, layout, player);
-            }
-            if (gameArea.get(x, y + 1, layout) === 18) {
-                gameArea.goodDestroy(x, y + 1, layout, player);
+        destroyFunction: (x, y, layout, reason) => {
+            if (reason !== "leafFall") {
+                if (gameArea.get(x - 1, y, layout) === 18) {
+                    gameArea.goodDestroy(x - 1, y, layout, player);
+                }
+                if (gameArea.get(x + 1, y, layout) === 18) {
+                    gameArea.goodDestroy(x + 1, y, layout, player);
+                }
+                if (gameArea.get(x, y - 1, layout) === 18) {
+                    gameArea.goodDestroy(x, y - 1, layout, player);
+                }
+                if (gameArea.get(x, y + 1, layout) === 18) {
+                    gameArea.goodDestroy(x, y + 1, layout, player);
+                }
             }
         }
     },

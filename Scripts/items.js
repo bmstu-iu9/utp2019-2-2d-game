@@ -590,16 +590,16 @@ const items = {
         destroyFunction: (x, y, layout, reason) => {
             if (reason === undefined) {
                 if (gameArea.get(x - 1, y, layout) === 18) {
-                    gameArea.goodDestroy(x - 1, y, layout, player);
+                    player.destroy(x - 1, y, layout);
                 }
                 if (gameArea.get(x + 1, y, layout) === 18) {
-                    gameArea.goodDestroy(x + 1, y, layout, player);
+                    player.destroy(x + 1, y, layout);
                 }
                 if (gameArea.get(x, y - 1, layout) === 18) {
-                    gameArea.goodDestroy(x, y - 1, layout, player);
+                    player.destroy(x, y - 1, layout);
                 }
                 if (gameArea.get(x, y + 1, layout) === 18) {
-                    gameArea.goodDestroy(x, y + 1, layout, player);
+                    player.destroy(x, y + 1, layout);
                 }
             }
         }

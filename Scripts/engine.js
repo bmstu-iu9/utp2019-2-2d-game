@@ -990,8 +990,8 @@ class Render {
 				this.weather[1] = max;
 			}
 			
-			const w = this.size / this.gl.canvas.width;
-			const h = 2 / this.gl.canvas.height;
+			const w = this.size / this.gl.canvas.width / scale;
+			const h = 2 / this.gl.canvas.height / scale;
 			
 			this.gl.uniform1f(this.uniform[5].u_time[0], time * this.speedRain * 0.0001);
 			this.gl.uniform2fv(this.uniform[5].u_resolution[0], [w, h]);

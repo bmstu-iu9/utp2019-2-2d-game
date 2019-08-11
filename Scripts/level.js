@@ -38,7 +38,7 @@ const beginPlay = () => {
     	controller.mouseDown(event);
     });
 
-    if (loadExist()) {
+    if (choosedWorld() !== undefined) {
 		key = loadingResult.key;
 		BlocksGlobalChange = loadingResult.change;
 		currentTime = loadingResult.currentTime;

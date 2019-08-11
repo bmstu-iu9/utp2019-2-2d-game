@@ -1605,6 +1605,7 @@ const reloadInv = () => {
                 });
             setOnClickListener(toChestButton, () => {
                 let item = player.deleteFromInvByIndex(i, 1);
+                console.log(item);
                 item = gameArea.addToInvBlock(chestOpened.x, chestOpened.y, chestOpened.layout, item);
                 if (item) {
                     player.addToInv(item);
@@ -2455,7 +2456,7 @@ const reloadChest = (x, y, layout) => {
                 let item = gameArea.deleteFromInvBlockByIndex(x, y, layout, i, 1);
                 item = player.addToInv(item);
                 if (item) {
-                    gameArea.addToInvBlock(x, y, layout, createItem(back.id, back.count));
+                    gameArea.addToInvBlock(x, y, layout, createItem(item.id, item.count));
                 }
                 needInvRedraw = true;
                 needChestRedraw = true;

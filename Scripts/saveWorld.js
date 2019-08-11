@@ -40,10 +40,11 @@ const deleteDatabase = () => {
     }
 }
 
+const choosedWorld = () => {
+    return localStorage.choosedWorld;
+}
+
 const chooseWorld = (worldName) => {
-    if (getLoadList().indexOf(worldName) === -1) {
-        console.error(worldName + " does not exit");
-    }
     if (worldName === undefined) {
         delete localStorage.choosedWorld;
     } else {

@@ -1,7 +1,8 @@
 'use strict';
 
 let imageCounter = 0, totalImages = 0;
-let cameraScale = 1;  // Масштаб, 1 - стандарт
+let heigthCount = 66;  // Количество блоков, которые влезают на экран по высоте
+let cameraScale = 1;  // Масштаб, 1 - стандарт, зависит от heigthCount
 const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
@@ -249,9 +250,11 @@ const preprocessing = () => {
 		}
 
 		gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
+		cameraScale = (heigthCount * blockSize) / document.getElementById("canvas").height;
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 		const lightOfPlayer = player.getLight(); // освещённость игрока
 		const dynamicLight = [9, player.light]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение (от 0 до 1)
+
 		render.render(cameraX, cameraY, player.x, player.y, cameraScale, oldTime, deltaTime, lightOfDay, lightOfPlayer,
 			slicePlayer, player.direction, dynamicLight);
 		

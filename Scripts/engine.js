@@ -5,6 +5,7 @@
 // Не лезь, оно тебя сожрёт!
 
 /***********************************************************************************************************************
+
 Как это использовать?
 
 	ИНИЦИАЛИЗАЦИЯ:
@@ -231,9 +232,9 @@ class Render {
 		
 		// прозрачность
 		this.gl.enable(this.gl.CULL_FACE);
-		//this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.enable(this.gl.BLEND);
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+		//this.gl.enable(this.gl.DEPTH_TEST);
 		
 		// сборка и компиляция шейдерной программы
 		this.program = [];
@@ -324,8 +325,12 @@ class Render {
 			]); // получение атрибутов из шейдеров
 		
 		this.uniform[3] = this.createUniformLocation(this.program[3], [
+				'u_rotation',
 				'u_texture'
 			]); // получение uniform-переменных из шейдеров
+		
+		// инициализация uniform-переменных
+		this.setUniform2fv(this.uniform[3].u_rotation, [0.0, 1.0]);
 		
 		// SHADER PROGRAM 4
 		const vertexShader4 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[4]);
@@ -385,11 +390,10 @@ class Render {
 		this.weather[3] = 0;
 	}
 	
-	init(image, background, playerImage) {
+	init(images) {
 		// создание текстуры
-		const images = [image, background, playerImage];
 		this.textures = [];
-		for (let i = 0; i < 3; i++) {
+		for (let i in images) {
 			const texture = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			
@@ -438,57 +442,68 @@ class Render {
 		
 		// заполняем буферы
 		const arrayOfPosition = [
-			0, 0, // ID: 0
+			// ID: 0
+			0, 0,
 			backgroundAsp, 0,
 			0, 1,
 			0, 1,
 			backgroundAsp, 0,
 			backgroundAsp, 1,
 			
-			h * -0.75, l, // ID: 1
+			// ID: 1
+			h * -0.75,	l,
+			h * 1.75,	l,
+			h * -0.75,	h * 3,
+			h * -0.75,	h * 3,
+			h * 1.75,	l,
+			h * 1.75,	h * 3,
+			
+			// ID: 2
+			h * -1.75, l,
 			h * 0.75, l,
-			h * -0.75, h * 3,
-			h * -0.75, h * 3,
+			h * -1.75, h * 3,
+			h * -1.75, h * 3,
 			h * 0.75, l,
 			h * 0.75, h * 3,
 			
-			h * -0.75, l, // ID: 2
-			h * 0.75, l,
-			h * -0.75, h * 3,
-			h * -0.75, h * 3,
-			h * 0.75, l,
-			h * 0.75, h * 3,
-			
-			l, l, // ID: 3
+			// ID: 3
+			l, l,
 			h * this.widthChunk, l,
 			l, h * this.heightChunk,
 			l, h * this.heightChunk,
 			h * this.widthChunk, l,
 			h * this.widthChunk, h * this.heightChunk];
 		
+		const ptw = 80 / 128; // ширина буфера текстуры игрового персонажа
+		const pth = 96 / 128; // высота буфера текстуры игрового персонажа
+		
 		const arrayOfTexCoord = [
-			0, 1, // ID: 0
+			// ID: 0
+			0, 1,
 			1, 1,
 			0, 0,
 			0, 0,
 			1, 1,
 			1, 0,
 			
-			0, 0, // ID: 1
-			48 / 128, 0,
-			0, 96 / 128,
-			0, 96 / 128,
-			48 / 128, 0,
-			48 / 128, 96 / 128,
-			
-			48 / 128, 0, // ID: 2
+			// ID: 1
 			0, 0,
-			48 / 128, 96 / 128,
-			48 / 128, 96 / 128,
+			ptw, 0,
+			0, pth,
+			0, pth,
+			ptw, 0,
+			ptw, pth,
+			
+			// ID: 2
+			ptw, 0,
+			0, 0,
+			ptw, pth,
+			ptw, pth,
 			0, 0,
 			0, 96 / 128,
 			
-			0, 0, // ID: 3
+			// ID: 3
+			0, 0,
 			1, 0,
 			0, 1,
 			0, 1,
@@ -523,57 +538,63 @@ class Render {
 		
 		this.gl.useProgram(this.program[3]);
 		
+		const w = 48 / 80;
+			
 		// заполняем буферы
 		for (let i in playerAnims) {
+			const head = playerAnims[i].head;
+			const body = playerAnims[i].body;
+			const legs = playerAnims[i].legs;
+			
 			arrayOfPosition.push(
 				// голова
-				0, playerAnims[i].body[2] / playerResolutionY,
-				1, playerAnims[i].body[2] / playerResolutionY,
-				0, playerAnims[i].head[2] / playerResolutionY,
-				0, playerAnims[i].head[2] / playerResolutionY,
-				1, playerAnims[i].body[2] / playerResolutionY,
-				1, playerAnims[i].head[2] / playerResolutionY,
+				0, body[2] / playerResolutionY,
+				w, body[2] / playerResolutionY,
+				0, head[2] / playerResolutionY,
+				0, head[2] / playerResolutionY,
+				w, body[2] / playerResolutionY,
+				w, head[2] / playerResolutionY,
 				
 				// тело
-				0, playerAnims[i].legs[2] / playerResolutionY,
-				1, playerAnims[i].legs[2] / playerResolutionY,
-				0, playerAnims[i].body[2] / playerResolutionY,
-				0, playerAnims[i].body[2] / playerResolutionY,
-				1, playerAnims[i].legs[2] / playerResolutionY,
-				1, playerAnims[i].body[2] / playerResolutionY,
+				0, legs[2] / playerResolutionY,
+				w, legs[2] / playerResolutionY,
+				0, body[2] / playerResolutionY,
+				0, body[2] / playerResolutionY,
+				w, legs[2] / playerResolutionY,
+				w, body[2] / playerResolutionY,
 				
 				// ноги
 				0, 0,
-				1, 0,
-				0, playerAnims[i].legs[2] / playerResolutionY,
-				0, playerAnims[i].legs[2] / playerResolutionY,
-				1, 0,
-				1, playerAnims[i].legs[2] / playerResolutionY);
+				w, 0,
+				0, legs[2] / playerResolutionY,
+				0, legs[2] / playerResolutionY,
+				w, 0,
+				w, legs[2] / playerResolutionY);
 			
 			arrayOfTexCoord.push(
 				// голова
-				playerAnims[i].head[0][0], playerAnims[i].head[1][1],
-				playerAnims[i].head[1][0], playerAnims[i].head[1][1],
-				playerAnims[i].head[0][0], playerAnims[i].head[0][1],
-				playerAnims[i].head[0][0], playerAnims[i].head[0][1],
-				playerAnims[i].head[1][0], playerAnims[i].head[1][1],
-				playerAnims[i].head[1][0], playerAnims[i].head[0][1],
+				head[0][0], head[1][1],
+				head[1][0], head[1][1],
+				head[0][0], head[0][1],
+				head[0][0], head[0][1],
+				head[1][0], head[1][1],
+				head[1][0], head[0][1],
 				
 				// тело
-				playerAnims[i].body[0][0], playerAnims[i].body[1][1],
-				playerAnims[i].body[1][0], playerAnims[i].body[1][1],
-				playerAnims[i].body[0][0], playerAnims[i].body[0][1],
-				playerAnims[i].body[0][0], playerAnims[i].body[0][1],
-				playerAnims[i].body[1][0], playerAnims[i].body[1][1],
-				playerAnims[i].body[1][0], playerAnims[i].body[0][1],
+				body[0][0], body[1][1],
+				body[1][0], body[1][1],
+				body[0][0], body[0][1],
+				body[0][0], body[0][1],
+				body[1][0], body[1][1],
+				body[1][0], body[0][1],
 				
 				// ноги
-				playerAnims[i].legs[0][0], playerAnims[i].legs[1][1],
-				playerAnims[i].legs[1][0], playerAnims[i].legs[1][1],
-				playerAnims[i].legs[0][0], playerAnims[i].legs[0][1],
-				playerAnims[i].legs[0][0], playerAnims[i].legs[0][1],
-				playerAnims[i].legs[1][0], playerAnims[i].legs[1][1],
-				playerAnims[i].legs[1][0], playerAnims[i].legs[0][1]);
+				legs[0][0], legs[1][1],
+				legs[1][0], legs[1][1],
+				legs[0][0], legs[0][1],
+				legs[0][0], legs[0][1],
+				legs[1][0], legs[1][1],
+				legs[1][0], legs[0][1]);
 		}
 		
 		// создание буфера и атрибута координат позиций
@@ -590,6 +611,7 @@ class Render {
 		this.gl.enableVertexAttribArray(this.attribute[3].a_texCoord);
 		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
+		// создание текстурного буфера отрисовки
 		this.texturePlayer = this.gl.createTexture();
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
 		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 128, 128, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
@@ -599,7 +621,7 @@ class Render {
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 	}
 	
-	getPlayerParts(head, body, legs) {
+	getPlayerParts(head, body, legs, item) {
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[3]);
 		
@@ -609,17 +631,30 @@ class Render {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
 		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
+		const w = 48 / 80;
+		
 		// отрисовываем в буфер кадров
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
 			this.texturePlayer, 0);
-		this.gl.viewport(0, 0, this.playerResolution[0], this.playerResolution[1]);
+		this.gl.viewport(0, 0, this.playerResolution[0] / w, this.playerResolution[1]);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]); // используем текстуру игрока
 		this.gl.drawArrays(this.gl.TRIANGLES, head * 18, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, body * 18 + 6, 6);
 		this.gl.drawArrays(this.gl.TRIANGLES, legs * 18 + 12, 6);
+		
+		item = { 'angle': 30 }
+		// item: { 'angle': angle, '': }
+		if (item !== undefined) {
+			// отрисовка предмета в руке
+			const angleInRad = this.degToRad(360 - item.angle);
+			const rotation = [Math.sin(angleInRad), Math.cos(angleInRad)];
+			this.setUniform2fv(this.uniform[3].u_rotation, rotation);
+			// this.gl.drawArrays(this.gl.TRIANGLES, ???, 6);
+			this.setUniform2fv(this.uniform[3].u_rotation, [0.0, 1.0]);
+		}
 	}
 	
 	drawChunk(x, y, blocksOfChunk, lightChunk) {
@@ -784,7 +819,7 @@ class Render {
 		const top = yc * ch + scale / 2;
 		const near = 0.01;
 		const far = 11;
-		this.gl.uniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, [
+		this.gl.uniformMatrix4fv(this.uniform[0].u_projectionMatrix[0], false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
 			0.0, 2.0 / (top - bottom), 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
@@ -798,33 +833,34 @@ class Render {
 		// отрисовка фона
 		const z = 0.1 - far;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
-		this.gl.uniform1f(this.uniform[0].u_resolution, 1 / scale);
-		this.gl.uniform1f(this.uniform[0].u_light, lightOfDay);
+		this.gl.uniform1f(this.uniform[0].u_resolution[0], 1 / scale);
+		this.gl.uniform1f(this.uniform[0].u_light[0], lightOfDay);
 		
 		for (let i = 0; i <= asp * scale + 1; i++) {
-			this.gl.uniform3f(this.uniform[0].u_translate,
+			this.gl.uniform3f(this.uniform[0].u_translate[0],
 				xc * ch + i - asp * scale / 2, yc * ch - scale / 2, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		
 		// TODO: Привести код в порядок
 		// отрисовка чанков
-		this.gl.uniform1f(this.uniform[0].u_resolution, this.gl.canvas.height);
-		this.gl.uniform1f(this.uniform[0].u_light, 1); // стандартное освещение
+		this.gl.uniform1f(this.uniform[0].u_resolution[0], this.gl.canvas.height);
+		this.gl.uniform1f(this.uniform[0].u_light[0], 1); // стандартное освещение
 		//this.gl.disable(this.gl.DEPTH_TEST);
 		
 		this.gl.useProgram(this.program[2]);
 		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
 		const deltaY = (yp - yc + 1.5) * this.size + this.gl.canvas.height / 2;
 		
-		this.gl.uniform4f(this.uniform[2].u_dynamicLight, deltaX, deltaY, dynamicLight[0] * this.size, dynamicLight[1]);
-		this.gl.uniform1f(this.uniform[2].u_sizeBlock, this.size);
-		this.gl.uniformMatrix4fv(this.uniform[2].u_projectionMatrix, false, [
+		this.gl.uniform4fv(this.uniform[2].u_dynamicLight[0],
+			[deltaX, deltaY, dynamicLight[0] * this.size, dynamicLight[1]]);
+		this.gl.uniform1f(this.uniform[2].u_sizeBlock[0], this.size);
+		this.gl.uniformMatrix4fv(this.uniform[2].u_projectionMatrix[0], false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
 			0.0, 2.0 / (top - bottom), 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
 			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
-		this.gl.uniform1f(this.uniform[2].u_resolution, this.gl.canvas.height);
+		this.gl.uniform1f(this.uniform[2].u_resolution[0], this.gl.canvas.height);
 		
 		// яркость 2 слоя
 		let ls;
@@ -842,11 +878,11 @@ class Render {
 				this.gl.activeTexture(this.gl.TEXTURE1);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
 				this.gl.activeTexture(this.gl.TEXTURE0);
-				this.gl.uniform1f(this.uniform[2].u_light, ls / 2);
+				this.gl.uniform1f(this.uniform[2].u_light[0], ls / 2);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[2]);
-				this.gl.uniform3f(this.uniform[2].u_translate, xc, yc, -3);
+				this.gl.uniform3fv(this.uniform[2].u_translate[0], [xc, yc, -3]);
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
-				this.gl.uniform1f(this.uniform[2].u_light, ls);
+				this.gl.uniform1f(this.uniform[2].u_light[0], ls);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			} // TODO: Попробовать переделать под ANGLE_instanced_arrays
@@ -856,8 +892,8 @@ class Render {
 		if (slicePlayer === 2) {			
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
-			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
-			this.gl.uniform3f(this.uniform[0].u_translate, xp * ch, yp * ch, -1);
+			this.gl.uniform1f(this.uniform[0].u_light[0], Math.max(lightOfPlayer, dynamicLight[1]));
+			this.gl.uniform3fv(this.uniform[0].u_translate[0], [xp * ch, yp * ch, -1]);
 			if (rotatePlayer > 0) {
 				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
@@ -865,15 +901,15 @@ class Render {
 			}
 			
 			this.gl.useProgram(this.program[1]);
-			this.gl.uniform2f(this.uniform[1].u_center, deltaX, deltaY);
-			this.gl.uniform1f(this.uniform[1].u_light, 1);
-			this.gl.uniform1f(this.uniform[1].u_sizeBlock, this.size);
-			this.gl.uniformMatrix4fv(this.uniform[1].u_projectionMatrix, false, [
+			this.gl.uniform2fv(this.uniform[1].u_center[0], [deltaX, deltaY]);
+			this.gl.uniform1f(this.uniform[1].u_light[0], 1);
+			this.gl.uniform1f(this.uniform[1].u_sizeBlock[0], this.size);
+			this.gl.uniformMatrix4fv(this.uniform[1].u_projectionMatrix[0], false, [
 				2.0 / (right - left), 0.0, 0.0, 0.0,
 				0.0, 2.0 / (top - bottom), 0.0, 0.0,
 				0.0, 0.0, -2.0 / (far - near), 0.0,
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
-			this.gl.uniform1f(this.uniform[1].u_resolution, this.gl.canvas.height);
+			this.gl.uniform1f(this.uniform[1].u_resolution[0], this.gl.canvas.height);
 			
 			// отрисовка 1 слоя с полупрозрачным кругом
 			for (let c in this.arrayOfChunks) {
@@ -886,15 +922,15 @@ class Render {
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
-					this.gl.uniform3f(this.uniform[1].u_translate, xc, yc, -2);
+					this.gl.uniform3f(this.uniform[1].u_translate[0], xc, yc, -2);
 					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 				} // TODO: Попробовать переделать под ANGLE_instanced_arrays
 			}
 		} else {
 			this.gl.useProgram(this.program[2]);
 			
-			this.gl.uniform1f(this.uniform[2].u_light, 1);
-			this.gl.uniformMatrix4fv(this.uniform[2].u_projectionMatrix, false, [
+			this.gl.uniform1f(this.uniform[2].u_light[0], 1);
+			this.gl.uniformMatrix4fv(this.uniform[2].u_projectionMatrix[0], false, [
 				2.0 / (right - left), 0.0, 0.0, 0.0,
 				0.0, 2.0 / (top - bottom), 0.0, 0.0,
 				0.0, 0.0, -2.0 / (far - near), 0.0,
@@ -909,7 +945,7 @@ class Render {
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
-					this.gl.uniform3f(this.uniform[2].u_translate, xc, yc, -2);
+					this.gl.uniform3fv(this.uniform[2].u_translate[0], [xc, yc, -2]);
 					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 				} // TODO: Попробовать переделать под ANGLE_instanced_arrays
 			}
@@ -919,8 +955,8 @@ class Render {
 		if (slicePlayer === 1) {
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
-			this.gl.uniform1f(this.uniform[0].u_light, Math.max(lightOfPlayer, dynamicLight[1]));
-			this.gl.uniform3f(this.uniform[0].u_translate, xp * ch, yp * ch, -1);
+			this.gl.uniform1f(this.uniform[0].u_light[0], Math.max(lightOfPlayer, dynamicLight[1]));
+			this.gl.uniform3fv(this.uniform[0].u_translate[0], [xp * ch, yp * ch, -1]);
 			if (rotatePlayer > 0) {
 				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
@@ -950,29 +986,29 @@ class Render {
 					wIDs[i] = i;
 				}
 				this.gl.bufferData(this.gl.ARRAY_BUFFER, wIDs, this.gl.STATIC_DRAW);
-				this.gl.uniform1f(this.uniform[5].u_number, max);
+				this.gl.uniform1f(this.uniform[5].u_number[0], max);
 				this.weather[1] = max;
 			}
 			
 			const w = this.size / this.gl.canvas.width;
 			const h = 2 / this.gl.canvas.height;
 			
-			this.gl.uniform1f(this.uniform[5].u_time, time * this.speedRain * 0.0001);
-			this.gl.uniform2f(this.uniform[5].u_resolution, w, h);
+			this.gl.uniform1f(this.uniform[5].u_time[0], time * this.speedRain * 0.0001);
+			this.gl.uniform2fv(this.uniform[5].u_resolution[0], [w, h]);
 			
 			// TODO: Переделать под ANGLE_instanced_arrays
 			// отрисовка дождя
-			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1;
+			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1; // средний шаг дождя в блоках
 			for (let i = 0; i < xh; i += d) {
 				// левая половина экрана
 				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-				this.gl.uniform2f(this.uniform[5].u_translate, (xt - i) * w, Math.max(yt0, this.weather[2]) * h);
+				this.gl.uniform2fv(this.uniform[5].u_translate[0], [(xt - i) * w, Math.max(yt0, this.weather[2]) * h]);
 				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
 				
 				// правая половина экрана
 				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
-				this.gl.uniform2f(this.uniform[5].u_translate, Math.floor(xt + i + d) * w, 
-					Math.max(yt1, this.weather[2]) * h);
+				this.gl.uniform2fv(this.uniform[5].u_translate[0],
+					[(xt + i + d) * w, Math.max(yt1, this.weather[2]) * h]);
 				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
 			}
 			
@@ -1023,14 +1059,11 @@ class Render {
 		throw new Error(error);
 	}
 	
-	createProgram(vertexShader, fragmentShader, linker) {
+	createProgram(vertexShader, fragmentShader) {
 		// создание программы из шейдеров
 		const program = this.gl.createProgram();
 		this.gl.attachShader(program, vertexShader);
 		this.gl.attachShader(program, fragmentShader);
-		for (let i in linker) {
-			this.gl.bindAttribLocation(program, linker[i].id, linker[i].name);
-		}
 		this.gl.linkProgram(program);
 		if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
 			return program;
@@ -1055,13 +1088,84 @@ class Render {
 		// получение ссылок на uniform-переменные в шейдерах
 		const uniformLocation = {};
 		for (let i in params) {
-			uniformLocation[params[i]] = this.gl.getUniformLocation(program, params[i]);
+			uniformLocation[params[i]] = [this.gl.getUniformLocation(program, params[i]), undefined];
 		}
 		return uniformLocation;
 	}
 	
+	// оптимизированные функции-оболочки присваивания uniform-переменных
+	setUniform1f(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform1f(location[0], value);
+		}
+	}
+	
+	setUniform2fv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform2fv(location[0], value);
+		}
+	}
+	
+	setUniform3fv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform3fv(location[0], value);
+		}
+	}
+	
+	setUniform4fv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform4fv(location[0], value);
+		}
+	}
+	
+	setUniform1i(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform1i(location[0], value);
+		}
+	}
+	
+	setUniform2iv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform2iv(location[0], value);
+		}
+	}
+	
+	setUniform3iv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform3iv(location[0], value);
+		}
+	}
+	
+	setUniform4iv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniform4iv(location[0], value);
+		}
+	}
+	
+	setUniformMatrix3fv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniformMatrix3fv(location[0], value);
+		}
+	}
+	
+	setUniformMatrix4fv(location, value) {
+		if (value !== location[1]) {
+			location[1] = value;
+			this.gl.uniformMatrix4fv(location[0], value);
+		}
+	}
+	
 	resizeCanvas(multiplier) {
-		// подгоняем канвас под экран
+		// подгоняем канвас под размер экрана
 		multiplier = multiplier || 1;
 		const width = Math.floor(this.gl.canvas.clientWidth * multiplier);
 		const height = Math.floor(this.gl.canvas.clientHeight * multiplier);
@@ -1069,6 +1173,14 @@ class Render {
 			this.gl.canvas.width = width;
 			this.gl.canvas.height = height;
 		}
+	}
+	
+	radToDeg(r) {
+		return r * 180 / Math.PI;
+	}
+	
+	degToRad(d) {
+		return d * Math.PI / 180;
 	}
 	
 	// отрисовка объетов
@@ -1083,6 +1195,7 @@ class Render {
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_NEAREST);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+		
 		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
 		this.gl.generateMipmap(this.gl.TEXTURE_2D);
 		this.gl.activeTexture(this.gl.TEXTURE0);
@@ -1119,9 +1232,9 @@ class Render {
 				this.gl.viewport(a, b, array[i].cb[0] - a, array[i].cb[1] - b);
 			}
 			if (array[i].tex === undefined) {
-				this.gl.uniform1i(this.uniform[3].u_texture, texture);
+				this.setUniform1i(this.uniform[3].u_texture, texture);
 			} else {
-				this.gl.uniform1i(this.uniform[3].u_texture, array[i].tex);
+				this.setUniform1i(this.uniform[3].u_texture, array[i].tex);
 			}
 			
 			arrayOfBuffer = [
@@ -1131,6 +1244,7 @@ class Render {
 				(array[i].pa[0] - a) * w, (array[i].pb[1] - b) * h,
 				(array[i].pb[0] - a) * w, (array[i].pa[1] - b) * h,
 				(array[i].pb[0] - a) * w, (array[i].pb[1] - b) * h];
+			
 			textureOfBuffer = [
 				array[i].ta[0], array[i].tb[1],
 				array[i].tb[0], array[i].tb[1],
@@ -1147,14 +1261,14 @@ class Render {
 			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
-		this.gl.uniform1i(this.uniform[3].u_texture, 0);
+		this.setUniform1i(this.uniform[3].u_texture, 0);
 	}
 	
-	// array: {'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY], 'hor': true/false, 'status': 0..1}
+	// array: { 'pa': [paX, paY], 'pb': [pbX, pbY], 'ta': [taX, taY], 'tb': [tbX, tbY], 'hor': true/false, 'status': 0..1 }
 	drawProgressBars(texture0, texture1, array) {
 		this.gl.useProgram(this.program[4]);
-		this.gl.uniform1i(this.gl.uniform[4].u_texture0, texture0);
-		this.gl.uniform1i(this.gl.uniform[4].u_texture1, texture1);
+		this.setUniform1i(this.uniform[4].u_texture0, texture0);
+		this.setUniform1i(this.uniform[4].u_texture1, texture1);
 		
 		let arrayOfBuffer = [];
 		let textureOfBuffer = [];
@@ -1189,15 +1303,13 @@ class Render {
 		
 		for (let i in array) {
 			if (array[i].hor) {
-				const l = (array[i].pb[0] - array[i].pa[0]) * array[i].status;
-				this.gl.uniform2f(this.uniform[4].u_progress, array[i].pa[0] + l, this.gl.canvas.height);
+				const a = (array[i].pb[0] - array[i].pa[0]) * array[i].status;
+				this.gl.uniform2fv(this.uniform[4].u_progress[0], [array[i].pa[0] + a, this.gl.canvas.height]);
 			} else {
-				const l = (array[i].pb[1] - array[i].pa[1]) * array[i].status;
-				this.gl.uniform2f(this.uniform[4].u_progress, this.gl.canvas.width, array[i].pa[1] + l);
+				const b = (array[i].pb[1] - array[i].pa[1]) * array[i].status;
+				this.gl.uniform2fv(this.uniform[4].u_progress[0], [this.gl.canvas.width, array[i].pa[1] + b]);
 			}
 			this.gl.drawArrays(this.gl.TRIANGLES, i * 6, 6);
 		}
-		this.gl.uniform1i(this.gl.uniform[4].u_texture0, 0);
-		this.gl.uniform1i(this.gl.uniform[4].u_texture1, 1);
 	}
 }

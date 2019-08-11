@@ -39,7 +39,7 @@ const _UI = loadImage('Images/UI.png'),  // Загрузка текстур
 	playerImage = loadImage('Images/player.png');
 
 const preprocessing = () => {
-	render.init(image, background, playerImage);
+	render.init([image, background, playerImage, _Items]);
 	render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
 	initRain();
 	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);

@@ -1008,7 +1008,7 @@ class Render {
 				// правая половина экрана
 				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
 				this.gl.uniform2fv(this.uniform[5].u_translate[0],
-					[Math.floor(xt + i + d) * w, Math.max(yt1, this.weather[2]) * h]);
+					[(xt + i + d) * w, Math.max(yt1, this.weather[2]) * h]);
 				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
 			}
 			

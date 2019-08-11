@@ -80,7 +80,7 @@ const isInteger = (num) => {
 const waterFlowing = (x, y, l, id) => {
     setTimeout(() => {
         const idFull = waterFull(id);
-        if (id !== 8 && isWater(id)) {
+        if (id !== 8 && isWater(gameArea.get(x, y, l))) {
             if (idFull === 8 && !isWater(gameArea.get(x, y + 1, l))) {
                 gameArea.destroyBlock(x, y, l, player);
                 return;
@@ -110,7 +110,8 @@ const waterFlowing = (x, y, l, id) => {
         } else {
             const idRotate = rotateWater(id);
             const flow = (X) => {
-                if (X >= 0 && (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l]))) {
+                if (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l])
+                || WATER_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
 
                     if (idFull === 0.5) {
                         return;
@@ -146,30 +147,30 @@ const waterFlowing = (x, y, l, id) => {
                                     gameArea.makeFlowingWaterBlock(createWater(idFull - 1, idRotate)));
                             }
                         }
-                    } else if (X >= 0 && WATER_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
+                    } else if (gameArea.map[X][y][l] === undefined) {
 
                         if (isInteger(idFull)) {
-                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
                         } else if (X - x === idRotate) {
-                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
                         } else {
-                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
                         }
                     } else {
 
                         if (isInteger(idFull)) {
+                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
                         } else if (X - x === idRotate) {
+                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
                         } else {
+                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
                             gameArea.placeBlock(X, y, l,
                                 gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
                         }
@@ -177,8 +178,12 @@ const waterFlowing = (x, y, l, id) => {
                 }
             }
 
-            flow(x - 1);
-            flow(x + 1);
+            if (x - 1 >= 0) {
+                flow(x - 1);
+            }
+            if (x + 1 < gameArea.width) {
+                flow(x + 1);
+            }
         }
     }, WATER_TIME_UPDATE * 1000);
 }
@@ -572,7 +577,7 @@ const items = {
         name: 'Leaf',
         type: 'leaf',
         isBlock: true,
-        isAlwaysGoodDestroy: true,
+        isAlwaysGoodDestroy: false,
         dropId: '18',
         weight: WEIGHT_OF_BLOCKS,
         durability: 0.5,

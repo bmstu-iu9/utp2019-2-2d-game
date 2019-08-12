@@ -454,10 +454,11 @@ const mouseControl = () => {
     	} else {
     		layout = GameArea.BACK_LAYOUT;
     	}
-    }
+	}
 
+	const place = player.hand.item && player.hand.info.isBlock;
     // Когда зажата ЛКМ
-    if (controller.mouse.click === 1) {
+    if (controller.mouse.click === 1 && !place) {
 
 		// Нажатие по интерфейсу
 		let interactWithUI = false;
@@ -544,7 +545,7 @@ const mouseControl = () => {
     }
 
 	// Когда зажата ПКМ
-	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
+	if (controller.mouse.click === 1 && lastPlaceBlockTime < currentTime - 0.2 && place) {
 		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
 		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
 		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);

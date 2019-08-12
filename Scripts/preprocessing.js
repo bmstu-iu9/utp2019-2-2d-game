@@ -16,8 +16,6 @@ let loadingResult = undefined;
 let _textureUI;
 let _fontUI;
 
-const render = new Render();
-
 const loadImage = (source) => {
 	totalImages++;
 	let tmp = new Image();

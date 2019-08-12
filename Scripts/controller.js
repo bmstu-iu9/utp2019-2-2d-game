@@ -1,3 +1,18 @@
+'use strict';
+
+// TEST
+const canvas = document.getElementById("test");
+const context = canvas.getContext("2d");
+let mouse;
+
+canvas.addEventListener("mousemove", (e) => {
+	if (mouse !== undefined) {
+		context.lineTo(mouse.x, mouse.y);
+		context.stroke();
+	}
+});
+// TEST
+
 class Controller {
 
     constructor() {
@@ -68,11 +83,13 @@ class Controller {
     mouseMove(event) {
         const playerPlixelLocateX = (player.x - cameraX) * blockSize * cameraScale,
             playerPlixelLocateY = (player.y - cameraY) * blockSize * cameraScale;
-        this.mouse.x = event.pageX;
-        this.mouse.y = event.pageY;
-        this.mouse.direction.x = this.mouse.x - render.getCanvasSize()[0] / 2 - playerPlixelLocateX;
-        this.mouse.direction.y = render.getCanvasSize()[1] / 2 - playerPlixelLocateY - this.mouse.y
-            - Player.HEIGHT * blockSize * cameraScale / 2;
+		const canvasSize = render.getCanvasSize();
+		this.mouse.x = event.pageX * window.devicePixelRatio;
+		this.mouse.y = event.pageY * window.devicePixelRatio;
+		this.mouse.direction.x = this.mouse.x - canvasSize[0] / 2 - playerPlixelLocateX;
+		this.mouse.direction.y = canvasSize[1] / 2 - playerPlixelLocateY - this.mouse.y
+			- Player.HEIGHT * blockSize * cameraScale / 2;
+		/* TEST */mouse = this.mouse;
     }
 
     mouseDown(event) {

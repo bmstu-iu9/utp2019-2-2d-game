@@ -1173,11 +1173,15 @@ class Render {
 	resizeCanvas(multiplier) {
 		// подгоняем канвас под размер экрана
 		multiplier = multiplier || 1;
-		const width = Math.floor(this.gl.canvas.clientWidth * multiplier);
-		const height = Math.floor(this.gl.canvas.clientHeight * multiplier);
+		const width = Math.floor(this.gl.canvas.clientWidth * multiplier * window.devicePixelRatio);
+		const height = Math.floor(this.gl.canvas.clientHeight * multiplier * window.devicePixelRatio);
 		if (this.gl.canvas.width !== width || this.gl.canvas.height !== height) {
 			this.gl.canvas.width = width;
 			this.gl.canvas.height = height;
+			
+			// TEST
+			document.getElementById("test").width = width;
+			document.getElementById("test").height = height;
 		}
 	}
 	

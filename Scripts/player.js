@@ -34,9 +34,19 @@ class Player {
 
         // Очки жизни
         this.hp = 100;
+        this.maxHP = 100;
 
         // Очки дыхания
         this.bp = 100;
+        this.maxBP = 100;
+
+        // Очки выносливости
+        this.sp = 100;
+        this.maxSP = 100;
+
+        // Освещение
+        this.defaultLight = 0.2;
+        this.light = this.defaultLight;
         
         // Инвентарь, в начале пуст. Блоки пока не стакаются
         this.inv = {
@@ -49,14 +59,14 @@ class Player {
         // Содержит индекс предмета в инвентаре
         this.fastInv = [];
         for (let i = 0; i < Player.FAST_INVENTORY_SIZE; i++) {
-            this.fastInv[i] = i;
+            this.fastInv[i] = undefined;
         }
 
         // Текущий индекс предмета из быстрого инвентаря
         this.hand = {
             "item" : undefined,
             "info" : undefined,
-            "index" : 0
+            "index" : 8
         }
         
         // Скорость игрока
@@ -92,21 +102,29 @@ class Player {
 
         // Разместить блок из руки на (x, y, layout)
         this.place = (x, y, layout) => {
-            if (this.hand.item && this.hand.info.isBlock && gameArea.canPlace(x, y, layout)
-                    && (!items[this.hand.item].canPlace || items[this.hand.item].canPlace(x, y, layout))) {
-                gameArea.placeBlock(x, y, layout, this.hand.item);
-                this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+            let isPlaced = false;
+            if (this.hand.item && this.hand.info.isBlock
+                    && gameArea.canPlace(x, y, layout, items[this.hand.item].canPlace,
+                                                        !items[this.hand.item].isCollissed)) {
+                isPlaced = gameArea.placeBlock(x, y, layout, +this.hand.item);
+
+                if (isPlaced) {
+                    // Уменьшение выносливости
+                    player.updateSP(player.sp - this.hand.info.weight);
+                    staminaNotUsed = false;
+
+                    this.deleteFromInvByIndex(this.fastInv[this.hand.index], 1);
+                }
             }
-        };
+            return isPlaced;
+        }
 
         // Если можно взаимодействовать - сделать это
         this.interact = (x, y, layout) => {
             if (this.blockAvailable(x, y, layout)) {
-                gameArea.interactWithBlock(x, y, layout);
-
-                // Анимация
-                player.setAnimation("body", "kick");
+                return gameArea.interactWithBlock(x, y, layout);
             }
+            return false;
         }
 
         // Взаимодействовать с ближайшим интерактивным блоком
@@ -138,7 +156,7 @@ class Player {
                 if (this.blockAvailable(block.x, block.y, layout)) {
                     player.direction = Math.sign(block.x + 0.5 - player.x);
                     this.interact(block.x, block.y, layout);
-                    break;
+                    break; 
                 }
             }
         }
@@ -278,18 +296,22 @@ class Player {
                 if (items[item.id].weight + this.inv.weight > this.inv.capacity) {
                     return item;
                 }
+                needCraftRedraw = true;
                 for (let i = 0; i < this.inv.items.length; i++) {
                     if (item.id == this.inv.items[i]) {
                         if (items[item.id].weight * item.count + this.inv.weight <= this.inv.capacity) {
                             this.inv.count[i] += item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return undefined;
                         } else {
-                            this.inv.count[i] += this.inv.capacity - this.inv.weight;
-                            item.count -= this.inv.capacity - this.inv.weight;
-                            this.inv.weight = this.inv.capacity;
+                            let count = Math.floor((this.inv.capacity - this.inv.weight) / items[item.id].weight);
+                            this.inv.count[i] += count;
+                            item.count -= count;
+                            this.inv.weight = count * items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return item;
                         }
                     }
@@ -301,12 +323,15 @@ class Player {
                             this.inv.count[i] = item.count;
                             this.inv.weight += item.count * items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return undefined;
                         } else {
-                            this.inv.count[i] = this.inv.capacity - this.inv.weight;
-                            item.count -= this.inv.capacity - this.inv.weight;
-                            this.inv.weight = this.inv.capacity;
+                            let count = Math.floor((this.inv.capacity - this.inv.weight) / items[item.id].weight);
+                            this.inv.count[i] = count;
+                            item.count -= count;
+                            this.inv.weight = count * items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return item;
                         }
                     }
@@ -319,6 +344,7 @@ class Player {
                             this.inv.count[i] = undefined;
                             this.inv.weight += items[item.id].weight;
                             this.setHand(this.hand.index);
+                            needInvRedraw = true;
                             return undefined;
                         }
                     }
@@ -331,16 +357,16 @@ class Player {
         // Удалить count предметов в инвентаре по индексу index
         this.deleteFromInvByIndex = (index, count) => {
             let drop;
-            if (this.inv.items[index] == undefined || this.inv.count[index] < count
-                    || this.inv.count[index] == undefined && count > 1) {
+            if (this.inv.items[index] === undefined || this.inv.count[index] < count
+                    || this.inv.count[index] === undefined && count > 1) {
                 throw new Error(`Can not delete ${count} item(s) on index ${index}`);
             } else {
-                drop = {
-                    "item" : this.inv.items[index],
+                drop = this.inv.items[index].id ? this.inv.items[index] : {
+                    "id" : this.inv.items[index],
                     "count" : count
                 }
-                if (this.inv.count[index] == undefined || this.inv.count[index] == count) {
-                    if (this.inv.count[index] == undefined) {
+                if (this.inv.count[index] === undefined || this.inv.count[index] === count) {
+                    if (this.inv.count[index] === undefined) {
                         this.inv.weight -= items[this.inv.items[index].id].weight * count;
                     } else {
                         this.inv.weight -= items[this.inv.items[index]].weight * count;
@@ -353,6 +379,7 @@ class Player {
                 }
             }
             this.setHand(this.hand.index);
+            needInvRedraw = true;
             return drop;
         }
 
@@ -364,26 +391,59 @@ class Player {
             this.inv.count[i1] = this.inv.count[i2];
             this.inv.items[i2] = item;
             this.inv.count[i2] = count;
+
+            // Меняем местами слоты быстрого инвентаря
+            let fi1, fi2;
+            for(let i = 0; i < this.fastInv.length; i++) {
+                if (this.fastInv[i] === i1) {
+                    fi1 = i;
+                }
+                if (this.fastInv[i] === i2) {
+                    fi2 = i;
+                }
+            }
+            if (fi1 !== undefined) {
+                this.fastInv[fi1] = i2;
+            }
+            if (fi2 !== undefined) {
+                this.fastInv[fi2] = i1;
+            }
+
+            this.setHand(this.hand.index);
+            needInvRedraw = true;
         }
 
         // Получение "руки" по индексу в быстром инвентаре
         this.setHand = (index) => {
             this.hand.index = index;
             this.hand.item = this.inv.items[this.fastInv[index]];
-            if (this.hand.item == undefined) {
+            if (this.hand.item === undefined) {
                 this.hand.info = undefined;
             } else {
-                if (this.hand.item.id == undefined) {
+                if (this.hand.item.id === undefined) {
                     this.hand.info = items[this.hand.item];
                 } else {
                     this.hand.info = items[this.hand.item.id];
                 }
             }
-
-            if (this.hand.item) {
-                console.log(this.hand.info.name);
+            // Свечение предмета в руке
+            if (this.hand.info && this.hand.info.brightness) {
+                this.light = Math.max(this.defaultLight, this.hand.info.brightness / 9);
             } else {
-                console.log("Empty hand");
+                this.light = this.defaultLight;
+            }
+
+            UISetActiveSlot(index);
+            for (let i = 0; i < this.fastInv.length; i++) {
+                if (this.inv.items[this.fastInv[i]]) {
+                    if (this.inv.items[this.fastInv[i]].id) {
+                        UISetFastInvItem(this.inv.items[this.fastInv[i]].id, i);
+                    } else {
+                        UISetFastInvItem(this.inv.items[this.fastInv[i]], i);
+                    }
+                } else {
+                    UISetFastInvItem(undefined, i);
+                }
             }
         }
 
@@ -392,7 +452,7 @@ class Player {
             location.reload();
             this.x = gameArea.width / 2;
             this.y = gameArea.elevationMap[Math.floor(gameArea.width / 2)] + 1;
-            this.hp = 100;
+            this.hp = this.maxHP;
             this.vx = 0;
             this.vy = 0;
         }
@@ -406,17 +466,17 @@ class Player {
         // Получение урона
         this.getDamage = (count) => {
             if (count > 0) {
-                console.log("Damage - " + count);
                 this.hp = Math.max(this.hp - count, 0);
                 if (this.hp == 0) {
                     this.die();
                 }
-                console.log("Now you have " + this.hp + " hp");
+                UISetBar(this.hp / this.maxHP, UIMap.healthBar, 202, 16, 1, 0);
             }
         }
 
         // Восстановление здоровья
         this.heal = (count) => {
+            UISetBar(this.hp / this.maxHP, UIMap.healthBar, 202, 16, 1, 0);
             this.hp = Math.min(this.hp + count, 100);
         }
 
@@ -428,10 +488,38 @@ class Player {
         // Урон от удушья
         this.choke = (deltaTime) => {
             if (this.bp > 0) {
-                this.bp = Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime, 0);
+                this.updateBP(Math.max(this.bp - 0.5 * Player.CHOKE_SPEED * deltaTime, 0));
             } else {
                 this.getDamage(Player.CHOKE_SPEED * deltaTime);
             }
+        }
+
+        this.updateBP = (count) => {
+            this.bp = count;
+            if (count >= this.maxBP) {
+                this.bp = this.maxBP;
+                UIMap.barsPanel.deleteChild(UIMap.breathBar.id);
+                UIMap.barsPanel.deleteChild(UIMap.breathBarEmpty.id);
+            } else if (!UIMap.barsPanel.get(UIMap.breathBar.id)) {
+                UIMap.barsPanel.add(UIMap.breathBar);
+                UIMap.barsPanel.add(UIMap.breathBarEmpty);
+            }
+            UISetBar(this.bp / this.maxBP, UIMap.breathBar, 202, 16, 1, 5);
+        }
+
+        this.updateSP = (count) => {
+            this.sp = Math.max(0, count);
+            if (count >= this.maxSP) {
+                this.sp = this.maxSP;
+                UIMap.barsPanel.deleteChild(UIMap.staminaBar.id);
+                UIMap.barsPanel.deleteChild(UIMap.staminaBarEmpty.id);
+            } else {
+                if (!UIMap.barsPanel.get(UIMap.staminaBar.id)) {
+                    UIMap.barsPanel.add(UIMap.staminaBar);
+                    UIMap.barsPanel.add(UIMap.staminaBarEmpty);
+                }
+            } 
+            UISetBar(this.sp / this.maxSP, UIMap.staminaBar, 202, 16, 1, 1);
         }
 
         // Взять в руку следующий элемент быстрого инвентаря
@@ -625,7 +713,6 @@ const playerCopy = (player, obj) => {
     player.bp = obj.bp;
     player.inv = obj.inv;
     player.fastInv = obj.fastInv;
-    player.hand = obj.hand;
     player.vx = obj.vx;
     player.vy = obj.vy;
     player.layout = obj.layout;

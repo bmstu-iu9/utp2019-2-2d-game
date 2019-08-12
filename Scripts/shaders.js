@@ -1,14 +1,33 @@
 'use strict';
 
-// Шейдеры написаны на языке программирования GLSL (Graphics Library Shader Language)
-// VertexShader - вершинный шейдер, занимается обработкой расположения вершин фигур на экране/буфере кадров
-// FragmentShader - фрагментный шейдер, занимается обработкой цвета каждого пикселя
+/***********************************************************************************************************************
 
-let _vertexShader = [];
-let _fragmentShader = [];
+Что это такое?
 
-// TODO: фон вынести в отдельный шейдер и исправить
-// шейдеры для блоков, фона
+Здесь находятся шейдерные программы, которые будут выполняться на графическом ускорителе (GPU), в отличие от всего
+остального кода, написанного на JavaScript. Вся прелесть шейдерных программ в том, что графическое ускорители (GPU)
+изначально оптимизированы для вычисления сложной математики (в основном линейной алгебры) и могут параллельно вычислять
+большое количество подобных данных (при отрисовке). Также, благодаря некоторым аппаратным способам оптимизации,
+графической ускоритель может определять какие данные считать не нужно, так как не будут отрисованы (на языке
+программирования JavaScript это сделать не менее эффективно невозможно).
+
+Шейдерные программы написаны на языке программирования GLSL (Graphics Library Shader Language)
+Используется версия 1.00 (WebGL 1.0 / OpenGL ES 2.0)
+
+VertexShader - это вершинный шейдер, занимается обработкой расположения вершин фигур на экране/буфере кадров
+Поподробнее об вершинных шейдерах можно почитать на официальном сайте спецификации:
+https://www.khronos.org/opengl/wiki/Vertex_Shader
+
+FragmentShader - это фрагментный шейдер, занимается обработкой цвета каждого видимого пикселя
+Поподробнее об фрагментных шейдерах можно почитать на официальном сайте спецификации:
+https://www.khronos.org/opengl/wiki/Fragment_Shader
+
+***********************************************************************************************************************/
+
+const _vertexShader = [];
+const _fragmentShader = [];
+
+// шейдеры для чанков, фона, буферов
 _vertexShader[0] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
@@ -73,15 +92,16 @@ _fragmentShader[1] = `
 		float minAlpha = 0.2;
 		vec4 tex = texture2D(u_texture0, v_texCoord);
 		float tex2alpha = (texture2D(u_texture2, v_texCoord)).a;
-		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) / 2.0)).x;
 		vec2 delta = u_center - gl_FragCoord.xy;
-		float alpha = tex2alpha <= 0.01
+		float alpha = tex2alpha < 0.01
 			? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0
 				? 1.0
 				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha / 5.0) / radius + minAlpha / 5.0,
 					minAlpha, 1.0))
 			: 1.0;
-		gl_FragColor = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
+		vec4 color = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
+		gl_FragColor = color;
 	}`;
 
 // шейдеры для 2 и 3 слоя
@@ -114,24 +134,30 @@ _fragmentShader[2] = `
 
 	void main() {
 		vec4 tex = texture2D(u_texture0, v_texCoord);
-		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / (u_sizeBlock + 2.0)) / 2.0)).x;
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) / 2.0)).x;
 		float radius = u_dynamicLight.p;
 		float maxLight = u_dynamicLight.a;
 		vec2 delta = u_dynamicLight.xy - gl_FragCoord.xy;
 		float light = clamp(maxLight - sqrt(delta.x * delta.x + delta.y * delta.y) * maxLight / radius, 0.0, maxLight);
-		gl_FragColor = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
+		vec4 color = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
+		gl_FragColor = color;
 	}`;
 
 // шейдеры для игрока и блоков
 _vertexShader[3] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
-
+	
+	uniform vec2 u_rotation;
+	
 	varying vec2 v_texCoord;
 	
 	void main() {
 		v_texCoord = a_texCoord;
-		vec4 pos = vec4(a_position * 2.0 - 1.0, 0.0, 1.0);
+		vec2 rotatedPosition = vec2(
+			a_position.x * u_rotation.y + a_position.y * u_rotation.x,
+			a_position.y * u_rotation.y - a_position.x * u_rotation.x);
+		vec4 pos = vec4(rotatedPosition * 2.0 - 1.0, 0.0, 1.0);
 		gl_Position = pos;
 	}`;
 
@@ -147,7 +173,33 @@ _fragmentShader[3] = `
 		gl_FragColor = tex;
 	}`;
 
-/* ПОЖАЛУЙСТА, НЕ СЛИВАЙТЕ ИЗ Interface В Player САМОСТОЯТЕЛЬНО!!! */
+// шейдеры для индикаторов
+_vertexShader[4] = `
+	attribute vec2 a_position;
+	attribute vec2 a_texCoord;
+	
+	varying vec2 v_texCoord;
+	
+	void main() {
+		v_texCoord = a_texCoord;
+		vec4 pos = vec4(a_position * 2.0 - 1.0, 0.0, 1.0);
+		gl_Position = pos;
+	}`;
+
+_fragmentShader[4] = `
+	precision mediump float;
+
+	uniform sampler2D u_texture0;
+	uniform sampler2D u_texture1;
+	uniform vec2 u_progress;
+	
+	varying vec2 v_texCoord;
+	
+	void main() {
+		vec4 tex = gl_FragCoord.x <= u_progress.x && gl_FragCoord.y <= u_progress.y
+			? texture2D(u_texture0, v_texCoord) : texture2D(u_texture1, v_texCoord);
+		gl_FragColor = tex;
+	}`;
 
 // шейдеры для дождя
 _vertexShader[5] = `
@@ -168,7 +220,7 @@ _vertexShader[5] = `
 		float delta = a_id / u_number;
 		float offset = floor(u_time + delta) / 1000.0;
 		float x = (hash(offset + delta) * u_resolution.x + u_translate.x) * 2.0 ;
-		float y = fract(u_time + hash(delta)) * -2.0 + 1.0;
+		float y = fract(u_time * u_resolution.y * 500.0 + hash(delta)) * -2.0 + 1.0;
 		if (y >= u_translate.y) {
 			gl_Position = vec4(x, y, 0.0, 1.0);
 			gl_PointSize = 2.0;

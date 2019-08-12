@@ -1,19 +1,15 @@
 'use strict';
 
 /*
-На данный момент при сохранении запоминаются:
-    * gameArea хранит состояние о мире
-    * player хранит данные о персонаже и инвентаре
-    * 
-Позднее будут сохранятся только нужные данные у этих объектов
+Как эим пользоваться?
 
-loadExist()             Существует ли сохранение
-getLoadList()           Получить массив с именами всех сохранений
-deleteDatabase()        Очистить БД
-save(имя сохранения)    Сохранить текущее состояние
-load(имя сохранения)    Возвращает объект с полями, идентичными gameArea и player
-                        (ВАЖНО! поле для корректной работы необходимо создать объекты
-                        Player, gameArea и скопировать данные в них)
+loadExist()                    Существует ли сохранение
+getLoadList()                  Получить массив с именами всех сохранений
+deleteDatabase()               Очистить БД
+saveWorld(имя сохранения)      Сохранить текущее состояние, перезаписывает состояние, если такое имя уже занято
+chooseWorld(имя сохранения)    После перезагрузки будет загружено данное сохранение
+loadWorld(имя сохранения)      Возвращает объект с состоянием мира
+deleteWorld(имя сохранения)    Удаляет сохранение
 
 Внимение! Если сохранения перестали работать и мbр больше не загружается, попробуйсте вызвавть функцию deleteDatabase()
 */
@@ -25,11 +21,14 @@ const DB_STORE_NAME = 'request';
 let _db;
 
 const loadExist = () => {
-    return getLoadList() !== undefined;
+    return getLoadList().length !== 0;
 }
 
 const getLoadList = () => {
-    return localStorage.loadList;
+    if (localStorage.loadList === undefined) {
+        return [];
+    }
+    return JSON.parse(localStorage.loadList);
 }
 
 const deleteDatabase = () => {
@@ -40,8 +39,20 @@ const deleteDatabase = () => {
         console.error("Couldn't delete database: " + event);
     }
 }
-// deleteDatabase();
-const saveWorld = (worldName) => {
+
+const choosedWorld = () => {
+    return localStorage.choosedWorld;
+}
+
+const chooseWorld = (worldName) => {
+    if (worldName === undefined) {
+        delete localStorage.choosedWorld;
+    } else {
+        localStorage.choosedWorld = worldName;
+    }
+}
+
+const saveWorld = async (worldName) => {
     if (!window.indexedDB) {
         window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Сохранения будут недоступны");
     }
@@ -58,7 +69,7 @@ const saveWorld = (worldName) => {
             .target
             .result
             .createObjectStore(DB_STORE_NAME, {
-                ketPath: "worldName",
+                ketPath: worldName,
                 autoIncrement : true,
                 unique: true
         });
@@ -82,8 +93,17 @@ const saveWorld = (worldName) => {
             currentTime: currentTime
         },
         worldName);
-    
-        localStorage.loadList = worldName;
+
+        if (localStorage.loadList === undefined) {
+            localStorage.loadList = JSON.stringify(new Array);
+        }
+        let loadList = JSON.parse(localStorage.loadList);
+        if (loadList.indexOf(worldName) !== -1) {
+            console.warn(worldName + " has been overwrite");
+        } else {
+            loadList.push(worldName);
+        }
+        localStorage.loadList = JSON.stringify(loadList);
     }
 }
 
@@ -102,6 +122,9 @@ const loadWorld = (worldName) => {
         }
 
         request.onsuccess = (event) => {
+            if (getLoadList().indexOf(worldName) === -1) {
+                console.error(worldName + " does not exit");
+            }
             _db = event.target.result;
 
             let req = _db
@@ -131,7 +154,6 @@ const deleteWorld = (worldName) => {
 
     request.onerror = (event) => {
         console.error("Couldn't open database: " + event);
-        deleteDatabase();
     }
 
     request.onupgradeneeded = (event) => {
@@ -140,11 +162,26 @@ const deleteWorld = (worldName) => {
     }
 
     request.onsuccess = (event) => {
-        localStorage[worldName] = undefined;
+        if (localStorage.loadList !== undefined) {
+            let loadList = JSON.parse(localStorage.loadList);
+            loadList.splice(loadList.indexOf(worldName), 1);
+            if (loadList.length === 0) {
+                delete localStorage.loadList;
+            } else {
+                localStorage.loadList = JSON.stringify(loadList);
+            }
+        } else {
+            console.error(worldName + " does not exist");
+        }
+
         _db = event.target.result;
 
-        let transaction = _db.transaction([DB_STORE_NAME], "readwrite");
-
-        // TODO : добавить метод удаления object store
+        let req = _db
+        .transaction([DB_STORE_NAME], "readwrite")
+        .objectStore(DB_STORE_NAME);
+        req.delete(worldName);
+        if (localStorage.choosedWorld === worldName) {
+            chooseWorld(undefined);
+        }
     }
 }

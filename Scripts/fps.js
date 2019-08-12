@@ -8,11 +8,11 @@ let _fpsCountnerAVG = 0;
 const fpsUpdate = () => {
 	const nowTime = performance.now();
 	const delta = nowTime - _fpsTime;
-	const deltaAvg = nowTime - _startFps;
 	_fpsCountnerAVG++;
 	if (delta < 1000) {
 		_fpsCountner++;
 	} else {
+		const deltaAvg = nowTime - _startFps;
 		let text = '';
 		if (_fpsCountner < 100) {
 			text = ' ';

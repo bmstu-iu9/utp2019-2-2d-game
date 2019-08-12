@@ -100,7 +100,8 @@ _fragmentShader[1] = `
 				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha / 5.0) / radius + minAlpha / 5.0,
 					minAlpha, 1.0))
 			: 1.0;
-		gl_FragColor = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
+		vec4 color = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
+		gl_FragColor = color;
 	}`;
 
 // шейдеры для 2 и 3 слоя
@@ -138,7 +139,8 @@ _fragmentShader[2] = `
 		float maxLight = u_dynamicLight.a;
 		vec2 delta = u_dynamicLight.xy - gl_FragCoord.xy;
 		float light = clamp(maxLight - sqrt(delta.x * delta.x + delta.y * delta.y) * maxLight / radius, 0.0, maxLight);
-		gl_FragColor = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
+		vec4 color = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
+		gl_FragColor = color;
 	}`;
 
 // шейдеры для игрока и блоков

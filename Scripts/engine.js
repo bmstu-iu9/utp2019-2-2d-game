@@ -689,7 +689,7 @@ class Render {
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.MIRRORED_REPEAT);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 			
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.widthChunk * 2, this.heightChunk * 2, 0,
 				this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, new Uint8Array(this.widthChunk * this.heightChunk * 4));
@@ -771,6 +771,12 @@ class Render {
 				this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 				this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
 			} // TODO: Переделать под ANGLE_instanced_arrays
+		}
+		
+		for (let i in this.arrayOfChunks[c].tex) {
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[i]);
+			this.gl.generateMipmap(this.gl.TEXTURE_2D);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_LINEAR);
 		}
 	}
 	
@@ -969,7 +975,7 @@ class Render {
 		// дождь
 		if (this.weather[3] > 0) {
 			this.gl.useProgram(this.program[5]);
-			const xh = Math.round(this.gl.canvas.width / this.size / 2 + 1);
+			const xh = Math.round(this.gl.canvas.width * scale / this.size / 2 + 1);
 			const maxnum = Math.ceil(this.size * this.gl.canvas.height / 1000);
 			const raw = this.weather[3] * this.gl.canvas.height / 1000;
 			const num = Math.ceil(raw);
@@ -1204,7 +1210,6 @@ class Render {
 	}
 	
 	getCanvasSize() {
-		this.resizeCanvas();
 		return [this.gl.canvas.width, this.gl.canvas.height];
 	}
 	

@@ -364,8 +364,6 @@ class Render {
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[0]);
 		
-		//const ext = this.gl.getExtension('ANGLE_instanced_arrays');
-		
 		// буфер чанков
 		this.arrayOfChunks = {};
 		this.frameBufferTextures = {};
@@ -640,10 +638,6 @@ class Render {
 		this.gl.viewport(0, 0, this.playerResolution[0] / w, this.playerResolution[1]);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]); // используем текстуру игрока
-		this.gl.drawArrays(this.gl.TRIANGLES, head * 18, 6);
-		this.gl.drawArrays(this.gl.TRIANGLES, body * 18 + 6, 6);
-		this.gl.drawArrays(this.gl.TRIANGLES, legs * 18 + 12, 6);
 		
 		item = { 'angle': 30 }
 		// item: { 'angle': angle, '': }
@@ -652,9 +646,15 @@ class Render {
 			const angleInRad = this.degToRad(360 - item.angle);
 			const rotation = [Math.sin(angleInRad), Math.cos(angleInRad)];
 			this.setUniform2fv(this.uniform[3].u_rotation, rotation);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[4]);
 			// this.gl.drawArrays(this.gl.TRIANGLES, ???, 6);
 			this.setUniform2fv(this.uniform[3].u_rotation, [0.0, 1.0]);
 		}
+		
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]); // используем текстуру игрока
+		this.gl.drawArrays(this.gl.TRIANGLES, head * 18, 6);
+		this.gl.drawArrays(this.gl.TRIANGLES, body * 18 + 6, 6);
+		this.gl.drawArrays(this.gl.TRIANGLES, legs * 18 + 12, 6);
 	}
 	
 	drawChunk(x, y, blocksOfChunk, lightChunk) {

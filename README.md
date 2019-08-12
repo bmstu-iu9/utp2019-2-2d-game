@@ -3,14 +3,14 @@
 
 
 ### Участники:
-* Алексей Костюченко
-* Илья Каркин
-* Илья Щербаков
-* Искандер Омуров
-* Никита Волков
-* Светлана Пирожкова
-* Надим Абдул Гани
-* Владислав Ломтев
+* [Алексей Костюченко](https://github.com/Shaniser)
+* [Илья Каркин](https://github.com/Mitbus)
+* [Илья Щербаков](https://github.com/ylyxa)
+* [Искандер Омуров](https://github.com/IskanderO)
+* [Никита Волков](https://github.com/VolkovNik)
+* [Светлана Пирожкова](https://github.com/pirosveta)
+* [Надим Абдул Гани](https://github.com/whitequartz)
+* [Владислав Ломтев](https://github.com/Irautak)
 
 
 

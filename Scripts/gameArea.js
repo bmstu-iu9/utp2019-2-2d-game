@@ -356,7 +356,8 @@ class GameArea{
             return this.exist(x, y)
                     && (this.map[x][y][layout] === undefined
                         || items[this.map[x][y][layout]].type === "water"
-                        || items[this.map[x][y][layout]].type === "flowingWater"); 
+                        || items[this.map[x][y][layout]].type === "flowingWater"
+                        || items[this.map[x][y][layout]].type === "Lava"); 
         }
 
         // Можно ставить блок на (x, y, layout)

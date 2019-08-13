@@ -145,7 +145,7 @@ const preprocessing = () => {
 						// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 						if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) {
 							layoutChunk.chunk[j - startY][i - startX] =
-							gameArea.map[Math.floor(i)][Math.floor(j)][layout] - 9000 + 25;
+							gameArea.map[Math.floor(i)][Math.floor(j)][layout] - 9000 + 129;
 						} else {
 							layoutChunk.chunk[j - startY][i - startX] =
 								gameArea.map[Math.floor(i)][Math.floor(j)][layout];

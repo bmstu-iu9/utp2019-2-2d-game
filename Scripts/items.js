@@ -81,7 +81,11 @@ const waterFlowing = (x, y, l, id) => {
     setTimeout(() => {
         const idFull = waterFull(id);
         if (id !== 8 && isWater(gameArea.get(x, y, l))) {
-            if (idFull === 8 && !isWater(gameArea.get(x, y + 1, l))) {
+            if (idFull === 8 && (!isWater(gameArea.get(x, y + 1, l))
+                && !(isWater(gameArea.get(x - 1, y, l)) && isWater(gameArea.get(x + 1, y, l))
+                    && waterFull(gameArea.get(x - 1, y, l)) === 8
+                    && waterFull(gameArea.get(x + 1, y, l)) === 8))) {
+
                 gameArea.destroyBlock(x, y, l, player);
                 return;
             }
@@ -97,6 +101,10 @@ const waterFlowing = (x, y, l, id) => {
                 gameArea.destroyBlock(x, y, l, player);
                 return;
             }
+        }
+
+        if (!isWater(gameArea.map[x][y][l])) {
+            return;
         }
 
         if ((y - 1) >= 0 && (gameArea.map[x][y - 1][l] === undefined
@@ -138,7 +146,7 @@ const waterFlowing = (x, y, l, id) => {
                             if (1 + targetFull === idFull) {
                                 if (idRotate !== rotateWater(gameArea.map[X][y][l])) {
                                     gameArea.placeBlock(X, y, l,
-                                        gameArea.makeFlowingWaterBlock(createWater(idFull - 1, idRotate)));
+                                        gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, 0)));
                                 }
                             }
 

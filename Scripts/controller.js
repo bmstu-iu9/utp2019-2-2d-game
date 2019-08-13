@@ -66,13 +66,13 @@ class Controller {
     }
     
     mouseMove(event) {
-        const playerPlixelLocateX = (player.x - cameraX) * blockSize * cameraScale,
-            playerPlixelLocateY = (player.y - cameraY) * blockSize * cameraScale;
+        const playerPlixelLocateX = (player.x - cameraX) * (blockSize / cameraScale),
+            playerPlixelLocateY = (player.y - cameraY) * (blockSize / cameraScale);
         this.mouse.x = event.pageX;
         this.mouse.y = event.pageY;
         this.mouse.direction.x = this.mouse.x - render.getCanvasSize()[0] / 2 - playerPlixelLocateX;
         this.mouse.direction.y = render.getCanvasSize()[1] / 2 - playerPlixelLocateY - this.mouse.y
-            - Player.HEIGHT * blockSize * cameraScale / 2;
+            - Player.HEIGHT * (blockSize / cameraScale) / 2;
     }
 
     mouseDown(event) {

@@ -1178,10 +1178,6 @@ class Render {
 		if (this.gl.canvas.width !== width || this.gl.canvas.height !== height) {
 			this.gl.canvas.width = width;
 			this.gl.canvas.height = height;
-			
-			// TEST
-			document.getElementById("test").width = width;
-			document.getElementById("test").height = height;
 		}
 	}
 	

@@ -1,6 +1,6 @@
 /*
 const cameraScale = 1;                  Масштаб, 1 - стандарт
-const blockSize = 16                    Масштаб камеры (пикселей в блоке при cameraScale = 1)
+const blockSize = 32                    Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;           Положение камеры
 const chankWidth = 8, chankHeight = 8   Размеры чанка
 const minLayout = 2, maxLayout = 3      Обрабатываемые слои
@@ -499,9 +499,9 @@ const mouseControl = () => {
 			releaseAction(UIMap.lastButton);
 			UIMap.lastButton = undefined;
 
-			let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
-	    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y
-	    																					+ Player.HEIGHT / 2);
+			let targetX = Math.floor(controller.mouse.direction.x / (blockSize / cameraScale) + player.x);
+	    	let targetY = Math.floor(controller.mouse.direction.y / (blockSize / cameraScale) + player.y
+	    		+ Player.HEIGHT / 2);
 	    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
 	      		&& player.sp > 0) {
 	            // Анимация
@@ -545,9 +545,9 @@ const mouseControl = () => {
 
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
-		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
-		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
-		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
+		let targetX = Math.floor(controller.mouse.direction.x / (blockSize / cameraScale) + player.x);
+		let targetY = Math.floor(controller.mouse.direction.y / (blockSize / cameraScale) + player.y
+			+ Player.HEIGHT / 2);
 		if (player.blockAvailable(targetX, targetY, player.layout)) {
 			// Взаимодействие с блоком
 			if (player.interact(targetX, targetY, layout)) {

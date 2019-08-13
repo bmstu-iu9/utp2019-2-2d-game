@@ -106,86 +106,97 @@ const waterFlowing = (x, y, l, id) => {
         if (!isWater(gameArea.map[x][y][l])) {
             return;
         }
+        const idRotate = rotateWater(id);
+        const flow = (X) => {
+            if (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l])
+            || WATER_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
+
+                if (idFull === 0.5) {
+                    return;
+                }
+
+                if (isWater(gameArea.map[X][y][l])) {
+                    const targetFull = waterFull(gameArea.map[X][y][l]);
+
+                    if (isInteger(idFull)) {
+
+                        if (0.5 + targetFull === idFull) {
+                            if (X - x !== rotateWater(gameArea.map[X][y][l])) {
+                                gameArea.placeBlock(X, y, l,
+                                    gameArea.makeFlowingWaterBlock(createWater(idFull, 0)));
+                            }
+                        }
+
+                        if (1 + targetFull <= idFull) {
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
+                        }
+                    } else {
+
+                        if (1 + targetFull === idFull) {
+                            if (idRotate !== rotateWater(gameArea.map[X][y][l])) {
+                                gameArea.placeBlock(X, y, l,
+                                    gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, 0)));
+                            }
+                        }
+
+                        if (1 + targetFull < idFull) {
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingWaterBlock(createWater(idFull - 1, idRotate)));
+                        }
+                    }
+                } else if (gameArea.map[X][y][l] === undefined) {
+
+                    if (isInteger(idFull)) {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
+                    } else if (X - x === idRotate) {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
+                    } else {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
+                    }
+                } else {
+
+                    if (isInteger(idFull)) {
+                        gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
+                    } else if (X - x === idRotate) {
+                        gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
+                    } else {
+                        gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
+                    }
+                }
+            }
+        }
 
         if ((y - 1) >= 0 && (gameArea.map[x][y - 1][l] === undefined
             || (isWater(gameArea.map[x][y - 1][l]) && gameArea.map[x][y - 1][l] !== 8))) {
             if (waterFull(gameArea.map[x][y - 1][l]) !== 8) {
                 gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
             }
+            if (isWater(gameArea.get(x - 1, y, l))) {
+                flow(x - 1);
+            }
+            if (isWater(gameArea.get(x + 1, y, l))) {
+                flow(x + 1);
+            }
         } else if ((y - 1) >= 0 && WATER_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
             gameArea.destroyBlock(x, y - 1, l, player, "water destroy list");
             gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
-        } else {
-            const idRotate = rotateWater(id);
-            const flow = (X) => {
-                if (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l])
-                || WATER_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
-
-                    if (idFull === 0.5) {
-                        return;
-                    }
-
-                    if (isWater(gameArea.map[X][y][l])) {
-                        const targetFull = waterFull(gameArea.map[X][y][l]);
-
-                        if (isInteger(idFull)) {
-
-                            if (0.5 + targetFull === idFull) {
-                                if (X - x !== rotateWater(gameArea.map[X][y][l])) {
-                                    gameArea.placeBlock(X, y, l,
-                                        gameArea.makeFlowingWaterBlock(createWater(idFull, 0)));
-                                }
-                            }
-
-                            if (1 + targetFull <= idFull) {
-                                gameArea.placeBlock(X, y, l,
-                                    gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
-                            }
-                        } else {
-
-                            if (1 + targetFull === idFull) {
-                                if (idRotate !== rotateWater(gameArea.map[X][y][l])) {
-                                    gameArea.placeBlock(X, y, l,
-                                        gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, 0)));
-                                }
-                            }
-
-                            if (1 + targetFull < idFull) {
-                                gameArea.placeBlock(X, y, l,
-                                    gameArea.makeFlowingWaterBlock(createWater(idFull - 1, idRotate)));
-                            }
-                        }
-                    } else if (gameArea.map[X][y][l] === undefined) {
-
-                        if (isInteger(idFull)) {
-                            gameArea.placeBlock(X, y, l,
-                                gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
-                        } else if (X - x === idRotate) {
-                            gameArea.placeBlock(X, y, l,
-                                gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
-                        } else {
-                            gameArea.placeBlock(X, y, l,
-                                gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
-                        }
-                    } else {
-
-                        if (isInteger(idFull)) {
-                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
-                            gameArea.placeBlock(X, y, l,
-                                gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
-                        } else if (X - x === idRotate) {
-                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
-                            gameArea.placeBlock(X, y, l,
-                                gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
-                        } else {
-                            gameArea.destroyBlock(X, y, l, player, "water destroy list");
-                            gameArea.placeBlock(X, y, l,
-                                gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
-                        }
-                    }
-                }
+            if (isWater(gameArea.get(x - 1, y, l))) {
+                flow(x - 1);
             }
-
+            if (isWater(gameArea.get(x + 1, y, l))) {
+                flow(x + 1);
+            }
+        } else {
             if (x - 1 >= 0) {
                 flow(x - 1);
             }

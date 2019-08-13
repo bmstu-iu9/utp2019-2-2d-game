@@ -271,6 +271,11 @@ class GameArea{
             return cnt;
         };
 
+        this.makeFlowingLavaBlock = (cnt) => {
+            // Текучая лава - блок без гравитации
+            return cnt;
+        };
+
         // Есть ли коллизия с этим блоком
         this.hasCollision = (x, y, layout) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return true;

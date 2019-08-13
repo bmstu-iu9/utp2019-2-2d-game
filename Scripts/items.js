@@ -16,9 +16,10 @@ const itemSize = 32;
 let _textureItems;
 const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с верхним концом [сек]
 const WATER_TIME_UPDATE = 0.2;
+const LAVA_TIME_UPDATE = 0.3;
 const LEAF_TIME_ALIVE = 1;  // Рандомный промежуток с верхним концом [сек]
 const LEAF_UNDEAD_PART = 0.3;
-const WATER_DESTROY_LIST = [18, 19, 370];  // id, которые смывает вода
+const WATER_DESTROY_LIST = [5, 6, 18, 19, 370];  // id, которые смывает вода
 
 const createItem = (id, count) => {
     if (items[id].isTool) {
@@ -43,7 +44,8 @@ const createItem = (id, count) => {
 }
 
 
-// Water
+// Water & lava(later)
+const WATER_ID = 8;
 const isWater = (id) => {
     return id === 8 || (id >= 9000 && id <= 9023);
 }
@@ -80,7 +82,7 @@ const isInteger = (num) => {
 const waterFlowing = (x, y, l, id) => {
     setTimeout(() => {
         const idFull = waterFull(id);
-        if (id !== 8 && isWater(gameArea.get(x, y, l))) {
+        if (id !== WATER_ID && isWater(gameArea.get(x, y, l))) {
             if (idFull === 8 && (!isWater(gameArea.get(x, y + 1, l))
                 && !(isWater(gameArea.get(x - 1, y, l)) && isWater(gameArea.get(x + 1, y, l))
                     && waterFull(gameArea.get(x - 1, y, l)) === 8
@@ -160,15 +162,15 @@ const waterFlowing = (x, y, l, id) => {
                 } else {
 
                     if (isInteger(idFull)) {
-                        gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
                         gameArea.placeBlock(X, y, l,
                             gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
                     } else if (X - x === idRotate) {
-                        gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
                         gameArea.placeBlock(X, y, l,
                             gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
                     } else {
-                        gameArea.destroyBlock(X, y, l, player, "water destroy list");
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
                         gameArea.placeBlock(X, y, l,
                             gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
                     }
@@ -188,7 +190,7 @@ const waterFlowing = (x, y, l, id) => {
                 flow(x + 1);
             }
         } else if ((y - 1) >= 0 && WATER_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
-            gameArea.destroyBlock(x, y - 1, l, player, "water destroy list");
+            gameArea.destroyBlock(x, y - 1, l, player, "liquid destroy list");
             gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
             if (isWater(gameArea.get(x - 1, y, l))) {
                 flow(x - 1);
@@ -451,13 +453,17 @@ const items = {
         name: 'Lava',
         dropId: '326',
         weight: WEIGHT_OF_INSTRUMENTS,
-        type: 'water',
+        type: 'lava',
         durability: 1,
         brightness: 8,
-        isCanInteractThrow: true,
         isCollissed: false,
-        hasGravity: true,
-        density: 0.9
+        isCanInteractThrow: true,
+        hasGravity: false,
+        density: 0.9,
+        isNaturalLight: true,
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 10);
+        }
     },
 
     '11':
@@ -1538,6 +1544,390 @@ const items = {
         name: 'flowing-water-23',
         update: (x, y, layout) => {
             waterFlowing(x, y, layout, 9023);
+        }
+    },
+
+    '9024':
+    {
+        id: '9024',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-0',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9024);
+        }
+    },
+
+    '9025':
+    {
+        id: '9025',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-1',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9025);
+        }
+    },
+
+    '9026':
+    {
+        id: '9026',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-2',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9026);
+        }
+    },
+
+    '9027':
+    {
+        id: '9027',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-3',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9027);
+        }
+    },
+
+    '9028':
+    {
+        id: '9028',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-4',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9028);
+        }
+    },
+
+    '9029':
+    {
+        id: '9029',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-5',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9029);
+        }
+    },
+
+    '9030':
+    {
+        id: '9030',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-6',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9030);
+        }
+    },
+
+    '9031':
+    {
+        id: '9031',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-7',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9031);
+        }
+    },
+
+    '9032':
+    {
+        id: '9032',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-8',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9032);
+        }
+    },
+
+    '9033':
+    {
+        id: '9033',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-9',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9033);
+        }
+    },
+
+    '9034':
+    {
+        id: '9034',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-10',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9034);
+        }
+    },
+
+    '9035':
+    {
+        id: '9035',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-11',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9035);
+        }
+    },
+
+    '9036':
+    {
+        id: '9036',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-12',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9036);
+        }
+    },
+
+    '9037':
+    {
+        id: '9037',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-13',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9037);
+        }
+    },
+
+    '9038':
+    {
+        id: '9038',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-14',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9038);
+        }
+    },
+
+    '9039':
+    {
+        id: '9039',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-15',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9039);
+        }
+    },
+
+    '9040':
+    {
+        id: '9040',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-16',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9040);
+        }
+    },
+
+    '9041':
+    {
+        id: '9041',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-17',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9041);
+        }
+    },
+
+    '9042':
+    {
+        id: '9042',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-18',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9042);
+        }
+    },
+
+    '9043':
+    {
+        id: '9043',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-19',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9043);
+        }
+    },
+
+    '9044':
+    {
+        id: '9044',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-20',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9044);
+        }
+    },
+
+    '9045':
+    {
+        id: '9045',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-21',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9045);
+        }
+    },
+
+    '9046':
+    {
+        id: '9046',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-22',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9046);
+        }
+    },
+
+    '9047':
+    {
+        id: '9047',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        isNaturalLight: true,
+        density: 0.9,
+        name: 'flowing-lava-23',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9047);
         }
     }
 }

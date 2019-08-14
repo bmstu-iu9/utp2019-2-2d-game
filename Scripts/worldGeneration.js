@@ -31,16 +31,7 @@ const generate = (width, height, seed, changes) => {
             else
                 return new Point(this.x - a, this.y - b);
         }
-    }  
-    class Interval { //Одномерный интервал
-        constructor(start, stop) {
-            this.start = start;
-            this.stop = stop;
-        }
-        isSurround(x) {
-            return this.start <= x && x <= this.stop;
-        }
-    }
+    } 
     //#endregion
 
     //Константы для id блоков и зон
@@ -1513,39 +1504,39 @@ const generate = (width, height, seed, changes) => {
         const vWidth = 150;
         const vHeight = 100;
 
-        const clearZone = () => {
+        const clearZone = (x, y, w, h) => {
             const clearBlock = (x, y) => {
                 setZone(x, y, CAVE_SPECIAL_ZONE);
-                setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BLOCK);
-                setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BLOCK);
-                setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BLOCK);
+                setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BRICK_BLOCK);
             }
-            const vW_2 = vWidth * vWidth;
-            const vH_2 = vHeight * vHeight;
+            const vW_2 = w * w;
+            const vH_2 = h * h;
             //Верхняя и нижняя границы
-            for (let i = 0; i <= vWidth; i++) {
-                let s = i - vWidth / 2;
-                let bound = 5 * Math.min((1 - (4 * s * s / vW_2)), Math.abs(Math.sin(i / 3)));
+            for (let i = 0; i <= w; i++) {
+                let s = i - w / 2;
+                let bound = 5 * Math.min((1 - (4 * s * s / vW_2)), Math.sin(i / 2) / 2 + 0.5);
                 // bound += random() * 3 - 1;
                 for (let j = 0; j <= 2 + bound; j++) {
-                    clearBlock(vLoc.x + i, vLoc.y - j);
-                    clearBlock(vLoc.x + i, vLoc.y + vHeight + j);
+                    clearBlock(x + i, y - j);
+                    clearBlock(x + i, y + h + j);
                 }
             }
             //Правая и левая границы
-            for (let i = 0; i <= vHeight; i++) {
-                let s = i - vHeight / 2;
+            for (let i = 0; i <= h; i++) {
+                let s = i - h / 2;
                 let bound = 5 * Math.min((1 - (4 * s * s / vH_2)), Math.abs(Math.sin(i / 3)));
                 // bound += random() * 3 - 1;
                 for (let j = 0; j <= 2 + bound; j++) {
-                    clearBlock(vLoc.x - j, vLoc.y + i);
-                    clearBlock(vLoc.x + vWidth + j, vLoc.y + i);
+                    clearBlock(x - j, y + i);
+                    clearBlock(x + w + j, y + i);
                 }
             }
-            // // Заливка
-            // for (let i = 0; i < vWidth; i++)
-            //     for (let j = 0; j < vHeight; j++)
-            //         clearBlock(vLoc.x + i, vLoc.y + j);
+            // Заливка
+            for (let i = 0; i < w; i++)
+                for (let j = 0; j < h; j++)
+                    clearBlock(x + i, y + j);
         }
 
         const createMesh = (loc, cellW, cellH, cellX, cellY) => { //+Лабиринт
@@ -1722,7 +1713,7 @@ const generate = (width, height, seed, changes) => {
                 'a': BRICKS_WITH_KEY_BLOCK,
                 'b': STONE_BRICK_BLOCK,
                 'c': COBBLESTONE_BLOCK,
-                'd': DOOR_BLOCK,
+                'd': CLOSED_DOOR_BLOCK,
                 'g': GLASS_BLOCK,
                 'i': WATER_BLOCK,
                 'j': LAVA_BLOCK,
@@ -1732,7 +1723,7 @@ const generate = (width, height, seed, changes) => {
                 'm': GRASS_BKOCK,
                 'n': DIRT_BLOCK,
                 'p': WOOD_PLANKS_BLOCK,
-                't': TRAPDOOR_BLOCK,
+                't': CLOSED_TRAPDOOR_BLOCK,
                 'y': SAND_BLOCK,    
                 'w': WOOD_BLOCK,
             };
@@ -1919,9 +1910,18 @@ const generate = (width, height, seed, changes) => {
                 }
             ];
 
+            const entranceFL = ["bbbbbbbbbbbbttttttbbbbbbbb.......bbbb.......bbbbbbbbbbbbbbbb","bbbb bbbbbb..........d.............................bbbbbbb  ","b b   bbbbb..........d.............................bbbbbbb  ","      bbbbb..........d.......l..........l..........bbbbbb   ","      bbbbb....l.....d............................bbbbbb    ","       bbbb.........bbb.......bbttttttbb........bbbbbb      ","       bbbbb......bbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbb....bbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","            bbbbbb                                          ","                                                            "];;
+            const entranceSL = ["     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","       bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb      ","       bbbbbbbbbbbbbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbbbbbbbbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","                                                            ","                                                            "];
+
+            const finalFL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbttttttbbbbbbbbbbbb"," bbbbb................bbbbb......bbbbb................bbbbb "," bbbb..................................................bbbb ","  bb....................................................bb  ","  bb.........l..........l..........l..........l.........bb  ","  bb....................................................bb  ","  bbb..................................................bbb  ","   bbb................................................bbb...","   bbbbb.............bbbbbbb....bbbbbbb.............bbbbb   ","    bbbbbb.......bbbbbbbbbbbb..bbbbbbbbbbbb.......bbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
+            const finalSL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","    bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
+
             let labyrynth = createLabyrynth();
+            labyrynth[0][0].top = false;
+            labyrynth[0][cellX - 1].top = false;
             logLabyrynth(labyrynth);
             
+            clearZone(loc.x, loc.y, cellX * cellW, cellY * cellH);
             for (let i = 0; i < cellX; i++) {
                 for (let j = 0; j < cellY; j++) {
                     let type = getCellType(labyrynth[cellY - j - 1][i]);
@@ -1930,6 +1930,17 @@ const generate = (width, height, seed, changes) => {
                     drawByScheme(loc.add(i * cellW, j * cellH), blocksMap, room.firstL, room.secondL);
                 }
             }
+            drawByScheme(loc.add(0, cellY * cellH), blocksMap, entranceFL, entranceSL);
+            drawByScheme(loc.add((cellX - 2) * cellW, cellY * cellH), blocksMap, finalFL, finalSL);
+            // const l_2 = cellH * cellH * cellY * cellY;
+            // for (let i = 0; i < cellY * cellH; i++) {
+            //     let s = i - vWidth / 2;
+            //     let bound = 5 * Math.min((1 - (4 * s * s / l_2)), Math.sin(i / 3) / 2 + 0.5);
+            //     for (let j = 0; j <= bound + 2; j++) {
+            //         setBlock(loc.x - 1 - j, loc.y + i, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+            //         setBlock(loc.x - 1 - j, loc.y + i, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+            //     }
+            // }
 
             // drawByScheme(new Point(530, 730), blocksMap, rooms[getCellType(labyrynth[2][1])][0].firstL, rooms[getCellType(labyrynth[2][1])][0].secondL);
             // drawByScheme(new Point(530, 790), blocksMap, rooms[getCellType(labyrynth[0][1])][0].firstL, rooms[getCellType(labyrynth[0][1])][0].secondL);

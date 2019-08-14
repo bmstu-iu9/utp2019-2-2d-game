@@ -74,7 +74,6 @@ _vertexShader[1] = `
 		gl_Position = u_projectionMatrix * pos;
 	}`;
 
-// TODO: вынести радиус
 _fragmentShader[1] = `
 	precision mediump float;
 
@@ -84,11 +83,11 @@ _fragmentShader[1] = `
 	uniform float u_light;
 	uniform float u_sizeBlock;
 	uniform vec2 u_center;
+	uniform float u_radius;
 
 	varying vec2 v_texCoord;
 	
 	void main() {
-		float radius = 250.0;
 		float minAlpha = 0.2;
 		vec4 tex = texture2D(u_texture0, v_texCoord);
 		float tex2alpha = (texture2D(u_texture2, v_texCoord)).a;
@@ -97,7 +96,7 @@ _fragmentShader[1] = `
 		float alpha = tex2alpha < 0.01
 			? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0
 				? 1.0
-				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha / 5.0) / radius + minAlpha / 5.0,
+				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha / 5.0) / u_radius + minAlpha / 5.0,
 					minAlpha, 1.0))
 			: 1.0;
 		vec4 color = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);

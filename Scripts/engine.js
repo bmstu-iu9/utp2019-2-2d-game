@@ -276,7 +276,8 @@ class Render {
 				'u_resolution',
 				'u_light',
 				'u_sizeBlock',
-				'u_center'
+				'u_center',
+				'u_radius'
 			]); // получение uniform-переменных из шейдеров
 		
 		// привязка текстур к текстурным блокам
@@ -916,6 +917,7 @@ class Render {
 				0.0, 0.0, -2.0 / (far - near), 0.0,
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 			this.gl.uniform1f(this.uniform[1].u_resolution[0], this.gl.canvas.height);
+			this.setUniform1f(this.uniform[1].u_radius, 250.0 * scale);
 			
 			// отрисовка 1 слоя с полупрозрачным кругом
 			for (let c in this.arrayOfChunks) {

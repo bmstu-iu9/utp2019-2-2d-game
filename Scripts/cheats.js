@@ -54,25 +54,27 @@ const __cheat_apply = () => {
     cheat.get(790, 1);
     cheat.get(791, 1);
     cheat.get(21, 100);
-    cheat.get(12, 100);
+    cheat.get(12, 40);
+    cheat.get(19, 20)
 }
 
 const writeScheme = (x, y, w, h) => {
     //writeScheme(510, 810, 50, 20)
     const bMap = {
-        21: 'b', //STONE_BRICK_BLOCK
-        17: 'w', //WOOD_BLOCK
-        5:  'p', //WOOD_PLANKS_BLOCK
-        20: 'g', //GLASS_BLOCK
-        19: 'l', //TORCH_BLOCK
-        62: 'd', //DOOR_BLOCK
-        60: 't', //TRAPDOOR_BLOCK
-        4:  'c', //COBBLESTONE_BLOCK
-        3:  'n', //DIRT_BLOCK
         2:  'm', //GRASS_BKOCK
+        3:  'n', //DIRT_BLOCK
+        4:  'c', //COBBLESTONE_BLOCK
+        5:  'p', //WOOD_PLANKS_BLOCK
         8:  'i', //WATER_BLOCK
         10: 'j', //LAVA_BLOCK
         12: 'y', //SAND
+        17: 'w', //WOOD_BLOCK
+        19: 'l', //TORCH_BLOCK
+        20: 'g', //GLASS_BLOCK
+        21: 'b', //STONE_BRICK_BLOCK
+        22: 'e', //CHEST
+        60: 't', //TRAPDOOR_BLOCK
+        62: 'd', //DOOR_BLOCK
     };
     let totalF = [];
     let totalS = [];

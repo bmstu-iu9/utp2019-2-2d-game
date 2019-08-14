@@ -2,7 +2,6 @@ var __observe = [];
 
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
-    console.time('World generation');
     // seed = 1565285065350;
     __cheat_seed = seed;
 
@@ -54,6 +53,7 @@ const generate = (width, height, seed, changes) => {
     const TORCH_BLOCK = 19;
     const GLASS_BLOCK = 20;
     const STONE_BRICK_BLOCK = 21;
+    const CHEST_BLOCK = 22;
     const LOCKED_TRAPDOOR_BLOCK = 53;
     const LOCKED_DOOR_BLOCK = 54;
     const BRICKS_WITH_KEY_BLOCK = 55;
@@ -1499,47 +1499,42 @@ const generate = (width, height, seed, changes) => {
     }
 
     //Создание данжа
-    const dungeonGen = () => {
-        const vLoc = new Point(500, 700); //Bottom-left corner
-        const vWidth = 150;
-        const vHeight = 100;
-
-        const clearZone = (x, y, w, h) => {
-            const clearBlock = (x, y) => {
-                setZone(x, y, CAVE_SPECIAL_ZONE);
-                setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-                setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
-                setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BRICK_BLOCK);
-            }
-            const vW_2 = w * w;
-            const vH_2 = h * h;
-            //Верхняя и нижняя границы
-            for (let i = 0; i <= w; i++) {
-                let s = i - w / 2;
-                let bound = 5 * Math.min((1 - (4 * s * s / vW_2)), Math.sin(i / 2) / 2 + 0.5);
-                // bound += random() * 3 - 1;
-                for (let j = 0; j <= 2 + bound; j++) {
-                    clearBlock(x + i, y - j);
-                    clearBlock(x + i, y + h + j);
+    const dungeonGen = (vLoc) => {
+        const create = (loc, cellW, cellH, cellX, cellY) => {
+            const clearZone = (x, y, w, h) => {
+                const clearBlock = (x, y) => {
+                    setZone(x, y, CAVE_SPECIAL_ZONE);
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BRICK_BLOCK);
                 }
-            }
-            //Правая и левая границы
-            for (let i = 0; i <= h; i++) {
-                let s = i - h / 2;
-                let bound = 5 * Math.min((1 - (4 * s * s / vH_2)), Math.abs(Math.sin(i / 3)));
-                // bound += random() * 3 - 1;
-                for (let j = 0; j <= 2 + bound; j++) {
-                    clearBlock(x - j, y + i);
-                    clearBlock(x + w + j, y + i);
+                const vW_2 = w * w;
+                const vH_2 = h * h;
+                //Верхняя и нижняя границы
+                for (let i = 0; i <= w; i++) {
+                    let s = i - w / 2;
+                    let bound = 5 * Math.min((1 - (4 * s * s / vW_2)), Math.sin(i / 2) / 2 + 0.5);
+                    // bound += random() * 3 - 1;
+                    for (let j = 0; j <= 2 + bound; j++) {
+                        clearBlock(x + i, y - j);
+                        clearBlock(x + i, y + h + j);
+                    }
                 }
+                //Правая и левая границы
+                for (let i = 0; i <= h; i++) {
+                    let s = i - h / 2;
+                    let bound = 5 * Math.min((1 - (4 * s * s / vH_2)), Math.abs(Math.sin(i / 3)));
+                    // bound += random() * 3 - 1;
+                    for (let j = 0; j <= 2 + bound; j++) {
+                        clearBlock(x - j, y + i);
+                        clearBlock(x + w + j, y + i);
+                    }
+                }
+                // Заливка
+                for (let i = 0; i < w; i++)
+                    for (let j = 0; j < h; j++)
+                        clearBlock(x + i, y + j);
             }
-            // Заливка
-            for (let i = 0; i < w; i++)
-                for (let j = 0; j < h; j++)
-                    clearBlock(x + i, y + j);
-        }
-
-        const createMesh = (loc, cellW, cellH, cellX, cellY) => { //+Лабиринт
             const createEmptyCell = (loc, holes) => {
                 for (let i = 0; i < cellW; i++) {
                     //Горизонтальные стены
@@ -1714,6 +1709,7 @@ const generate = (width, height, seed, changes) => {
                 'b': STONE_BRICK_BLOCK,
                 'c': COBBLESTONE_BLOCK,
                 'd': CLOSED_DOOR_BLOCK,
+                'e': CHEST_BLOCK,
                 'g': GLASS_BLOCK,
                 'i': WATER_BLOCK,
                 'j': LAVA_BLOCK,
@@ -1730,189 +1726,193 @@ const generate = (width, height, seed, changes) => {
 
             const rooms = [];
 
-            rooms[getCellType({ //Один вход сверху
-                top: false,
-                right: true,
-                bottom: true,
-                left: true
-            })] = [
+            //Один вход сверху
+            rooms[getCellType({ top: false, right: true, bottom: true, left: true })] = [
                 {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbb..e.......bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbb.........l....l.........bbb","bb..........................bb","bb....l................l....bb","bb............bb............bb","bb..........bbbbbb..........bb","bbb.....bbbbbbbbbbbbbb.....bbb","b.............bb.............b","b............................b","b............................b","b.....l................l.....b","bb..........................bb","bb.........bbb..l.b.........bb","bbb.......bb......bb.......bbb","bbbb.....bbb......bbb.....bbbb","bbbbb...bbbb......bbbb...bbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbb...bbbbb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbb..bbbbbbbbb...bb","bb..bbbbbbbbbb..bbbbbbbbbb..bb","bb...bbbbbbbbb..bbbbbbbbb...bb","bb...bbbbbbbbb..bbbbbbbbb...bb","bb...bbbbbb........bbbbbb...bb","bb..bbbbbb....bb....bbbbbb..bb","bb.bbbbbb...bbbbbb...bbbbbb.bb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","bb..bbbbbb.bbbbbbbb.bbbbbb..bb","bb..bbbbb..bbbbbbbb..bbbbb..bb","bbb..bbb..bbbbbbbbbb..bbb..bbb","bbbb.....bbbbbbbbbbbb.....bbbb","bbbbb...bbbbbbbbbbbbbb...bbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+                },
+                {
+                    hasChest: false,
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbb.........l....l.........bbb","bb..........................bb","bb....l................l....bb","bb............bb............bb","bb..........bbbbbb..........bb","bbb.....bbbbbbbbbbbbbb.....bbb","b.............bb.............b","b............................b","b............................b","b.....l................l.....b","bb..........................bb","bb.........bbb..l.b.........bb","bbb.......bb......bb.......bbb","bbbb.....bbb......bbb.....bbbb","bbbbb...bbbb......bbbb...bbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbb...bbbbb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbbbbbbbbbb......bb","bbbbbbbbbbbbbb..bbbbbbbbb...bb","bb..bbbbbbbbbb..bbbbbbbbbb..bb","bb...bbbbbbbbb..bbbbbbbbb...bb","bb...bbbbbbbbb..bbbbbbbbb...bb","bb...bbbbbb........bbbbbb...bb","bb..bbbbbb....bb....bbbbbb..bb","bb.bbbbbb...bbbbbb...bbbbbb.bb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","b..bbbbbbbbbbbbbbbbbbbbbbbb..b","bb..bbbbbb.bbbbbbbb.bbbbbb..bb","bb..bbbbb..bbbbbbbb..bbbbb..bb","bbb..bbb..bbbbbbbbbb..bbb..bbb","bbbb.....bbbbbbbbbbbb.....bbbb","bbbbb...bbbbbbbbbbbbbb...bbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
+                {
+                    hasChest: false,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbb.bbbbbbbbb","bbbbbbbbbbbbbbbbbbb...bbbbbbbb","bbbbbbbbbbbbbbbbbbb...bbbbbbbb","bbbbbbbbbbbbbbbbbb.....bbbbbbb","bbbbbbbbbbbbbbbbbb.....bbbbbbb","bbbbbbbbbbbbbbbbbb.....bbbbbbb","bbbbbbbbbbbbbbbbbb.....bbbbbbb","bbbbbbbbbbbbbbbbbb.....bbbbbbb","bbbbbbbbbbbbbbbbb......bbbbbbb","bbbbbbbbb..............bbbbbbb","bbbbbbbb...............bbbbbbb","bbbbbbb...l.......l....bbbbbbb","bbbbbb................bbbbbbbb","bbbbb................bbbbbbbbb","bbbbb......bbbbbbbbbbbbbbbbbbb","bbbbb.....bbbbbbbbbbbbbbbbbbbb","bbbbb......bbbbbbbbbbbbbbbbbbb","bbbbb...........bbbbbbbbbbbbbb","bbbbbb....l......bbbbbbbbbbbbb","bbbbbbb...........bbbbbbbbbbbb","bbbbbbbb..........bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                {
+                    hasChest: false,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbjjjjjjbbbbbbbbbbbb","bbbbbbbbbbbbjjjjjjbbbbbbbbbbbb","bbbbbbbbbbbbjjjjjjbbbbbbbbbbbb","bbbbbbbbbbjjjjjjjjjjbbbbbbbbbb","bbbbbbbbbbjjjjjjjjjjbbbbbbbbbb","bbbbbbbbbbjjjjjjjjjjbbbbbbbbbb","bbbbbbbbjjjjjjbbjjjjjjbbbbbbbb","bbbbbbbbjjjjjjbbjjjjjjbbbbbbbb","bbbbbb........bb........bbbbbb","bbbbbb........bb........bbbbbb","bbbbbb.......bbbb.......bbbbbb","bbbbbb.....b.bbbb.b.....bbbbbb","bbbbbb.....bbbbbbbb.....bbbbbb","bbbbbb..................bbbbbb","bbbbbb...l..........l...bbbbbb","bbbbbbb................bbbbbbb","bbbbbbb................bbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbiiiiiiiiiibbbbbbbb","bbbbbbbbbbb............bbbbbbb","bbbbbbbbbb..............bbbbbb","bbbbbbbbb............l..bbbbbb","bbbbb.e..........b......bbbbbb","bbbbb......l..bbbbb.....bbbbbb","bbbbb.........bbbbbb.....bbbbb","bbbbb........bbbbbbb.....bbbbb","bbbbbbb.....bbbbbbb.....bbbbbb","bbbbbbbbbbbbbbbbbb......bbbbbb","bbbbbbbbbbbbbbbbbb.......bbbbb","bbbbbbbbb.....bbbb..l....bbbbb","bbbbbbbb.......bbb.....bbbbbbb","bbbbbbb........bbb.....bbbbbbb","bbbbbbb....l...bbb.......bbbbb","bbbbbbb.......bbbbb......bbbbb","bbbbbbb.....bbbbbbb.....bbbbbb","bbbbbbb....bbbbbbb......bbbbbb","bbbbbbb.....bbbbb........bbbbb","bbbbbbb.......bb....l....bbbbb","bbbbbbb..l..............bbbbbb","bbbbbbb................bbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbiiiiiiiiiibbbbbbbb","bbbbbbbbbbb............bbbbbbb","bbbbbbbbbb..............bbbbbb","bbbbbbbbb............l..bbbbbb","bbbbb............b......bbbbbb","bbbbb......l..bbbbb.....bbbbbb","bbbbb.........bbbbbb.....bbbbb","bbbbb........bbbbbbb.....bbbbb","bbbbbbb.....bbbbbbb.....bbbbbb","bbbbbbbbbbbbbbbbbb......bbbbbb","bbbbbbbbbbbbbbbbbb.......bbbbb","bbbbbbbbb..e..bbbb..l....bbbbb","bbbbbbbb.......bbb.....bbbbbbb","bbbbbbb........bbb.....bbbbbbb","bbbbbbb....l...bbb.......bbbbb","bbbbbbb.......bbbbb......bbbbb","bbbbbbb.....bbbbbbb.....bbbbbb","bbbbbbb....bbbbbbb......bbbbbb","bbbbbbb.....bbbbb........bbbbb","bbbbbbb.......bb....l....bbbbb","bbbbbbb..l..............bbbbbb","bbbbbbb................bbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
             ];
 
-            rooms[getCellType({ //Один вход снизу
-                top: true,
-                right: true,
-                bottom: false,
-                left: true
-            })] = [
+            //Один вход снизу
+            rooms[getCellType({ top: true, right: true, bottom: false, left: true })] = [
                 {
+                    hasChest: false,
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbb....b.l..bbb....bbbbbbb","bbbb......................bbbb","bbbb......................bbbb","bbbb..l....l......l....l..bbbb","bbbb......................bbbb","bbbb....b.............b...bbbb","bbbb.....bbbbbbbbbbbbb....bbbb","bbbb......................bbbb","bbbb......................bbbb","bbbb.....l..........l.....bbbb","bbbbb....................bbbbb","bbbbbbb................bbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbb..bbb..........bbb..bbbbb","bbbbb.....bbbb..bbbb.....bbbbb","bbbbb....................bbbbb","bbbbbb..................bbbbbb","bbbbbbb................bbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbb....b.l..bbb....bbbbbbb","bbbb......................bbbb","bbbb......................bbbb","bbbb..l....l......l....l..bbbb","bbbb......................bbbb","bbbb....b.............b...bbbb","bbbb.....bbbbbbbbbbbbb....bbbb","bbbb...............e......bbbb","bbbb......................bbbb","bbbb.....l..........l.....bbbb","bbbbb....................bbbbb","bbbbbbb................bbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbb..bbb..........bbb..bbbbb","bbbbb.....bbbb..bbbb.....bbbbb","bbbbb....................bbbbb","bbbbbb..................bbbbbb","bbbbbbb................bbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbb..................bbbb","bbbbbbbb...................bbb","bbbbbbbb...................bbb","bbbbbbbb..l........l.......bbb","bbbbbbbbb............bb....bbb","bbbbbbbbb............bb....bbb","bbbbbbbbbb..........bbbb...bbb","bbbbbbbbbbb........bbbbb.l.bbb","bbbb..bbbbbbbbbbbbbbbbbb...bbb","bbb....bbbbbbbbbbbbbbbb....bbb","bbb....bbbbbbbbbbbbbbbb....bbb","bbb....bbbb..e.....bbbb....bbb","bbb.....bb..........bb.....bbb","bbb........................bbb","bbb........................bbb","bbb.......l........l.......bbb","bbbb......................bbbb","bbbbb....................bbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                {
+                    hasChest: false,
+                    firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbb............bbbbbbbbbbbb","bbbbb.............bbbbbbbbbbbb","bbbb..............bbbbbbbbbbbb","bbb.....l........bbbbbbbbbbbbb","bbb.............bbbbbbbbbbbbbb","bbb............bbbbbbbbbbbbbbb","bbbb........bbbbbbbbbbbbbbbbbb","bbbb......bbbbbbbbbbbbbbbbbbbb","bbb.......bbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbb.....bbbbbbbbbbbbbbbbbbbbbb","bbb..l..bbbbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbbb.....bbbbbbbbbbbbbbbbbbbbb","bbbb.....bbbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbb.....bbbbbbbbbbbbbbbbbbbbbb","bbb..l..bbbbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbb......bbbbbbbbbbbbbbbbbbbbb","bbbb....bbbbbbbbbbbbbbbbbbbbbb","bbbbb..bbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
             ];
             
-            rooms[getCellType({ //Один вход справа
-                top: true,
-                right: false,
-                bottom: true,
-                left: true
-            })] = [
+            //Один вход справа
+            rooms[getCellType({ top: true, right: false, bottom: true, left: true })] = [
                 {
+                    hasChest: false,
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbb................bbbbbbb","bbbbbb..................bbbbbb","bbbbb....................bbbbb","bbbb.........l....l.....bbbbbb","bbbb...................bbbbbbb","bbbb.....bb..........bbbbbbbbb","bbbb...l..bb..bbbb..bbbbbbbbbb","bbbb.......bbbbbbbbbbbbbbbbbbb","bbbb........bbbbbbbbbbbbbbbbbb","bbbbb.........................","bbbbbbb.......................","bbbbbbbbb.....................","bbbbbbbbb.....l.....l.....l...","bbbbbbb.......................","bbbbb.........................","bbbb........bbbbbbbbbbbbbbbbbb","bbbb.......bb........bbbbbbbbb","bbbb...l..bb..........bbbbbbbb","bbbb.....bb............bbbbbbb","bbbb...................bbbbbbb","bbbbb........l..l......bbbbbbb","bbbbbb........bb......bbbbbbbb","bbbbbbb......bbbb....bbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbb................bbbbbbb","bbbbbb..................bbbbbb","bbbbb....................bbbbb","bbbb.........l....l.....bbbbbb","bbbb...................bbbbbbb","bbbb.....bb..........bbbbbbbbb","bbbb...l..bb..bbbb..bbbbbbbbbb","bbbb.......bbbbbbbbbbbbbbbbbbb","bbbb........bbbbbbbbbbbbbbbbbb","bbbbb.........................","bbbbbbb.......................","bbbbbbbbb.....................","bbbbbbbbb.....l.....l.....l...","bbbbbbb.......................","bbbbb.........................","bbbb........bbbbbbbbbbbbbbbbbb","bbbb.......bb...e....bbbbbbbbb","bbbb...l..bb..........bbbbbbbb","bbbb.....bb............bbbbbbb","bbbb...................bbbbbbb","bbbbb........l..l......bbbbbbb","bbbbbb........bb......bbbbbbbb","bbbbbbb......bbbb....bbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbiiiiiiiibbbbbbbbbbb","bbbbbbbbbbbiiiiiiiibbbbbbbbbbb","bbbbbbbbiiiiiiiiiiiiiibbbbbbbb","bbbbbbbbiiiiiibbiiiiiibbbbbbbb","bbbbbbbbiiiiiibbiiiiiiiibbbbbb","bbbbbbbbiiiiibbbbiiiiiiibbbbbb","bbb.e..biiiiibbbbiiiiiiibbbbbb","bbb...........................","bbb...........................","bbb...........................","bbb..l.....................l..","bbb...........................","bbb.......l........l..........","bbbb......................bbbb","bbbbb....................bbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                
             ];
             
-            rooms[getCellType({ //Один вход слева
-                top: true,
-                right: true,
-                bottom: true,
-                left: false
-            })] = [
+            //Один вход слева
+            rooms[getCellType({ top: true, right: true, bottom: true, left: false })] = [
                 {
+                    hasChest: false,
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbb................bbbbbbb","bbbbbb..................bbbbbb","bbbbb....................bbbbb","bbbbbb.....l....l.........bbbb","bbbbbbb...................bbbb","bbbbbbbbb..........bb.....bbbb","bbbbbbbbbb..bbbb..bb..l...bbbb","bbbbbbbbbbbbbbbbbbb.......bbbb","bbbbbbbbbbbbbbbbbb........bbbb",".........................bbbbb",".......................bbbbbbb",".....................bbbbbbbbb","...l.....l.....l.....bbbbbbbbb",".......................bbbbbbb",".........................bbbbb","bbbbbbbbbbbbbbbbbb........bbbb","bbbbbbbbb........bb.......bbbb","bbbbbbbb..........bb..l...bbbb","bbbbbbb............bb.....bbbb","bbbbbbb...................bbbb","bbbbbbb......l..l........bbbbb","bbbbbbbb......bb........bbbbbb","bbbbbbbbb....bbbb......bbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbb......e.........bbbbbbb","bbbbbb..................bbbbbb","bbbbb....................bbbbb","bbbbbb.....l....l.........bbbb","bbbbbbb...................bbbb","bbbbbbbbb..........bb.....bbbb","bbbbbbbbbb..bbbb..bb..l...bbbb","bbbbbbbbbbbbbbbbbbb.......bbbb","bbbbbbbbbbbbbbbbbb........bbbb",".........................bbbbb",".......................bbbbbbb",".....................bbbbbbbbb","...l.....l.....l.....bbbbbbbbb",".......................bbbbbbb",".........................bbbbb","bbbbbbbbbbbbbbbbbb........bbbb","bbbbbbbbb........bb.......bbbb","bbbbbbbb..........bb..l...bbbb","bbbbbbb............bb.....bbbb","bbbbbbb...................bbbb","bbbbbbb......l..l........bbbbb","bbbbbbbb......bb........bbbbbb","bbbbbbbbb....bbbb......bbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
+                {
+                    hasChest: true,
+                    firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbjjjjjjjjbbbbbbbbbbb","bbbbbbbbbbbjjjjjjjjbbbbbbbbbbb","bbbbbbbbjjjjjjjjjjjjjjbbbbbbbb","bbbbbbbbjjjjjjbbjjjjjjbbbbbbbb","bbbbbbjjjjjjjjbbjjjjjjbbbbbbbb","bbbbbbjjjjjjjbbbbjjjjjbbbbbbbb","bbbbbbjjjjjjjbbbbjjjjjb..e.bbb","...........................bbb","...........................bbb","...........................bbb","..l.....................l..bbb","...........................bbb","..........l........l.......bbb","bbbb......................bbbb","bbbbb....................bbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                    secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+                },
             ];
             
-            rooms[getCellType({ //Входы сверху и снизу
-                top: false,
-                right: true,
-                bottom: false,
-                left: true
-            })] = [
+            //Входы сверху и снизу
+            rooms[getCellType({ top: false, right: true, bottom: false, left: true })] = [
                 {
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbb........bbbbbbbbbb","bbbbbbbbbbbbb........bbbbbbbbb","bbbbbbbbbbbbbbb...l...bbbbbbbb","bbbbbbbbbbbbbb........bbbbbbbb","bbbbbbbbbbbb..........bbbbbbbb","bbbbbbbbbb...........bbbbbbbbb","bbbbbbbb............bbbbbbbbbb","bbbbbbb......l.....bbbbbbbbbbb","bbbbbb............bbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbb........bbbbbbbbbbbbbbbbb","bbbb.......bbbbbbbbbbbbbbbbbbb","bbbb...l..bbbbbbbbbbbbbbbbbbbb","bbbb.......bbbbbbbbbbbbbbbbbbb","bbbbb........bbbbbbbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbbb..........bbbbbbbbbbbbbb","bbbbbbb......l..bbbbbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbbbb......bbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы справа и слева
-                top: true,
-                right: false,
-                bottom: true,
-                left: false,
-            })] = [
+            //Входы справа и слева
+            rooms[getCellType({ top: true, right: false, bottom: true, left: false })] = [
                 {
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",".....bbbbbbbbbbbbbbbbbbbbb....","........bbbbbbbbbbbbbbb.......","..........bbbbbbbbbbb.........","...l......................l...","..............................","........l............l........","bbbb........l....l........bbbb","bbbbbbb................bbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbb....bbbbbbbbbbbbb","bbb....bbbbb......bbbbbbbbbbbb","bbb.....bbb........bbbbbbbbbbb","bbb............bbbbbbbbbbbbbbb","bbb............bbbbbbbbbbbbbbb","bbbb...........bbbbbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbbbbbb.....bbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы сверху и справа
-                top: false,
-                right: false,
-                bottom: true,
-                left: true,
-            })] = [
+            //Входы сверху и справа
+            rooms[getCellType({ top: false, right: false, bottom: true, left: true })] = [
                 {
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbb........bbbbbbbb","bbbbbbbbbbbbb.........bbbbbbbb","bbbbbbbbbbbb.....l....bbbbbbbb","bbbbbbbbbb............bbbbbbbb","bbbbbbbbb...........bbbbbbbbbb","bbbbbbb...........bbbbbbbb....","bbbbbb...l......bbbbbbbb......","bbbbbb........bbbbbbbb........","bbbbbb......bbbbbbb......l....","bbbbbb....bbbbbb..............","bbbbbb......bb................","bbbbbb....................bbbb","bbbbbb...l.......l......bbbbbb","bbbbbb................bbbbbbbb","bbbbbbb............bbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbbbb..l....bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы сверху и слева
-                top: false,
-                right: true,
-                bottom: true,
-                left: false,
-            })] = [
+            //Входы сверху и слева
+            rooms[getCellType({ top: false, right: true, bottom: true, left: false })] = [
                 {
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbb....bbbbbbbbbbbbbbbb","bbbbbbbbb........bbbbbbbbbbbbb","bbbbbbbbb...l.....bbbbbbbbbbbb","bbbbbbbbb...........bbbbbbbbbb","bbbbbbbbbb...........bbbbbbbbb","....bbbbbbbb...........bbbbbbb","......bbbbbbbb......l...bbbbbb","........bbbbbbbb........bbbbbb","....l......bbbbbbb......bbbbbb","..............bbbbbb....bbbbbb","................bb......bbbbbb","bbbb....................bbbbbb","bbbbbb......l.......l...bbbbbb","bbbbbbbb................bbbbbb","bbbbbbbbbbb............bbbbbbb","bbbbbbbbbbbb..........bbbbbbbb","bbbbbbbbbbbb....bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
-            
-            rooms[getCellType({ //Входы снизу и слева
-                top: true,
-                right: true,
-                bottom: false,
-                left: false,
-            })] = [
+
+            //Входы снизу и слева
+            rooms[getCellType({ top: true, right: true, bottom: false, left: false })] = [
                 {
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbb................bbbbbbb","bbbbbbb...l........l...bbbbbbb","bbbbbbb......bbbb......bbbbbbb","bbbbbbb.....bbbbbb.....bbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","...bbbbbbb....bb....bbbbbbbbbb",".....bbbbbb.l....l.bbbbbbbbbbb",".......bbbb........bbbbbbbbbbb","..l......bb........bbbbbbbbbbb","..........bb......bbbbbbbbbbbb","..................bbbbbbbbbbbb","bb................bbbbbbbbbbbb","bbbb.....l........bbbbbbbbbbbb","bbbbbb...........bbbbbbbbbbbbb","bbbbbbb.........bbbbbbbbbbbbbb","bbbbbbbb.......bbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы снизу и справа
-                top: true,
-                right: false,
-                bottom: false,
-                left: true,
-            })] = [
+            //Входы снизу и справа
+            rooms[getCellType({ top: true, right: false, bottom: false, left: true })] = [
                 {
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbb................bbbbbbb","bbbbbbb...l........l...bbbbbbb","bbbbbbb......bbbb......bbbbbbb","bbbbbbb.....bbbbbb.....bbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbb......bb......bbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbbb....bb....bbbbbbb...","bbbbbbbbbbb.l....l.bbbbbb.....","bbbbbbbbbbb........bbbb.......","bbbbbbbbbbb........bb......l..","bbbbbbbbbbbb......bb..........","bbbbbbbbbbbb..................","bbbbbbbbbbbb................bb","bbbbbbbbbbbb........l.....bbbb","bbbbbbbbbbbbb...........bbbbbb","bbbbbbbbbbbbbb.........bbbbbbb","bbbbbbbbbbbbbbb.......bbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы слева, справа и снизу
-                top: true,
-                right: false,
-                bottom: false,
-                left: false,
-            })] = [
+            //Входы слева, справа и снизу
+            rooms[getCellType({ top: true, right: false, bottom: false, left: false })] = [
                 {
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb..........bbbbbbbbbb","bbbbbbbbb............bbbbbbbbb","bbbbbbbb..............bbbbbbbb","bbbb......................bbbb","bbb.......l........l.......bbb","bbb..........bbbb..........bbb","bbb.........bbbbbb.........bbb","bbb....b......bb......b....bbb","bbbb..bb......bb......bb..bbbb","bbbbbbbbb.....bb.....bbbbbbbbb","bbbbbbbbb.....bb.....bbbbbbbbb","...bbbbbbb....bb....bbbbbbb...",".....bbbbbb.l....l.bbbbbb.....",".......bbbb........bbbb.......","...l.....bb........bb......l..","..........bb......bb..........","..............................","bbb.........................bb","bbbbb....l..........l.....bbbb","bbbbbb..................bbbbbb","bbbbbbb................bbbbbbb","bbbbbbbb..............bbbbbbbb","bbbbbbbbbb..l....l..bbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..bbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы слева, справа и снизу
-                top: false,
-                right: false,
-                bottom: true,
-                left: false,
-            })] = [
+            //Входы слева, справа и снизу
+            rooms[getCellType({ top: false, right: false, bottom: true, left: false })] = [
                 {
                     firstL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbb........bbbbbbbbbbb","bbbbbbbbb...........bbbbbbbbbb","bbbbbbb..............bbbbbbbbb","bbbbb.........l.......bbbbbbbb","bbb....................bbbbbbb","b.......l.....b.........bbbbbb",".............bbb....l.........","..........bbbbbbb.............","........bbbbbbbbbb............","...l.....bbbbbbbbbb.......l...","..........bbbbbbbbbb..........","...........bbbbbbbbbbb........","bb..........bbbbbbbbbbbbbbbbbb","bbbb.........bbbbbbbbbbbbbbbbb","bbbbbb........bbbbbbbbbbbbbbbb","bbbbbbb...l....bbbbbbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbb........bbbbbbbbbbbbb","bbbbbbbbbb........bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы слева, сверху и снизу
-                top: false,
-                right: true,
-                bottom: false,
-                left: false,
-            })] = [
+            //Входы слева, сверху и снизу
+            rooms[getCellType({ top: false, right: true, bottom: false, left: false })] = [
                 {
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbb..........bbbbbbbbbbbb","bbbbbbb...........bbbbbbbbbbbb","bbbbbb......l.....bbbbbbbbbbbb","bbbbbb...........bbbbbbbbbbbbb","bbbbb...........bbbbbbbbbbbbbb","bbbb...l....bbbbbbbbbbbbbbbbbb","bbb........bbbbbbbbbbbbbbbbbbb","..........bbbbbbbbbbbbbbbbbbbb",".........bbbbbbbbbbbbbbbbbbbbb","........bbbbbbbbbbbbbbbbbbbbbb","..l.....bbbbbbbbbbbbbbbbbbbbbb",".........bbbbbbbbbbbbbbbbbbbbb","..........bbbbbbb.....bbbbbbbb","bbb........bbbbb.......bbbbbbb","bbbb...l................bbbbbb","bbbbb..............l....bbbbbb","bbbbbb.......l.........bbbbbbb","bbbbbb................bbbbbbbb","bbbbbbb............bbbbbbbbbbb","bbbbbbbb........bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Входы слева, сверху и снизу
-                top: false,
-                right: false,
-                bottom: false,
-                left: true,
-            })] = [
+            //Входы слева, сверху и снизу
+            rooms[getCellType({ top: false, right: false, bottom: false, left: true })] = [
                 {
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbb.........bbbbbbbbbbb","bbbbbbbbb.............bbbbbbbb","bbbbbbbb...............bbbbbbb","bbbbbbb..........l......bbbbbb","bbbbbb..................bbbbbb","bbbbb....l...............bbbbb","bbbb.........bbbbb....l...bbbb","bbb.........bbbbbbb........bbb","bbb........bbbbbbbbb..........","bb........bbbb....bbb.........","bb.......bbbbb.....bbb........","bb...l..bbbbbb.............l..","bb.......bbbbb....l...........","bb.........bbb................","bb..........bbb............bbb","bbb..........bbbb.........bbbb","bbbb......l...bbbbb......bbbbb","bbbbb.........bbbbbbbbbbbbbbbb","bbbbbb.........bbbbbbbbbbbbbbb","bbbbbbb.........bbbbbbbbbbbbbb","bbbbbbbb.........bbbbbbbbbbbbb","bbbbbbbbb.........bbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
-            rooms[getCellType({ //Крест (Deus vult!)
-                top: false,
-                right: false,
-                bottom: false,
-                left: false,
-            })] = [
+            //Крест
+            rooms[getCellType({ top: false, right: false, bottom: false, left: false })] = [
                 {
                     firstL: ["bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb.l..bbbbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb",".......bbbbb.l..bbb...........","........bbbb..................","........bbbb..................","..l......bbb..........l....l..","..........bb..................","..........bbbb..l.............","bb......................bbbbbb","bb.....l...............bbbbbbb","bb..................bbbbbbbbbb","bbb................bbbbbbbbbbb","bbbb..............bbbbbbbbbbbb","bbbbbbbbbb...l..bbbbbbbbbbbbbb","bbbbbbbbbbb.......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb","bbbbbbbbbbbbbb..l.bbbbbbbbbbbb","bbbbbbbbbbbb......bbbbbbbbbbbb"],
                     secondL: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-                }
+                },
             ];
 
             const entranceFL = ["bbbbbbbbbbbbttttttbbbbbbbb.......bbbb.......bbbbbbbbbbbbbbbb","bbbb bbbbbb..........d.............................bbbbbbb  ","b b   bbbbb..........d.............................bbbbbbb  ","      bbbbb..........d.......l..........l..........bbbbbb   ","      bbbbb....l.....d............................bbbbbb    ","       bbbb.........bbb.......bbttttttbb........bbbbbb      ","       bbbbb......bbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbb....bbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","            bbbbbb                                          ","                                                            "];;
             const entranceSL = ["     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","       bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb      ","       bbbbbbbbbbbbbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbbbbbbbbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","                                                            ","                                                            "];
-
             const finalFL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbttttttbbbbbbbbbbbb"," bbbbb................bbbbb......bbbbb................bbbbb "," bbbb..................................................bbbb ","  bb....................................................bb  ","  bb.........l..........l..........l..........l.........bb  ","  bb....................................................bb  ","  bbb..................................................bbb  ","   bbb................................................bbb...","   bbbbb.............bbbbbbb....bbbbbbb.............bbbbb   ","    bbbbbb.......bbbbbbbbbbbb..bbbbbbbbbbbb.......bbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
             const finalSL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","    bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
 
@@ -1920,37 +1920,39 @@ const generate = (width, height, seed, changes) => {
             labyrynth[0][0].top = false;
             labyrynth[0][cellX - 1].top = false;
             logLabyrynth(labyrynth);
+
+            // labyrynth[0][1] = { top: false, right: true, bottom: true, left: true };
+            // labyrynth[2][1] = { top: true, right: true, bottom: false, left: true };
+            // labyrynth[1][0] = { top: true, right: false, bottom: true, left: true };
+            // labyrynth[1][2] = { top: true, right: false, bottom: true, left: true };
+            // labyrynth[1][1] = { top: true, right: true, bottom: true, left: false };
             
             clearZone(loc.x, loc.y, cellX * cellW, cellY * cellH);
             for (let i = 0; i < cellX; i++) {
                 for (let j = 0; j < cellY; j++) {
                     let type = getCellType(labyrynth[cellY - j - 1][i]);
-                    let room = rooms[type][0];
-                    createEmptyCell(loc.add(i * cellW, j * cellH), type);
+                    let stype = Math.round(random() * (rooms[type].length - 1));
+                    if (i === 1 && j === 2) {
+                        // stype = 1;
+                        // continue;
+                    }
+                    let room = rooms[type][stype];
                     drawByScheme(loc.add(i * cellW, j * cellH), blocksMap, room.firstL, room.secondL);
                 }
             }
             drawByScheme(loc.add(0, cellY * cellH), blocksMap, entranceFL, entranceSL);
             drawByScheme(loc.add((cellX - 2) * cellW, cellY * cellH), blocksMap, finalFL, finalSL);
-            // const l_2 = cellH * cellH * cellY * cellY;
-            // for (let i = 0; i < cellY * cellH; i++) {
-            //     let s = i - vWidth / 2;
-            //     let bound = 5 * Math.min((1 - (4 * s * s / l_2)), Math.sin(i / 3) / 2 + 0.5);
-            //     for (let j = 0; j <= bound + 2; j++) {
-            //         setBlock(loc.x - 1 - j, loc.y + i, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-            //         setBlock(loc.x - 1 - j, loc.y + i, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
-            //     }
-            // }
+
 
             // drawByScheme(new Point(530, 730), blocksMap, rooms[getCellType(labyrynth[2][1])][0].firstL, rooms[getCellType(labyrynth[2][1])][0].secondL);
             // drawByScheme(new Point(530, 790), blocksMap, rooms[getCellType(labyrynth[0][1])][0].firstL, rooms[getCellType(labyrynth[0][1])][0].secondL);
             // drawByScheme(new Point(500, 760), blocksMap, rooms[getCellType(labyrynth[1][0])][0].firstL, rooms[getCellType(labyrynth[1][0])][0].secondL);
             // drawByScheme(new Point(560, 760), blocksMap, rooms[getCellType(labyrynth[1][2])][0].firstL, rooms[getCellType(labyrynth[1][2])][0].secondL);
-            // drawByScheme(new Point(530, 760), blocksMap, rooms[getCellType(labyrynth[1][1])][0].firstL, rooms[getCellType(labyrynth[1][1])][0].secondL);
+            // drawByScheme(new Point(530, 760), blocksMap, rooms[getCellType(labyrynth[1][1])][1].firstL, rooms[getCellType(labyrynth[1][1])][1].secondL);
             // setBlock(500, 790, GameArea.FIRST_LAYOUT, WOOD_BLOCK)
         }
 
-        createMesh(vLoc, 30, 30, 6, 4);
+        create(vLoc, 30, 30, 6, 4);
     }
     //#endregion
 
@@ -1963,7 +1965,7 @@ const generate = (width, height, seed, changes) => {
     treeGen(16, 19, Math.floor(width * 2 / 3));
 
     // villageGen();
-    dungeonGen();
+    dungeonGen(new Point(500, 700));
     underSpecial1Gen(200, 200, 5);
     oreGen();
     
@@ -2040,10 +2042,6 @@ const generate = (width, height, seed, changes) => {
     
     // Создть карту освещения
     createShadows(9);
-
-    console.timeEnd('World generation');
-    // __gameArea = new GameArea(worldMap, elevationMap, shadowMap, width, height);
-    // return __gameArea;
     return new GameArea(worldMap, elevationMap, shadowMap, width, height);
     //#endregion
 }

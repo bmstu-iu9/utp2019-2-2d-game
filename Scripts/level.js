@@ -1,6 +1,6 @@
 /*
 const cameraScale = 1;                  Масштаб, 1 - стандарт
-const blockSize = 16                    Масштаб камеры (пикселей в блоке при cameraScale = 1)
+const blockSize = 32                    Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;           Положение камеры
 const chankWidth = 8, chankHeight = 8   Размеры чанка
 const minLayout = 2, maxLayout = 3      Обрабатываемые слои
@@ -38,7 +38,7 @@ const beginPlay = () => {
     	controller.mouseDown(event);
     });
 
-    if (loadExist()) {
+    if (choosedWorld() !== undefined) {
 		key = loadingResult.key;
 		BlocksGlobalChange = loadingResult.change;
 		currentTime = loadingResult.currentTime;
@@ -47,11 +47,24 @@ const beginPlay = () => {
 			loadingResult.gameArea.height,
 			key,
 			BlocksGlobalChange);
+		gameArea.inventoryBlocks = loadingResult.gameArea.inventoryBlocks;
 		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
 
     	player = new Player();
     	playerCopy(player, loadingResult.player);
-    	slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+		slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
+		for (let i in BlocksGlobalChange) {
+			gameArea.updateBlock(
+				BlocksGlobalChange[i].x,
+				BlocksGlobalChange[i].y,
+				BlocksGlobalChange[i].layout,
+				player);
+			gameArea.updateRadius(
+				BlocksGlobalChange[i].x,
+				BlocksGlobalChange[i].y,
+				BlocksGlobalChange[i].layout,
+				player);
+		}
 
     } else {
 		gameArea = generate(1000, 1000, key);
@@ -94,15 +107,15 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 	}
 }
 
+// На первом тике после инициализации мира
 const onStart = () => {
-
 	initUI();
 	__cheat_apply();
 }
 
 // Вызывается каждый кадр
 const eventTick = () => {
-
+	mouseMessage = undefined;
 	currentTime += deltaTime;
 	staminaNotUsed = true;
 	playerMovement();
@@ -116,6 +129,7 @@ const eventTick = () => {
 		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
 	
 	// В последнюю очередь
+	if (player.sp === player.maxSP) player.heal(0.5 * deltaTime);
 	// Анимации
 	animationsTickCount++;
 	player.animate();
@@ -129,7 +143,7 @@ const UI = () => {
 	// Кнопки 1..8
 	for (let i = 1; i <= 8; i++) {
 		if (controller.numbers[i].active) {
-			if (player.hand.index != i - 1) {
+			if (player.hand.index !== i - 1) {
 				player.setHand(i - 1);
 			}
 			break;
@@ -167,15 +181,19 @@ const playerActionButtons = () => {
     }
 
 	if (controller.f.active) {  // Сохранение
-		saveWorld('world');
+		saveWorld('world').then(() => chooseWorld('world'));
 	}
 	if (controller.g.active) { // Удалить сохранение
-		deleteDatabase();
+		deleteWorld('world');
 	}
 
 	// Нажата E
 	if (controller.interact.active && lastPlaceBlockTime < currentTime - 0.2) {
-		player.interactWithNearest(layout);
+		if (chestOpened) {
+			UICloseChest();
+		} else {
+			player.interactWithNearest(layout);
+		}
 		lastPlaceBlockTime = currentTime;
 	}
 
@@ -185,7 +203,6 @@ const playerActionButtons = () => {
 		 	controller.invClick = true;
 		 	if (inventoryOpened) {
 		 		UICloseInv();
-		 		if (craftOpened) UICloseCraft();
 		 	} else {
 		 		UIOpenInv();
 		 	}
@@ -202,7 +219,6 @@ const playerActionButtons = () => {
 		 		UICloseCraft();
 		 	} else {
 		 		UIOpenCraft();
-		 		if (!inventoryOpened) UIOpenInv();
 		 	}
 		 }
 	} else {
@@ -406,6 +422,17 @@ const playerMovement = () => {
 	player.x = roundToFunc(newX, blockSize, Math.round);
 	player.y = roundToFunc(newY, blockSize, Math.round);
 
+	// Закрыть интерфейс сундука, если игрок вышел за радиус досягаемости
+	if (chestOpened 
+			&& hypotenuse(Math.abs(player.x - lastChest.x), Math.abs(player.y - lastChest.y)) > Player.ACTION_RADIUS) {
+		UICloseChest();
+	}
+	// Закрыть интерфейс крафта, если игрок вышел за радиус досягаемости
+	if (craftOpened && lastCraftBlock && hypotenuse(Math.abs(player.x - lastCraftBlock.x),
+											Math.abs(player.y - lastCraftBlock.y)) > Player.ACTION_RADIUS) {
+		UICloseCraft();
+	}
+
 	// Плавное движение камеры
 	if (Math.abs(cameraX - newX) > 1) {
 		cameraSet(cameraX + roundToFunc(1.5 * (player.x - cameraX) * deltaTime, blockSize, Math.round), cameraY);
@@ -416,7 +443,17 @@ const playerMovement = () => {
 	
 }
 
+let buttonHoldCounter = 0; // Отсчёт длинного нажатия на кнопку
 const mouseControl = () => {
+	// Наведение на сообщение
+	for (let i = _mouseMessageUIArr.length - 1; i >= 0; i--) {
+		if (_mouseMessageUIArr[i].pa[0] < controller.mouse.x
+			&& _mouseMessageUIArr[i].pb[0] > controller.mouse.x
+			&& _mouseMessageUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+			&& _mouseMessageUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+			showMouseMessage(_mouseMessageUIArr[i].message);
+		}
+	}
 
 	let layout = player.layout;
     if(controller.shift.active) {
@@ -432,16 +469,28 @@ const mouseControl = () => {
 
 		// Нажатие по интерфейсу
 		let interactWithUI = false;
-		for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
-			if (_interactiveUIArr[i].pa[0] < controller.mouse.x
-				&& _interactiveUIArr[i].pb[0] > controller.mouse.x
-				&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
-				&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
+		if (buttonHoldCounter <= buttonLongHoldLength) {
+			for (let i = _interactiveUIArr.length - 1; i >= 0; i--) {
+				if (_interactiveUIArr[i].pa[0] < controller.mouse.x
+						&& _interactiveUIArr[i].pb[0] > controller.mouse.x
+						&& _interactiveUIArr[i].pa[1] < render.getCanvasSize()[1] - controller.mouse.y
+						&& _interactiveUIArr[i].pb[1] > render.getCanvasSize()[1] - controller.mouse.y) {
 					// action to click
 					let sprite = _interactiveUIArr[i].sprite;
 					let lastButton = UIMap.lastButton;
 					let activeElement = UIMap.activeElement;
-					holdAction(sprite);
+
+					if (sprite.longHold && lastButton === sprite) {
+						buttonHoldCounter += deltaTime;
+					} else {
+						buttonHoldCounter = 0;
+					}
+
+					if (buttonHoldCounter >= buttonLongHoldLength) { // Действие зажатия
+						longHoldAction(sprite);
+					} else {
+						holdAction(sprite);
+					}
 
 					if (lastButton !== sprite) {
 						releaseAction(lastButton);
@@ -451,15 +500,16 @@ const mouseControl = () => {
 					interactWithUI = true;
 					break;
 				}
+			}
 		}
 
 		if (!interactWithUI) {
 			releaseAction(UIMap.lastButton);
 			UIMap.lastButton = undefined;
 
-			let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
-	    	let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y
-	    																					+ Player.HEIGHT / 2);
+			let targetX = Math.floor(controller.mouse.direction.x / (blockSize / cameraScale) + player.x);
+	    	let targetY = Math.floor(controller.mouse.direction.y / (blockSize / cameraScale) + player.y
+	    		+ Player.HEIGHT / 2);
 	    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
 	      		&& player.sp > 0) {
 	            // Анимация
@@ -494,30 +544,31 @@ const mouseControl = () => {
     } else {
     	currentBlock = undefined;
 
-    	clickAction(UIMap.lastButton);
+    	if (buttonHoldCounter < buttonLongHoldLength) {
+    		clickAction(UIMap.lastButton);
+    	}
 		UIMap.lastButton = undefined;
+		buttonHoldCounter = 0;
     }
 
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
-		const len = hypotenuse(controller.mouse.direction.x, controller.mouse.direction.y);
-		let targetX = Math.floor(controller.mouse.direction.x / blockSize / cameraScale + player.x);
-		let targetY = Math.floor(controller.mouse.direction.y / blockSize / cameraScale + player.y + Player.HEIGHT / 2);
+		let targetX = Math.floor(controller.mouse.direction.x / (blockSize / cameraScale) + player.x);
+		let targetY = Math.floor(controller.mouse.direction.y / (blockSize / cameraScale) + player.y
+			+ Player.HEIGHT / 2);
 		if (player.blockAvailable(targetX, targetY, player.layout)) {
-   			// Установка блока
-		    if (player.place(targetX, targetY, layout)) {
-		    	lastPlaceBlockTime = currentTime;
-
-	            // Анимация
-	            player.setAnimation("body", "kick");
-		    }
-		} else {
+			// Взаимодействие с блоком
 			if (player.interact(targetX, targetY, layout)) {
 				lastPlaceBlockTime = currentTime;
 
 	            // Анимация
 	            player.setAnimation("body", "kick");
-			}
+			} else if (player.place(targetX, targetY, layout)) { // Установка блока
+		    	lastPlaceBlockTime = currentTime;
+
+	            // Анимация
+	            player.setAnimation("body", "kick");
+		    }
 		}
 	}
 }

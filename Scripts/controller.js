@@ -1,3 +1,5 @@
+'use strict';
+
 class Controller {
 
     constructor() {
@@ -66,13 +68,14 @@ class Controller {
     }
     
     mouseMove(event) {
-        const playerPlixelLocateX = (player.x - cameraX) * blockSize * cameraScale,
-            playerPlixelLocateY = (player.y - cameraY) * blockSize * cameraScale;
-        this.mouse.x = event.pageX;
-        this.mouse.y = event.pageY;
-        this.mouse.direction.x = this.mouse.x - document.getElementById('canvas').width / 2 - playerPlixelLocateX;
-        this.mouse.direction.y = document.getElementById('canvas').height / 2 - playerPlixelLocateY - this.mouse.y
-            - Player.HEIGHT * blockSize * cameraScale / 2;
+		const playerPlixelLocateX = (player.x - cameraX) * (blockSize / cameraScale);
+		const playerPlixelLocateY = (player.y - cameraY) * (blockSize / cameraScale);
+		this.mouse.x = event.pageX * window.devicePixelRatio;
+		this.mouse.y = event.pageY * window.devicePixelRatio;
+		const canvasSize = render.getCanvasSize();
+		this.mouse.direction.x = this.mouse.x - canvasSize[0] / 2 - playerPlixelLocateX;
+		this.mouse.direction.y = canvasSize[1] / 2 - playerPlixelLocateY - this.mouse.y
+			- Player.HEIGHT * (blockSize / cameraScale) / 2;
     }
 
     mouseDown(event) {

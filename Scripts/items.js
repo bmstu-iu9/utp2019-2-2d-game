@@ -1261,7 +1261,7 @@ const items = {
         id: '280',
         name: 'Red key',
         texture: () => {
-            return getTextureCoordinates(2, 2)
+            return getTextureCoordinates(4, 2)
         },
         weight: 1
     },

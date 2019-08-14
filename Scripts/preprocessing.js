@@ -1,7 +1,7 @@
 'use strict';
 
 let imageCounter = 0, totalImages = 0;
-let heigthCount = 50;  // Количество блоков, которые влезают на экран по высоте
+let heigthCount = 66;  // Количество блоков, которые влезают на экран по высоте
 let cameraScale = 1;  // Масштаб, 1 - стандарт, зависит от heigthCount
 const blockSize = 32;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
@@ -54,12 +54,12 @@ const preprocessing = () => {
 				objects[j * blocksCountX + i] = {
 					'id': j * blocksCountX + i + 1,
 					'a': [
-						i / blocksCountX + 1 / image.width,
-						j / blocksCountY + 1 / image.height
+						i / blocksCountX, //+ 1 / image.width,              Для альтернативного метода сглаживания
+						j / blocksCountY //+ 1 / image.height
 					],
 					'b': [
-						(i + 1) / blocksCountX - 1 / image.width,
-						(j + 1) / blocksCountY - 1 / image.height
+						(i + 1) / blocksCountX, //- 1 / image.width,
+						(j + 1) / blocksCountY //- 1 / image.height
 					]
 				};
 			}

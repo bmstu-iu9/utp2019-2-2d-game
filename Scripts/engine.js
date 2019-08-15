@@ -892,8 +892,8 @@ class Render {
 		//this.gl.disable(this.gl.DEPTH_TEST);
 		
 		this.gl.useProgram(this.program[2]);
-		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-		const deltaY = (yp - yc + 1.5) * this.size + this.gl.canvas.height / 2;
+		const deltaX = (xp - xc) * this.size / scale + this.gl.canvas.width / 2;
+		const deltaY = (yp - yc + 1.5) * this.size / scale + this.gl.canvas.height / 2;
 		
 		this.gl.uniform4fv(this.uniform[2].u_dynamicLight[0],
 			[deltaX, deltaY, dynamicLight[0] * this.size, dynamicLight[1]]);

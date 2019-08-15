@@ -122,10 +122,37 @@ const eventTick = () => {
 	UI();
 	playerActionButtons();
 	
-	render.getPlayerParts(
-		player.animationStates.head,
-		player.animationStates.body,
-		player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
+	if (player.hand.item !== undefined) {
+		// обработка предмета в руке
+		const widthItems = 16;
+		const texture = player.hand.info.texture();
+		const itemInHand = {
+			'a': texture[0],
+			'b': texture[1]
+			};
+		
+		if (player.animationStates.body === 1) {
+			// если рука поднята
+			itemInHand.angle = -30;
+			itemInHand.pos = [58, 19];
+		} else {
+			// если рука опущена
+			itemInHand.angle = 0;
+			itemInHand.pos = [33, 35];
+		}
+		
+		render.getPlayerParts(
+			player.animationStates.head,
+			player.animationStates.body,
+			player.animationStates.legs,
+			itemInHand);  // id головы, тела и ног, которые нужно сейчас воспроизводить, а также предмет в руке
+	} else {
+		// если рука пуста
+		render.getPlayerParts(
+			player.animationStates.head,
+			player.animationStates.body,
+			player.animationStates.legs);  // id головы, тела и ног, которые нужно сейчас воспроизводить
+	}
 	
 	// В последнюю очередь
 	if (player.sp === player.maxSP) player.heal(0.5 * deltaTime);

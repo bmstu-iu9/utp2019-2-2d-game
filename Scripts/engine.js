@@ -537,7 +537,7 @@ class Render {
 		
 		this.gl.useProgram(this.program[3]);
 		
-		const w = 48 / 80;
+		this.playerAsp = playerResolutionY / (playerResolutionX + this.size) / 2;
 			
 		// заполняем буферы
 		for (let i in playerAnims) {
@@ -548,27 +548,27 @@ class Render {
 			arrayOfPosition.push(
 				// голова
 				0, body[2] / playerResolutionY,
-				w, body[2] / playerResolutionY,
+				this.playerAsp, body[2] / playerResolutionY,
 				0, head[2] / playerResolutionY,
 				0, head[2] / playerResolutionY,
-				w, body[2] / playerResolutionY,
-				w, head[2] / playerResolutionY,
+				this.playerAsp, body[2] / playerResolutionY,
+				this.playerAsp, head[2] / playerResolutionY,
 				
 				// тело
 				0, legs[2] / playerResolutionY,
-				w, legs[2] / playerResolutionY,
+				this.playerAsp, legs[2] / playerResolutionY,
 				0, body[2] / playerResolutionY,
 				0, body[2] / playerResolutionY,
-				w, legs[2] / playerResolutionY,
-				w, body[2] / playerResolutionY,
+				this.playerAsp, legs[2] / playerResolutionY,
+				this.playerAsp, body[2] / playerResolutionY,
 				
 				// ноги
 				0, 0,
-				w, 0,
+				this.playerAsp, 0,
 				0, legs[2] / playerResolutionY,
 				0, legs[2] / playerResolutionY,
-				w, 0,
-				w, legs[2] / playerResolutionY);
+				this.playerAsp, 0,
+				this.playerAsp, legs[2] / playerResolutionY);
 			
 			arrayOfTexCoord.push(
 				// голова
@@ -624,33 +624,69 @@ class Render {
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[3]);
 		
-		// задаём буферы
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
-		this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
-		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
-		
-		const w = 48 / 80;
+		const textureSize = [this.playerResolution[0] / this.playerAsp, this.playerResolution[1]];
 		
 		// отрисовываем в буфер кадров
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
 			this.texturePlayer, 0);
-		this.gl.viewport(0, 0, this.playerResolution[0] / w, this.playerResolution[1]);
+		this.gl.viewport(0, 0, textureSize[0], textureSize[1]);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		
-		item = { 'angle': 30 }
-		// item: { 'angle': angle, '': }
 		if (item !== undefined) {
 			// отрисовка предмета в руке
-			const angleInRad = this.degToRad(360 - item.angle);
+			const angleInRad = this.degToRad(item.angle);
 			const rotation = [Math.sin(angleInRad), Math.cos(angleInRad)];
 			this.setUniform2fv(this.uniform[3].u_rotation, rotation);
-			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[4]);
-			// this.gl.drawArrays(this.gl.TRIANGLES, ???, 6);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[3]);
+			
+			const posX = item.pos[0] / textureSize[0];
+			const posY = item.pos[1] / textureSize[1];
+			const width = this.size / textureSize[0];
+			const height = this.size / textureSize[1];
+			
+			// координаты предмета в руке
+			const arrayOfPosition = [
+				posX, posY,
+				posX + width, posY,
+				posX, posY + height,
+				posX, posY + height,
+				posX + width, posY,
+				posX + width, posY + height];
+			
+			// создаём буфер координат в руке
+			const positionBuffer = this.gl.createBuffer();
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
+			this.gl.enableVertexAttribArray(this.attribute[3].a_position);
+			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
+			
+			// текстурные координаты предмета в руке
+			const arrayOfTexCoord = [
+				item.a[0], item.b[1],
+				item.b[0], item.b[1],
+				item.a[0], item.a[1],
+				item.a[0], item.a[1],
+				item.b[0], item.b[1],
+				item.b[0], item.a[1]];
+			
+			// создаём буфер текстурных координат в руке
+			const texCoordBuffer = this.gl.createBuffer();
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
+			this.gl.enableVertexAttribArray(this.attribute[3].a_texCoord);
+			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
+			
+			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 			this.setUniform2fv(this.uniform[3].u_rotation, [0.0, 1.0]);
 		}
+		
+		// задаём буферы
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
+		this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
+		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]); // используем текстуру игрока
 		this.gl.drawArrays(this.gl.TRIANGLES, head * 18, 6);

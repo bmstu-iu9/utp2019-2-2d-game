@@ -359,7 +359,8 @@ class Render {
 				'u_translate',
 				'u_resolution',
 				'u_number',
-				'u_time'
+				'u_time',
+				'u_pos'
 			]); // получение uniform-переменных из шейдеров
 		
 		// используем шейдерную программу
@@ -381,7 +382,7 @@ class Render {
 		
 		// погода
 		this.rain = false;
-		this.speedRain = 4;
+		this.speedRain = 5;
 		this.weather = [];
 		this.weather[0] = this.gl.createBuffer();
 		this.weather[1] = 0;
@@ -1024,15 +1025,15 @@ class Render {
 			this.gl.vertexAttribPointer(this.attribute[5].a_id, 1, this.gl.FLOAT, false, 0, 0);
 			
 			// если количество капелек не хватает (из-за увеличения размера экрана), то пересоздаём буфер с ними
-			if (max > this.weather[1]) {
-				const wIDs = new Float32Array(max);
-				for (let i = 0; i < max; i++) {
-					wIDs[i] = i;
+			if (maxnum > this.weather[1]) {
+				const wIDs = new Float32Array(maxnum);
+				for (let i = 0; i < maxnum; i++) {
+					wIDs[i] = i + 1;
 				}
 				this.gl.bufferData(this.gl.ARRAY_BUFFER, wIDs, this.gl.STATIC_DRAW);
-				this.gl.uniform1f(this.uniform[5].u_number[0], max);
-				this.weather[1] = max;
+				this.weather[1] = maxnum;
 			}
+			this.gl.uniform1f(this.uniform[5].u_number[0], max);
 			
 			const w = this.size / this.gl.canvas.width / scale;
 			const h = 2 / this.gl.canvas.height / scale;
@@ -1043,20 +1044,24 @@ class Render {
 			// TODO: Переделать под ANGLE_instanced_arrays
 			// отрисовка дождя
 			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1; // средний шаг дождя в блоках
-			for (let i = 0; i < xh; i += d) {
+			console.log(num);
+			for (let i = 0; i <= xh; i += d) {
 				// левая половина экрана
 				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-				this.gl.uniform2fv(this.uniform[5].u_translate[0], [(xt - i) * w, Math.max(yt0, this.weather[2]) * h]);
-				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
+				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc - i));
+				this.gl.uniform2fv(this.uniform[5].u_translate[0],
+					[(xt - i) * w, Math.max(yt0, this.weather[2] * scale) * h]);
+				this.gl.drawArrays(this.gl.POINTS, 0, num);
 				
 				// правая половина экрана
 				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
+				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc + i + d));
 				this.gl.uniform2fv(this.uniform[5].u_translate[0],
-					[(xt + i + d) * w, Math.max(yt1, this.weather[2]) * h]);
-				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
+					[(xt + i + d) * w, Math.max(yt1, this.weather[2] * scale) * h]);
+				this.gl.drawArrays(this.gl.POINTS, 0, num);
 			}
 			
-			this.weather[2] -= deltaTime * this.speedRain * 92;
+			this.weather[2] -= deltaTime * this.speedRain * 98 / scale;
 			if (this.rain) {
 				this.weather[3] = Math.min(this.weather[3] + deltaTime * this.speedRain / 6, this.size);
 			} else {

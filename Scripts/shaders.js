@@ -208,6 +208,7 @@ _vertexShader[5] = `
 	uniform vec2 u_resolution;
 	uniform float u_number;
 	uniform float u_time;
+	uniform float u_pos;
 	
 	float hash(float i) {
 		vec2 p = fract(vec2(i * 5.3983, i * 5.4427));
@@ -216,10 +217,11 @@ _vertexShader[5] = `
 	}
 	
 	void main() {
-		float delta = a_id / u_number;
+		float delta = (a_id * u_pos) / u_number;
 		float offset = floor(u_time + delta) / 1000.0;
-		float x = (hash(offset + delta) * u_resolution.x + u_translate.x) * 2.0 ;
-		float y = fract(u_time * u_resolution.y * 500.0 + hash(delta)) * -2.0 + 1.0;
+		float t = u_time * u_resolution.y * 500.0 + hash(delta);
+		float x = (hash(delta / floor(t)) * u_resolution.x + u_translate.x) * 2.0;
+		float y = fract(t) * -2.0 + 1.0;
 		if (y >= u_translate.y) {
 			gl_Position = vec4(x, y, 0.0, 1.0);
 			gl_PointSize = 2.0;

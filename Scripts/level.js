@@ -1,3 +1,5 @@
+'use strict';
+
 /*
 const cameraScale = 1;                  Масштаб, 1 - стандарт
 const blockSize = 32                    Масштаб камеры (пикселей в блоке при cameraScale = 1)
@@ -18,6 +20,7 @@ let currentBlock = undefined;
 let lastPlaceBlockTime = 0;
 let BlocksGlobalChange = {};
 let staminaNotUsed = true;
+let player;
 
 // Вызывается при запуске игры
 const beginPlay = () => {

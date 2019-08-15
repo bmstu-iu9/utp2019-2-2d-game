@@ -1,3 +1,5 @@
+'use strict';
+
 const WOODEN_EFFICIENCY = 2;
 const STONE_EFFICIENCY = 4;
 const IRON_EFFICIENCY = 7;

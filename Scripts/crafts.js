@@ -1,3 +1,5 @@
+'use strict';
+
 // Список того, что можно крафтить по инвентарю
 const getCrafts = (inventory, isCraftingTable, isFurnace) => {
 

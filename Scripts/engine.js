@@ -881,7 +881,7 @@ class Render {
 		
 		for (let i = 0; i <= asp * scale + 1; i++) {
 			this.gl.uniform3f(this.uniform[0].u_translate[0],
-				xc * ch + i - asp * scale / 2, yc * ch - scale / 2, z);
+				xc * ch + i * scale - asp * scale / 2, yc * ch - scale / 2, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		
@@ -896,7 +896,7 @@ class Render {
 		const deltaY = (yp - yc + 1.5) * this.size / scale + this.gl.canvas.height / 2;
 		
 		this.gl.uniform4fv(this.uniform[2].u_dynamicLight[0],
-			[deltaX, deltaY, dynamicLight[0] * this.size, dynamicLight[1]]);
+			[deltaX, deltaY, dynamicLight[0] * this.size / scale, dynamicLight[1]]);
 		this.gl.uniform1f(this.uniform[2].u_sizeBlock[0], this.size);
 		this.gl.uniformMatrix4fv(this.uniform[2].u_projectionMatrix[0], false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,

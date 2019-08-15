@@ -1044,7 +1044,6 @@ class Render {
 			// TODO: Переделать под ANGLE_instanced_arrays
 			// отрисовка дождя
 			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1; // средний шаг дождя в блоках
-			console.log(num);
 			for (let i = 0; i <= xh; i += d) {
 				// левая половина экрана
 				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;

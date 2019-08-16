@@ -247,16 +247,26 @@ const lavaFlowing = (x, y, l, id) => {
         const dx = [x, x, x + 1, x - 1],
             dy = [y + 1, y - 1, y, y];
         for (let i = 0; i < dx.length; i++) {
-            if (items[gameArea.get(dx[i], dy[i], l)] !== undefined
-            && items[gameArea.get(dx[i], dy[i], l)].type === 'wood') {
-                const id = gameArea.get(dx[i], dy[i], l);
-                setTimeout(() => {
-                    if (id === gameArea.get(dx[i], dy[i], l)) {
-                        gameArea.destroyBlock(dx[i], dy[i], l);
+            if (items[gameArea.get(dx[i], dy[i], l)] !== undefined) {
+                if (items[gameArea.get(dx[i], dy[i], l)].type === 'wood') {
+                    if (gameArea.get(dx[i], dy[i] + 1, l) === undefined) {
+                        gameArea.placeBlock(dx[i], dy[i] + 1, l, 9048);
                     }
-                }, 1000 * items[gameArea.get(dx[i], dy[i], l)].durability);
+                    const id = gameArea.get(dx[i], dy[i], l);
+                    setTimeout(() => {
+                        if (id === gameArea.get(dx[i], dy[i], l)) {
+                            gameArea.destroyBlock(dx[i], dy[i], l);
+                        }
+                    }, 1000 * items[gameArea.get(dx[i], dy[i], l)].durability);
+                }
+                if (items[gameArea.get(dx[i], dy[i], l)].type === 'water'
+                    || items[gameArea.get(dx[i], dy[i], l)].type === 'flowingWater') {
+
+                     gameArea.destroyBlock(dx[i], dy[i], l);
+                }
             }
         }
+
         const idFull = lavaFull(id);
         if (id !== LAVA_ID && isLava(gameArea.get(x, y, l))) {
             if (idFull === 8 && (!isLava(gameArea.get(x, y + 1, l))
@@ -2111,19 +2121,19 @@ const items = {
     {
         
         id: '9048',
-        type: 'flowingLava',
+        type: 'fire',
         durability: 1,
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
-        density: 0.9,
-        name: 'flowing-lava-23',
+        name: 'fire-1',
         update: (x, y, l) => {
             setTimeout(() => {
-                
-            gameArea.map[x][y][l]=undefined;
-            gameArea.placeBlock(x, y, l, 9049);
+                gameArea.map[x][y][l] = undefined;
+                if (gameArea.get(x, y - 1, l) !== undefined) {
+                    gameArea.placeBlock(x, y, l, 9049);
+                }
             }, 100);
         }
     },
@@ -2132,19 +2142,19 @@ const items = {
     {
         
         id: '9049',
-        type: 'flowingLava',
+        type: 'fire',
         durability: 1,
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
         isNaturalLight: true,
-        density: 0.9,
-        name: 'flowing-lava-23',
+        name: 'fire-2',
         update: (x, y, l) => {
             setTimeout(() => {
-                
-            gameArea.map[x][y][l]=undefined;
-            gameArea.placeBlock(x, y, l, 9048);
+                gameArea.map[x][y][l]=undefined;
+                if (gameArea.get(x, y - 1, l) !== undefined) {
+                    gameArea.placeBlock(x, y, l, 9048);
+                }
             }, 100);
         }
     }

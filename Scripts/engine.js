@@ -206,9 +206,9 @@ class Render {
 					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
 						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
 					<h6>1: ${navigator.userAgent}<br>
-					2: ${this.gl.getParameter(this.gl.VERSION)}<br>
-					3: ${this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)}<br>
-					4: ${this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}<br>`;
+						2: ${this.gl.getParameter(this.gl.VERSION)}<br>
+						3: ${this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)}<br>
+						4: ${this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}<br>`;
 				console.log(this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
 				console.log(this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
 			} else {
@@ -218,7 +218,7 @@ class Render {
 					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
 						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
 					<h6>1: ${navigator.userAgent}<br>
-					2: ${this.gl.getParameter(this.gl.VERSION)}<br>`;
+						2: ${this.gl.getParameter(this.gl.VERSION)}<br>`;
 			}
 			throw new Error('Browser is very old');
 		}
@@ -362,7 +362,8 @@ class Render {
 				'u_number',
 				'u_time',
 				'u_pos',
-				'u_devicePixelRatio'
+				'u_devicePixelRatio',
+				'u_move'
 			]); // получение uniform-переменных из шейдеров
 		
 		// используем шейдерную программу
@@ -1036,14 +1037,15 @@ class Render {
 				this.gl.bufferData(this.gl.ARRAY_BUFFER, wIDs, this.gl.STATIC_DRAW);
 				this.weather[1] = maxnum;
 			}
-			this.gl.uniform1f(this.uniform[5].u_number[0], max);
-			this.setUniform1f(this.uniform[5].u_devicePixelRatio, window.devicePixelRatio);
 			
 			const w = this.size / this.gl.canvas.width / scale;
-			const h = 2 / this.gl.canvas.height / scale;
+			const h = this.size / this.gl.canvas.height / scale;
 			
+			this.gl.uniform1f(this.uniform[5].u_number[0], max);
 			this.gl.uniform1f(this.uniform[5].u_time[0], time * this.speedRain * 0.0001);
 			this.gl.uniform2fv(this.uniform[5].u_resolution[0], [w, h]);
+			this.setUniform1f(this.uniform[5].u_devicePixelRatio, window.devicePixelRatio);
+			this.setUniform1f(this.uniform[5].u_move, yc);
 			
 			// TODO: Переделать под ANGLE_instanced_arrays
 			// отрисовка дождя
@@ -1053,18 +1055,18 @@ class Render {
 				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
 				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc - i));
 				this.gl.uniform2fv(this.uniform[5].u_translate[0],
-					[(xt - i) * w, Math.max(yt0, this.weather[2] * scale) * h]);
+					[(xt - i) * w, Math.max(yt0, this.weather[2] * scale) * h / 16]);
 				this.gl.drawArrays(this.gl.POINTS, 0, num);
 				
 				// правая половина экрана
 				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
 				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc + i + d));
 				this.gl.uniform2fv(this.uniform[5].u_translate[0],
-					[(xt + i + d) * w, Math.max(yt1, this.weather[2] * scale) * h]);
+					[(xt + i + d) * w, Math.max(yt1, this.weather[2] * scale) * h / 16]);
 				this.gl.drawArrays(this.gl.POINTS, 0, num);
 			}
 			
-			this.weather[2] -= deltaTime * this.speedRain * 98 / scale;
+			this.weather[2] -= deltaTime * this.speedRain * 100 / scale;
 			if (this.rain) {
 				this.weather[3] = Math.min(this.weather[3] + deltaTime * this.speedRain / 6, this.size);
 			} else {

@@ -494,6 +494,11 @@ class Player {
             }
         }
 
+        // Урон от горения
+        this.burning = (deltaTime) => {
+            this.getDamage(Player.BURN_SPEED * deltaTime);
+        }
+
         this.updateBP = (count) => {
             this.bp = count;
             if (count >= this.maxBP) {
@@ -599,22 +604,27 @@ class Player {
 
         /*  Коэффициент плотности жидкости, в которой игрок
             0 - игрок не касается жидкости,
-            (0..1) - максимальная плотность жидкости, которой касается игрок */
+            (0..1) - максимальная плотность жидкости, которой касается игрок
+
+            И тип жидкости, в которой игрок - возвращает Set
+        */
         this.getLiquidK = () => {
             let k = 0;
-            let startX = Math.max(Math.floor(this.x - Player.WIDTH / 2), 0);
-            let endX = Math.min(Math.floor(this.x + Player.WIDTH / 2), gameArea.width - 1);
-            let startY = Math.max(Math.floor(this.y), 0);
-            let endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
+            let type = new Set();
+            const startX = Math.max(Math.floor(this.x - Player.WIDTH / 2), 0);
+            const endX = Math.min(Math.floor(this.x + Player.WIDTH / 2), gameArea.width - 1);
+            const startY = Math.max(Math.floor(this.y), 0);
+            const endY = Math.min(Math.floor(this.y + Player.HEIGHT), gameArea.height - 1);
             for (let x = startX; x <= endX; x++) {
                 for (let y = startY; y <= endY; y++) {
                     if (items[gameArea.map[x][y][this.layout]]
                             && items[gameArea.map[x][y][this.layout]].density > k) {
                         k = items[gameArea.map[x][y][this.layout]].density;
+                        type.add(items[gameArea.map[x][y][this.layout]].type);
                     }
                 }
             }
-            return k;
+            return [k, type];
         }
 
         this.getLight = () => {
@@ -730,3 +740,4 @@ Player.FAST_INVENTORY_SIZE = 8; // Количество ячеек в инвен
 Player.HEAD_X = 0;
 Player.HEAD_Y = 3 / 4 * Player.HEIGHT;
 Player.CHOKE_SPEED = 15;
+Player.BURN_SPEED = 30;

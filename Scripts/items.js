@@ -19,7 +19,7 @@ const WATER_TIME_UPDATE = 0.2;
 const LAVA_TIME_UPDATE = 0.4;
 const LEAF_TIME_ALIVE = 1;  // Рандомный промежуток с верхним концом [сек]
 const LEAF_UNDEAD_PART = 0.3;
-const WATER_DESTROY_LIST = [5, 6, 18, 19, 370];  // id, которые смывает вода
+const LIQUID_DESTROY_LIST = [6, 18, 19, 370];  // id, которые смывает жидкость
 
 const createItem = (id, count) => {
     if (items[id].isTool) {
@@ -111,7 +111,7 @@ const waterFlowing = (x, y, l, id) => {
         const idRotate = rotateWater(id);
         const flow = (X) => {
             if (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l])
-            || WATER_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
+            || LIQUID_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
 
                 if (idFull === 0.5) {
                     return;
@@ -189,7 +189,7 @@ const waterFlowing = (x, y, l, id) => {
             if (isWater(gameArea.get(x + 1, y, l))) {
                 flow(x + 1);
             }
-        } else if ((y - 1) >= 0 && WATER_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
+        } else if ((y - 1) >= 0 && LIQUID_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
             gameArea.destroyBlock(x, y - 1, l, player, "liquid destroy list");
             gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
             if (isWater(gameArea.get(x - 1, y, l))) {
@@ -244,6 +244,19 @@ const createLava = (full, rotate) => {
 }
 const lavaFlowing = (x, y, l, id) => {
     setTimeout(() => {
+        const dx = [x, x, x + 1, x - 1],
+            dy = [y + 1, y - 1, y, y];
+        for (let i = 0; i < dx.length; i++) {
+            if (items[gameArea.get(dx[i], dy[i], l)] !== undefined
+            && items[gameArea.get(dx[i], dy[i], l)].type === 'wood') {
+                const id = gameArea.get(dx[i], dy[i], l);
+                setTimeout(() => {
+                    if (id === gameArea.get(dx[i], dy[i], l)) {
+                        gameArea.destroyBlock(dx[i], dy[i], l);
+                    }
+                }, 1000 * items[gameArea.get(dx[i], dy[i], l)].durability);
+            }
+        }
         const idFull = lavaFull(id);
         if (id !== LAVA_ID && isLava(gameArea.get(x, y, l))) {
             if (idFull === 8 && (!isLava(gameArea.get(x, y + 1, l))
@@ -274,7 +287,7 @@ const lavaFlowing = (x, y, l, id) => {
         const idRotate = rotateLava(id);
         const flow = (X) => {
             if (gameArea.map[X][y][l] === undefined || isLava(gameArea.map[X][y][l])
-            || WATER_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
+            || LIQUID_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
 
                 if (idFull === 0.5) {
                     return;
@@ -352,7 +365,7 @@ const lavaFlowing = (x, y, l, id) => {
             if (isLava(gameArea.get(x + 1, y, l))) {
                 flow(x + 1);
             }
-        } else if ((y - 1) >= 0 && WATER_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
+        } else if ((y - 1) >= 0 && LIQUID_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
             gameArea.destroyBlock(x, y - 1, l, player, "liquid destroy list");
             gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingLavaBlock(createLava(8, 0)));
             if (isLava(gameArea.get(x - 1, y, l))) {
@@ -598,7 +611,7 @@ const items = {
         }
     },
 
-    '9':
+    '9':  // Не будет использоваться
     {
         id: '9',
         type: 'flowingWater',
@@ -629,7 +642,7 @@ const items = {
         }
     },
 
-    '11':
+    '11':  // Не будет использоваться
     {
         id: '11',
         type: 'flowingWater',

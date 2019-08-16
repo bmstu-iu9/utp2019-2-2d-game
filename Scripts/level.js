@@ -253,12 +253,15 @@ const playerMovement = () => {
 	if (gameArea.map[headX][headY][player.layout]
 		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
 			|| items[gameArea.map[headX][headY][player.layout]].type == "flowingWater"
+			|| items[gameArea.map[headX][headY][player.layout]].type == "lava"
+			|| items[gameArea.map[headX][headY][player.layout]].type == "flowingLava"
 			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {
 		player.updateBP(Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100));
 	}
-	let liquidK = player.getLiquidK();
+	const liquid = player.getLiquidK();
+	const liquidK = liquid[0];
 
 	if (liquidK == 0) { // Если игрок на суше
 		if (player.onGround()) { //....................................................... Если игрок на поверхности
@@ -306,6 +309,9 @@ const playerMovement = () => {
 		}
 		if (!controller.left.active && !controller.right.active) player.vx = 0; //....... Если нет движения в стороны
 	} else { //.......................................................................... Если в жидкости
+		if (liquid[1].has('lava') || liquid[1].has('flowingLava')) {
+			player.burning(deltaTime);
+		}
 		if (controller.left.active) player.vx -= Player.SPEED * deltaTime;
 		if (controller.right.active) player.vx += Player.SPEED * deltaTime;
 		if (controller.up.active) player.vy += Player.SPEED * deltaTime;

@@ -277,7 +277,8 @@ class Render {
 				'u_light',
 				'u_sizeBlock',
 				'u_center',
-				'u_radius'
+				'u_radius',
+				'u_devicePixelRatio'
 			]); // получение uniform-переменных из шейдеров
 		
 		// привязка текстур к текстурным блокам
@@ -360,7 +361,8 @@ class Render {
 				'u_resolution',
 				'u_number',
 				'u_time',
-				'u_pos'
+				'u_pos',
+				'u_devicePixelRatio'
 			]); // получение uniform-переменных из шейдеров
 		
 		// используем шейдерную программу
@@ -955,6 +957,7 @@ class Render {
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 			this.gl.uniform1f(this.uniform[1].u_resolution[0], this.gl.canvas.height);
 			this.setUniform1f(this.uniform[1].u_radius, 250.0 * scale);
+			this.setUniform1f(this.uniform[1].u_devicePixelRatio, window.devicePixelRatio);
 			
 			// отрисовка 1 слоя с полупрозрачным кругом
 			for (let c in this.arrayOfChunks) {
@@ -1015,8 +1018,8 @@ class Render {
 		if (this.weather[3] > 0) {
 			this.gl.useProgram(this.program[5]);
 			const xh = Math.round(this.gl.canvas.width * scale / this.size / 2 + 1);
-			const maxnum = Math.ceil(this.size * this.gl.canvas.height / 1000);
-			const raw = this.weather[3] * this.gl.canvas.height / 1000;
+			const maxnum = Math.ceil(this.size * this.gl.canvas.height * window.devicePixelRatio / 1000);
+			const raw = this.weather[3] * this.gl.canvas.height * window.devicePixelRatio / 1000;
 			const num = Math.ceil(raw);
 			const max = maxnum * xh * 2;
 			const xt = -(xc % 1);
@@ -1034,6 +1037,7 @@ class Render {
 				this.weather[1] = maxnum;
 			}
 			this.gl.uniform1f(this.uniform[5].u_number[0], max);
+			this.setUniform1f(this.uniform[5].u_devicePixelRatio, window.devicePixelRatio);
 			
 			const w = this.size / this.gl.canvas.width / scale;
 			const h = 2 / this.gl.canvas.height / scale;

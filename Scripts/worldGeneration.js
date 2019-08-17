@@ -79,6 +79,7 @@ const generate = (width, height, seed, changes) => {
     //#region mapIntercations
     let worldMap = new Array(width);
     let worldZones = new Array(width); //Массив, описывающий зоны (зона с озером, зона с пещерой и т.д.)
+    let chestsInvs = new Map();
     for (let i = 0; i < worldMap.length; i++) {
         worldMap[i] = new Array(height);
         worldZones[i] = new Array(height);
@@ -109,6 +110,21 @@ const generate = (width, height, seed, changes) => {
         if (x < 0 || y < 0 || x >= width || y >= height)
             return NONE_ZONE;
         return worldZones[x][y] !== undefined ? worldZones[x][y] : NONE_ZONE;
+    }
+    const setChest = (x, y, layer, items) => {
+        let tinv = [
+            [],
+            [],
+            0,
+            150 //CHEST CAPACITY
+        ];
+        for (let i in items) {
+            //WARHING: here does not check for the inv capacity!
+            tinv[0].push(items[i].id);
+            tinv[1].push(items[i].count);
+            tinv[2] += items[i].id + items[i].count;
+        }
+        chestsInvs[[x, y, layer]] = tinv;
     }
     //#endregion
      
@@ -193,7 +209,8 @@ const generate = (width, height, seed, changes) => {
         });
     }
 
-    const drawByScheme = (loc, blocks, firstL, secondL) => {
+    const drawByScheme = (loc, blocks, firstL, secondL, chestf) => {
+        //chestf(x, y, layer) - функция заполнения сундука
         const drawToLayer = (layer, scheme) => {
             for (let i = 0; i < scheme.length; i++) {
                 for (let j = 0; j < scheme[i].length; j++) {
@@ -205,6 +222,12 @@ const generate = (width, height, seed, changes) => {
                     }
                     if (blocks[scheme[i][j]] === undefined)
                         continue; //Или throw? Или в log?
+                    if (blocks[scheme[i][j]] === CHEST_BLOCK) {
+                        if (chestf === undefined)
+                            setChest(loc.x + j, loc.y + i, layer, []);
+                        else
+                            chestf(loc.x + j, loc.y + i, layer);
+                    }
                     setBlock(loc.x + j, loc.y + i, layer, blocks[scheme[i][j]]);
                 }
             }
@@ -1537,43 +1560,6 @@ const generate = (width, height, seed, changes) => {
                     for (let j = 0; j < h; j++)
                         clearBlock(x + i, y + j);
             }
-            const createEmptyCell = (loc, holes) => {
-                for (let i = 0; i < cellW; i++) {
-                    //Горизонтальные стены
-                    setBlock(loc.x + i, loc.y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-                    setBlock(loc.x + i, loc.y + cellH - 1, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-                    //Задняя стена
-                    for (let j = 0; j < cellH; j++) {
-                        setBlock(loc.x + i, loc.y + j, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-                        setBlock(loc.x + i, loc.y + j, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
-                        setBlock(loc.x + i, loc.y + j, GameArea.BACK_LAYOUT, STONE_BRICK_BLOCK);
-                    }
-                }
-                //Вертикальные стены
-                for (let i = 0; i < cellH; i++) {
-                    setBlock(loc.x, loc.y + i, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-                    setBlock(loc.x + cellW - 1, loc.y + i, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-                }
-                //Проходы
-                if (!holes.right || !holes.left) {
-                    let center = loc.y + Math.floor(cellH / 2);
-                    for (let i = -3; i <= 2; i++) {
-                        if (!holes.left)
-                            setBlock(loc.x, center + i, GameArea.FIRST_LAYOUT, AIR_BLOCK);
-                        if (!holes.right)
-                            setBlock(loc.x + cellW - 1, center + i, GameArea.FIRST_LAYOUT, AIR_BLOCK);
-                    }
-                }
-                if (!holes.top || !holes.bottom) {
-                    let center = loc.x + Math.floor(cellW / 2);
-                    for (let i = -3; i <= 2; i++) {
-                        if (!holes.bottom)
-                            setBlock(center + i, loc.y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
-                        if (!holes.top)
-                            setBlock(center + i, loc.y + cellH - 1, GameArea.FIRST_LAYOUT, AIR_BLOCK);
-                    }
-                }
-            }
             const createLabyrynth = () => { //Алгоритм Эллера (TODO: можно посмотреть другие)
                 let arr = [];
                 arr[0] = [];
@@ -1706,6 +1692,7 @@ const generate = (width, height, seed, changes) => {
                 return t;
             }
 
+            //#region rooms
             const blocksMap = {
                 'a': BRICKS_WITH_KEY_BLOCK,
                 'b': STONE_BRICK_BLOCK,
@@ -1915,20 +1902,61 @@ const generate = (width, height, seed, changes) => {
 
             const entranceFL = ["bbbbbbbbbbbbttttttbbbbbbbb.......bbbb.......bbbbbbbbbbbbbbbb","bbbb bbbbbb..........d.............................bbbbbbb  ","b b   bbbbb..........d.............................bbbbbbb  ","      bbbbb..........d.......l..........l..........bbbbbb   ","      bbbbb....l.....d............................bbbbbb    ","       bbbb.........bbb.......bbttttttbb........bbbbbb      ","       bbbbb......bbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbb....bbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","            bbbbbb                                          ","                                                            "];;
             const entranceSL = ["     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","       bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb      ","       bbbbbbbbbbbbbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbbbbbbbbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","                                                            ","                                                            "];
-            const finalFL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbttttttbbbbbbbbbbbb"," bbbbb................bbbbb......bbbbb................bbbbb "," bbbb..................................................bbbb ","  bb....................................................bb  ","  bb.........l..........l..........l..........l.........bb  ","  bb....................................................bb  ","  bbb..................................................bbb  ","   bbb................................................bbb...","   bbbbb.............bbbbbbb....bbbbbbb.............bbbbb   ","    bbbbbb.......bbbbbbbbbbbb..bbbbbbbbbbbb.......bbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
+            const finalFL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbttttttbbbbbbbbbbbb"," bbbbb....e......e....bbbbb......bbbbb................bbbbb "," bbbb..................................................bbbb ","  bb....................................................bb  ","  bb.........l..........l..........l..........l.........bb  ","  bb....................................................bb  ","  bbb..................................................bbb  ","   bbb................................................bbb...","   bbbbb.............bbbbbbb....bbbbbbb.............bbbbb   ","    bbbbbb.......bbbbbbbbbbbb..bbbbbbbbbbbb.......bbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
             const finalSL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","    bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
+            //#endregion
+
+            //#region lootTables
+                const commonTable = [
+                    [
+                        { id: 263, count: 13 }, //COAL
+                        { id: 265, count: 5 }, //IRON
+                        { id: 267, count: 2 }, //SHAFT
+                        { id: 266, count: 1 }, //GOLD
+                    ],
+                    [
+                        { id: 263, count: 8 }, //COAL
+                        { id: 265, count: 6 }, //IRON
+                        { id: 266, count: 2 }, //GOLD
+                    ]
+                ];
+                const rareTable = [
+                    [
+                        { id: 264, count: 5 }, //DIAMOND
+                        { id: 265, count: 3 }, //IRON
+                        { id: 266, count: 2 }, //GOLD
+                    ],
+                    [
+                        { id: 263, count: 5 }, //COAL
+                        { id: 265, count: 15 }, //IRON
+                        { id: 266, count: 8 }, //GOLD
+                        { id: 264, count: 3 }, //DIAMOND
+                    ]
+                ];
+                const finalTable = [
+                    [
+                        { id: 264, count: 20 }, //DIAMOND
+                        { id: 266, count: 10 }, //GOLD
+                    ],
+                    [
+                        { id: 263, count: 10 }, //COAL
+                        { id: 265, count: 20 }, //IRON
+                        { id: 266, count: 15 }, //GOLD
+                        { id: 264, count: 10 }, //DIAMOND
+                    ]
+                ];
+            //#endregion
 
             let labyrynth = createLabyrynth();
             labyrynth[0][0].top = false;
             labyrynth[0][cellX - 1].top = false;
-            logLabyrynth(labyrynth);
-
             // labyrynth[0][1] = { top: false, right: true, bottom: true, left: true };
             // labyrynth[2][1] = { top: true, right: true, bottom: false, left: true };
             // labyrynth[1][0] = { top: true, right: false, bottom: true, left: true };
             // labyrynth[1][2] = { top: true, right: false, bottom: true, left: true };
             // labyrynth[1][1] = { top: true, right: true, bottom: true, left: false };
-            
+
+            logLabyrynth(labyrynth);
             clearZone(loc.x, loc.y, cellX * cellW, cellY * cellH);
             for (let i = 0; i < cellX; i++) {
                 for (let j = 0; j < cellY; j++) {
@@ -1939,18 +1967,25 @@ const generate = (width, height, seed, changes) => {
                         // continue;
                     }
                     let room = rooms[type][stype];
-                    drawByScheme(loc.add(i * cellW, j * cellH), blocksMap, room.firstL, room.secondL);
+                    const chestf = (x, y, layer) => {
+                        let table;
+                        if (random() < 0.3)
+                            table = rareTable;
+                        else
+                            table = commonTable;
+                        let inv = table[Math.floor(random() * table.length)];
+                        setChest(x, y, layer, inv);
+                    }
+                    drawByScheme(loc.add(i * cellW, j * cellH), blocksMap, room.firstL, room.secondL, chestf);
                 }
             }
             drawByScheme(loc.add(0, cellY * cellH), blocksMap, entranceFL, entranceSL);
-            drawByScheme(loc.add((cellX - 2) * cellW, cellY * cellH), blocksMap, finalFL, finalSL);
+            const chestFinalf = (x, y, layer) => {
+                let inv = finalTable[Math.floor(random() * finalTable.length)];
+                setChest(x, y, layer, inv);
+            }
+            drawByScheme(loc.add((cellX - 2) * cellW, cellY * cellH), blocksMap, finalFL, finalSL, chestFinalf);
 
-
-            // drawByScheme(new Point(530, 730), blocksMap, rooms[getCellType(labyrynth[2][1])][0].firstL, rooms[getCellType(labyrynth[2][1])][0].secondL);
-            // drawByScheme(new Point(530, 790), blocksMap, rooms[getCellType(labyrynth[0][1])][0].firstL, rooms[getCellType(labyrynth[0][1])][0].secondL);
-            // drawByScheme(new Point(500, 760), blocksMap, rooms[getCellType(labyrynth[1][0])][0].firstL, rooms[getCellType(labyrynth[1][0])][0].secondL);
-            // drawByScheme(new Point(560, 760), blocksMap, rooms[getCellType(labyrynth[1][2])][0].firstL, rooms[getCellType(labyrynth[1][2])][0].secondL);
-            // drawByScheme(new Point(530, 760), blocksMap, rooms[getCellType(labyrynth[1][1])][1].firstL, rooms[getCellType(labyrynth[1][1])][1].secondL);
             // setBlock(500, 790, GameArea.FIRST_LAYOUT, WOOD_BLOCK)
         }
 
@@ -2044,7 +2079,7 @@ const generate = (width, height, seed, changes) => {
     
     // Создть карту освещения
     createShadows(9);
-    return new GameArea(worldMap, elevationMap, shadowMap, width, height);
+    return new GameArea(worldMap, elevationMap, shadowMap, width, height, chestsInvs);
     //#endregion
 }
 

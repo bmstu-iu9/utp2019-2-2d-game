@@ -35,7 +35,7 @@
 
 // Игровое пространство
 class GameArea{
-    constructor(map, elevationMap, shadowMap, width, height) {
+    constructor(map, elevationMap, shadowMap, width, height, chestsInvs) {
         // map  - двумерная карта, состоящая из id блоков
         this.map = map;
         this.elevationMap = elevationMap;
@@ -43,7 +43,7 @@ class GameArea{
         this.timeOfDay = 1; //От 0 до 1, где 1 - полдень, 0 - полночь
 
         // Ассоциативный массив inventoryBlocks[[x, y, layout]] -> [ ] инвентарь блока
-        this.inventoryBlocks = new Map();
+        this.inventoryBlocks = chestsInvs; // this.inventoryBlocks = new Map();
 
         // Ширина и высота игрового пространства
         this.width = width;

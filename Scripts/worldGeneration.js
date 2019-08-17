@@ -58,7 +58,7 @@ const generate = (width, height, seed, changes) => {
     const CHEST_BLOCK = 22;
     const LOCKED_TRAPDOOR_BLOCK = 53;
     const LOCKED_DOOR_BLOCK = 54;
-    const BRICKS_WITH_KEY_BLOCK = 55;
+    const DUNGEON_BRICK_BLOCK = 55;
     const DIAMOND_ORE_BLOCK = 56;
     const IRON_WOOD_BLOCK = 57;
     const GOLD_LEAF_BLOCK = 58;
@@ -1529,9 +1529,9 @@ const generate = (width, height, seed, changes) => {
             const clearZone = (x, y, w, h) => {
                 const clearBlock = (x, y) => {
                     setZone(x, y, CAVE_SPECIAL_ZONE);
-                    setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BRICK_BLOCK);
-                    setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BRICK_BLOCK);
-                    setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BRICK_BLOCK);
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, DUNGEON_BRICK_BLOCK);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, DUNGEON_BRICK_BLOCK);
+                    setBlock(x, y, GameArea.BACK_LAYOUT, DUNGEON_BRICK_BLOCK);
                 }
                 const vW_2 = w * w;
                 const vH_2 = h * h;
@@ -1694,8 +1694,8 @@ const generate = (width, height, seed, changes) => {
 
             //#region rooms
             const blocksMap = {
-                'a': BRICKS_WITH_KEY_BLOCK,
-                'b': STONE_BRICK_BLOCK,
+                'a': STONE_BRICK_BLOCK,
+                'b': DUNGEON_BRICK_BLOCK,
                 'c': COBBLESTONE_BLOCK,
                 'd': CLOSED_DOOR_BLOCK,
                 'e': CHEST_BLOCK,

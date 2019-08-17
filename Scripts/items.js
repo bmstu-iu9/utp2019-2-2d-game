@@ -826,22 +826,17 @@ const items = {
     '55':
     {
         id: '57',
-        name: 'Bricks with key',
-        type: 'stone',
-        isBlock: true,
+        name: 'Dungeon bricks',
+        type: 'bedrock',
+        weight: '2',
+        durability: 1000,
+        brightness: 0,
         isCollissed: true,
-        durability: 9,
         isSolid: true,
         weight: WEIGHT_OF_BLOCKS,
-        dropId: 280,
-        isClickable: true,
         texture: () => {
             return getTextureCoordinates(13, 0)
         },
-        interactFunction: (x, y, layout) => {
-            gameArea.gameAreaMapSet(x, y, layout, 21);
-            player.addToInv(createItem(280, 1));
-        }
     },
 
     '56':

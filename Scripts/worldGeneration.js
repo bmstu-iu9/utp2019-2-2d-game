@@ -111,18 +111,18 @@ const generate = (width, height, seed, changes) => {
             return NONE_ZONE;
         return worldZones[x][y] !== undefined ? worldZones[x][y] : NONE_ZONE;
     }
-    const setChest = (x, y, layer, items) => {
+    const setChest = (x, y, layer, loot) => {
         let tinv = [
             [],
             [],
             0,
             150 //CHEST CAPACITY
         ];
-        for (let i in items) {
+        for (let i in loot) {
             //Тут нет проверки на емкость сундука
-            tinv[0].push(items[i].id);
-            tinv[1].push(items[i].count);
-            tinv[2] += items[i].id + items[i].count;
+            tinv[0].push(loot[i].id);
+            tinv[1].push(loot[i].count);
+            tinv[2] += items[loot[i].id].weight * loot[i].count;
         }
         chestsInvs[[x, y, layer]] = tinv;
     }

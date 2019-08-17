@@ -211,8 +211,7 @@ Sprite.pixelScale = render.getCanvasSize()[0] / defaultWidth;
 
 let floatMessage;
 let needshowFloatMessage;
-let showingTime = 1;
-const showFloatMessage = (str) => {
+const showFloatMessage = (str, showingTime) => {
 
     if (floatMessage) {
         if (floatMessage.str !== str) {
@@ -220,12 +219,14 @@ const showFloatMessage = (str) => {
             floatMessage.props.shown = true;
         } else {
             needshowFloatMessage = true;
-            floatMessage.props.showingTime = 0;
+            floatMessage.props.showingTime = showingTime;
         }
         return;
     } else {
         needshowFloatMessage = true;
     }
+
+    if (!showingTime) showingTime = 1;
 
     let fontSize = 40;
     let _size = render.getCanvasSize();
@@ -267,7 +268,7 @@ const showFloatMessage = (str) => {
         },
         {
             shown: false,
-            showingTime: 0,
+            showingTime: showingTime,
             animationState: 0,
             opened: {
                 indent: {
@@ -296,8 +297,8 @@ const showFloatMessage = (str) => {
         });
     panel.recountRect = (rect, indent, parent, image, props) => {
         if (props.animationState === 1) {
-            if (props.showingTime < showingTime) {
-                props.showingTime += deltaTime;
+            if (props.showingTime > 0) {
+                props.showingTime -= deltaTime;
             } else {
                 props.shown = true;
             }

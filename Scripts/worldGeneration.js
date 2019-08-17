@@ -4,7 +4,7 @@ var __observe = [];
 
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
-    seed = 1566050705252;
+    // seed = 1566050705252;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -2082,7 +2082,7 @@ const generate = (width, height, seed, changes) => {
                             table = rareTable;
                         else
                             table = commonTable;
-                        let inv = table[Math.floor(random() * table.length)];
+                        let inv = table[Math.floor(random() * table.length)].slice();
                         if (labyrynth[cellY - j - 1][i].keyHere) {
                             inv.push({ id: 280, count: 1 });
                         }

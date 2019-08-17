@@ -261,7 +261,6 @@ const playerActionButtons = () => {
 
 // Движение игрока
 const playerMovement = () => {
-
 	if(controller.down.active) {
 		 if(!controller.downClick) {
 		 	controller.downClick = true;

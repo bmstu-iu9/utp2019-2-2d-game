@@ -151,27 +151,28 @@ class Sprite {
                     });
                 }
 
-                for (let i = 0; i < this.children.length; i++) {
-                    ans = ans.concat(this.children[i].draw({
-                        'pa': pa,
-                        'pb': pb,
-                        'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
-                        'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
-                        'id': this.id
-                    }));
+                let parentInfo = {
+                    'pa': pa,
+                    'pb': pb,
+                    'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
+                    'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
+                    'id': this.id
                 }
+
+                for (let i = 0; i < this.children.length; i++) {
+                    ans = ans.concat(this.children[i].draw(parentInfo));
+                }
+
 
                 // Добавляем элементы поверх всего интерфейса
                 if (isScreenUI) {
+                    // Сообщение в углу экрана
+                    if (floatMessage) {
+                        ans = ans.concat(floatMessage.draw(parentInfo));
+                    }
                     // Сообщение у мышки
                     if (mouseMessage) {
-                        ans = ans.concat(mouseMessage.draw({
-                            'pa': pa,
-                            'pb': pb,
-                            'ca': [ Math.max(parent.ca[0], pa[0]), Math.max(parent.ca[1], pa[1]) ],
-                            'cb': [ Math.min(parent.cb[0], pb[0]), Math.min(parent.cb[1], pb[1]) ],
-                            'id': this.id
-                        }));
+                        ans = ans.concat(mouseMessage.draw(parentInfo));
                     }
                 }
             }
@@ -207,6 +208,163 @@ class Sprite {
 
 Sprite.counter = 1;
 Sprite.pixelScale = render.getCanvasSize()[0] / defaultWidth;
+
+let floatMessage;
+let needshowFloatMessage;
+let showingTime = 1;
+const showFloatMessage = (str) => {
+
+    if (floatMessage) {
+        if (floatMessage.str !== str) {
+            needshowFloatMessage = false;
+            floatMessage.props.shown = true;
+        } else {
+            needshowFloatMessage = true;
+            floatMessage.props.showingTime = 0;
+        }
+        return;
+    } else {
+        needshowFloatMessage = true;
+    }
+
+    let fontSize = 40;
+    let _size = render.getCanvasSize();
+
+    let height = 1;
+    let width = 0;
+    let counter = 0;
+    for(let i = 0; i < str.length; i++) {
+        if (str[i] === '\n') {
+            height++;
+            counter = 0;
+        } else {
+            counter++;
+            if (counter * 2 / 3 > width) width = counter * 2 / 3;
+        }
+    }
+
+    let panel = new Sprite(
+        [ [0, 0.51], [0.125, 0.615] ],
+        {
+            pa: {
+                x: 0,
+                y: 1
+            },
+            pb: {
+                x: 0,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 10,
+                y: -height * fontSize - 30
+            },
+            pb: {
+                x: width * fontSize + 30,
+                y: -10
+            }
+        },
+        {
+            shown: false,
+            showingTime: 0,
+            animationState: 0,
+            opened: {
+                indent: {
+                    pa: {
+                        x: 10,
+                        y: -height * fontSize - 30
+                    },
+                    pb: {
+                        x: width * fontSize + 30,
+                        y: -10
+                    }
+                }
+            },
+            closed: {
+                indent: {
+                    pa: {
+                        x: - width * fontSize - 30,
+                        y: -height * fontSize - 30
+                    },
+                    pb: {
+                        x: -10,
+                        y: -10
+                    }
+                }
+            }
+        });
+    panel.recountRect = (rect, indent, parent, image, props) => {
+        if (props.animationState === 1) {
+            if (props.showingTime < showingTime) {
+                props.showingTime += deltaTime;
+            } else {
+                props.shown = true;
+            }
+        }
+        indent.pa = {
+            x: props.closed.indent.pa.x + props.animationState * (props.opened.indent.pa.x - props.closed.indent.pa.x),
+            y: props.closed.indent.pa.y + props.animationState * (props.opened.indent.pa.y - props.closed.indent.pa.y)
+        }
+        indent.pb = {
+            x: props.closed.indent.pb.x + props.animationState * (props.opened.indent.pb.x - props.closed.indent.pb.x),
+            y: props.closed.indent.pb.y + props.animationState * (props.opened.indent.pb.y - props.closed.indent.pb.y)
+        }
+    }
+
+    let darkPanel = new Sprite(
+        [ [0.250, 0.51], [0.375, 0.615] ],
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 5,
+                y: 5
+            },
+            pb: {
+                x: -5,
+                y: -5
+            }
+        });
+    panel.add(darkPanel);
+
+    let contentPanel = new Sprite(
+        undefined,
+        {
+            pa: {
+                x: 0,
+                y: 0
+            },
+            pb: {
+                x: 1,
+                y: 1
+            }
+        },
+        {
+            pa: {
+                x: 10,
+                y: 10
+            },
+            pb: {
+                x: -10,
+                y: -10
+            }
+        });
+    contentPanel.add(createText(str));
+
+    darkPanel.add(contentPanel);
+
+    floatMessage = panel;
+    floatMessage.str = str;
+}
 
 let mouseMessage;
 const showMouseMessage = (str) => {
@@ -822,6 +980,25 @@ const drawUI = () => {
             }
         }
     }
+
+    // Анимация сообщения в углу
+    if (floatMessage) {
+        if (needshowFloatMessage || !floatMessage.props.shown) {
+            if (floatMessage.props.animationState < 1) {
+                floatMessage.props.animationState = Math.min(floatMessage.props.animationState + animationSpeed * deltaTime, 1);
+                needUIRedraw = true;
+            }
+        } else { 
+            if (floatMessage.props.animationState > 0) {
+                floatMessage.props.animationState = Math.max(floatMessage.props.animationState - animationSpeed * deltaTime, 0);
+            } else {
+                screenUI.deleteChild(floatMessage.id);
+                floatMessage = undefined;
+                needUIRedraw = true;
+            }
+        }
+    }
+    needshowFloatMessage = false;
 
     // Обновление интерфейса
     if (needCraftRedraw && craftOpened) {

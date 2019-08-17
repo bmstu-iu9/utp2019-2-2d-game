@@ -212,7 +212,7 @@ Sprite.pixelScale = render.getCanvasSize()[0] / defaultWidth;
 let floatMessage;
 let needshowFloatMessage;
 const showFloatMessage = (str, showingTime) => {
-
+    if (showingTime === undefined) showingTime = 1;
     if (floatMessage) {
         if (floatMessage.str !== str) {
             needshowFloatMessage = false;
@@ -225,8 +225,6 @@ const showFloatMessage = (str, showingTime) => {
     } else {
         needshowFloatMessage = true;
     }
-
-    if (!showingTime) showingTime = 1;
 
     let fontSize = 40;
     let _size = render.getCanvasSize();

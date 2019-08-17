@@ -1996,40 +1996,38 @@ const generate = (width, height, seed, changes) => {
             //#region lootTables
                 const commonTable = [
                     [
-                        { id: 263, count: 13 }, //COAL
-                        { id: 265, count: 5 }, //IRON
+                        { id: 263, count: 9 }, //COAL
+                        { id: 265, count: 4 }, //IRON
                         { id: 267, count: 2 }, //SHAFT
-                        { id: 266, count: 1 }, //GOLD
                     ],
                     [
                         { id: 263, count: 8 }, //COAL
-                        { id: 265, count: 6 }, //IRON
-                        { id: 266, count: 2 }, //GOLD
+                        { id: 265, count: 3 }, //IRON
+                        { id: 266, count: 1 }, //GOLD
                     ]
                 ];
                 const rareTable = [
                     [
-                        { id: 264, count: 5 }, //DIAMOND
-                        { id: 265, count: 3 }, //IRON
-                        { id: 266, count: 2 }, //GOLD
+                        { id: 265, count: 6 }, //IRON
+                        { id: 266, count: 6 }, //GOLD
                     ],
                     [
-                        { id: 263, count: 5 }, //COAL
-                        { id: 265, count: 15 }, //IRON
-                        { id: 266, count: 8 }, //GOLD
-                        { id: 264, count: 3 }, //DIAMOND
+                        { id: 263, count: 6 }, //COAL
+                        { id: 265, count: 6 }, //IRON
+                        { id: 266, count: 1 }, //GOLD
+                        { id: 264, count: 1 }, //DIAMOND
                     ]
                 ];
                 const finalTable = [
                     [
-                        { id: 264, count: 20 }, //DIAMOND
-                        { id: 266, count: 10 }, //GOLD
+                        { id: 264, count: 5 }, //DIAMOND
+                        { id: 266, count: 7 }, //GOLD
                     ],
                     [
-                        { id: 263, count: 10 }, //COAL
-                        { id: 265, count: 20 }, //IRON
-                        { id: 266, count: 15 }, //GOLD
-                        { id: 264, count: 10 }, //DIAMOND
+                        { id: 263, count: 12 }, //COAL
+                        { id: 265, count: 9 }, //IRON
+                        { id: 266, count: 5 }, //GOLD
+                        { id: 264, count: 3 }, //DIAMOND
                     ]
                 ];
             //#endregion

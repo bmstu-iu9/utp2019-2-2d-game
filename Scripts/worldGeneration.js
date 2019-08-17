@@ -4,7 +4,7 @@ var __observe = [];
 
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
-    // seed = 1566046478300;
+    seed = 1566050705252;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -119,7 +119,7 @@ const generate = (width, height, seed, changes) => {
             150 //CHEST CAPACITY
         ];
         for (let i in loot) {
-            //Тут нет проверки на емкость сундука
+            //Тут нет проверки на емкость сундука!
             tinv[0].push(loot[i].id);
             tinv[1].push(loot[i].count);
             tinv[2] += items[loot[i].id].weight * loot[i].count;
@@ -1552,6 +1552,7 @@ const generate = (width, height, seed, changes) => {
                 //Установка пещеры перед входом
                 drawLine(loc.add(35, 125), loc.add(45, 155), (x, y) => {
                     fillEllipse(new Point(x, y), 4, 3, (x, y) => {
+                        setZone(x, y, CAVE_ZONE);
                         setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
                     });
                 });
@@ -2111,12 +2112,12 @@ const generate = (width, height, seed, changes) => {
     surfaceGen();
     caveGen(width / 100, height / 3);
     undergroundCavseGen(100, 50, 60);
-    lavaLakes(20, height / 2, 1 / 4000);
     treeGen(16, 19, Math.floor(width * 2 / 3));
 
     // villageGen();
     dungeonGen(new Point(100, 100)); //500 700
     underSpecial1Gen(200, 200, 5);
+    lavaLakes(20, height / 2, 1 / 4000);
     oreGen();
     
     //Слой бедрока

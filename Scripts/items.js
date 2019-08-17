@@ -831,7 +831,7 @@ const items = {
 
     '55':
     {
-        id: '57',
+        id: '55',
         name: 'Dungeon bricks',
         type: 'bedrock',
         weight: '2',

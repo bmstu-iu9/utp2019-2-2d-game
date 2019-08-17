@@ -53,7 +53,7 @@ const __cheat_apply = () => {
     cheat.tp(138, 227);
     cheat.get(790, 1);
     cheat.get(791, 1);
-    cheat.get(21, 100);
+    cheat.get(55, 100);
     cheat.get(12, 40);
     cheat.get(19, 20)
 }

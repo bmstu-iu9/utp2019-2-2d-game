@@ -4,7 +4,7 @@ var __observe = [];
 
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
-    // seed = 1565285065350;
+    // seed = 1566046478300;
     __cheat_seed = seed;
 
     //Вспомогательные функции и объекты
@@ -119,7 +119,7 @@ const generate = (width, height, seed, changes) => {
             150 //CHEST CAPACITY
         ];
         for (let i in items) {
-            //WARHING: here does not check for the inv capacity!
+            //Тут нет проверки на емкость сундука
             tinv[0].push(items[i].id);
             tinv[1].push(items[i].count);
             tinv[2] += items[i].id + items[i].count;
@@ -1659,10 +1659,12 @@ const generate = (width, height, seed, changes) => {
                             t.push("|");
                         else
                             t.push(" ");
-                        if (cellsScheme[j][i].mark <= 9)
-                            t.push("0" + cellsScheme[j][i].mark);
+                        if (cellsScheme[j][i].keyHere)
+                            t.push("..");
+                        else if (cellsScheme[j][i].finalPath)
+                            t.push("**");
                         else
-                            t.push(cellsScheme[j][i].mark);
+                            t.push("0" + cellsScheme[j][i].wayToPath);
                         if (cellsScheme[j][i].right)
                             t.push("|");
                         else
@@ -1690,6 +1692,68 @@ const generate = (width, height, seed, changes) => {
                 if (cell.left)
                     t += 8;
                 return t;
+            }
+            const findWay = (labyrynth, from, field) => {
+                for (let i = 0; i < labyrynth.length; i++) {
+                    for (let j = 0; j < labyrynth[i].length; j++) {
+                        labyrynth[i][j].visited = false;
+                        labyrynth[i][j].par = false;
+                    }
+                }
+                let stack = [from];
+                labyrynth[from.y][from.x][field] = 0;
+                while (stack.length !== 0) {
+                    let t = stack.pop();
+                    labyrynth[t.y][t.x].visited = true;
+                    if (t.x !== 0 && !labyrynth[t.y][t.x].left && !labyrynth[t.y][t.x - 1].visited) {
+                        labyrynth[t.y][t.x - 1][field] = labyrynth[t.y][t.x][field] + 1;
+                        labyrynth[t.y][t.x - 1].par = t;
+                        stack.push(new Point(t.x - 1, t.y));
+                    }
+                    if (t.x !== cellX - 1 && !labyrynth[t.y][t.x].right && !labyrynth[t.y][t.x + 1].visited) {
+                        labyrynth[t.y][t.x + 1][field] = labyrynth[t.y][t.x][field] + 1;
+                        labyrynth[t.y][t.x + 1].par = t;
+                        stack.push(new Point(t.x + 1, t.y));
+                    }
+                    if (t.y !== 0 && !labyrynth[t.y][t.x].top && !labyrynth[t.y - 1][t.x].visited) {
+                        labyrynth[t.y - 1][t.x][field] = labyrynth[t.y][t.x][field] + 1;
+                        labyrynth[t.y - 1][t.x].par = t;
+                        stack.push(new Point(t.x, t.y - 1));
+                    }
+                    if (t.y !== cellY - 1 && !labyrynth[t.y][t.x].bottom && !labyrynth[t.y + 1][t.x].visited) {
+                        labyrynth[t.y + 1][t.x][field] = labyrynth[t.y][t.x][field] + 1;
+                        labyrynth[t.y + 1][t.x].par = t;
+                        stack.push(new Point(t.x, t.y + 1));
+                    }
+                }
+            }
+            const wayToPath = (labyrynth) => { //Записывает расстояния от точек до финального пути
+                let maxWay = 0;
+                let maxPoint = new Point(Math.floor(random() * cellX), Math.floor(random() * cellY));
+                for (let i = 0; i < cellY; i++) {
+                    for (let j = 0; j < cellX; j++) {
+                        if (labyrynth[i][j].finalPath) {
+                            labyrynth[i][j].wayToPath = 0;
+                            continue;
+                        }
+                        let len = 1;
+                        let t = labyrynth[i][j].par;
+                        while (!labyrynth[t.y][t.x].finalPath) {
+                            if (labyrynth[t.y][t.x].wayToPath !== undefined) {
+                                len += labyrynth[t.y][t.x].wayToPath;
+                                break;
+                            }
+                            t = labyrynth[t.y][t.x].par;
+                            len++;
+                        }
+                        labyrynth[i][j].wayToPath = len;
+                        if (maxWay < len) {
+                            maxWay = len;
+                            maxPoint = new Point(j, i);
+                        }
+                    }
+                }
+                return maxPoint;
             }
 
             //#region rooms
@@ -1902,7 +1966,7 @@ const generate = (width, height, seed, changes) => {
 
             const entranceFL = ["bbbbbbbbbbbbttttttbbbbbbbb.......bbbb.......bbbbbbbbbbbbbbbb","bbbb bbbbbb..........d.............................bbbbbbb  ","b b   bbbbb..........d.............................bbbbbbb  ","      bbbbb..........d.......l..........l..........bbbbbb   ","      bbbbb....l.....d............................bbbbbb    ","       bbbb.........bbb.......bbttttttbb........bbbbbb      ","       bbbbb......bbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbb....bbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","            bbbbbb                                          ","                                                            "];;
             const entranceSL = ["     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","     bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","       bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb      ","       bbbbbbbbbbbbbbbbbbbbbbbbb      bbbbbbbbbbbbb         ","        bbbbbbbbbbbbbbbb  bbb             bbbb              ","         bbbbbbbbbbbbb                                      ","           bbbbbbbbb                                        ","                                                            ","                                                            "];
-            const finalFL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbttttttbbbbbbbbbbbb"," bbbbb....e......e....bbbbb......bbbbb................bbbbb "," bbbb..................................................bbbb ","  bb....................................................bb  ","  bb.........l..........l..........l..........l.........bb  ","  bb....................................................bb  ","  bbb..................................................bbb  ","   bbb................................................bbb...","   bbbbb.............bbbbbbb....bbbbbbb.............bbbbb   ","    bbbbbb.......bbbbbbbbbbbb..bbbbbbbbbbbb.......bbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
+            const finalFL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbhhhhhhbbbbbbbbbbbb"," bbbbb....e......e....bbbbb......bbbbb................bbbbb "," bbbb..................................................bbbb ","  bb....................................................bb  ","  bb.........l..........l..........l..........l.........bb  ","  bb....................................................bb  ","  bbb..................................................bbb  ","   bbb................................................bbb...","   bbbbb.............bbbbbbb....bbbbbbb.............bbbbb   ","    bbbbbb.......bbbbbbbbbbbb..bbbbbbbbbbbb.......bbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
             const finalSL = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "," bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   ","    bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb    ","      bbbbbbbbbbbbbbbb     bbbbbb     bbbbbbbbbbbbbbbb      ","           bbbbb            bbbb            bbbbb           "];
             //#endregion
 
@@ -1947,7 +2011,21 @@ const generate = (width, height, seed, changes) => {
                 ];
             //#endregion
 
-            let labyrynth = createLabyrynth();
+            let labyrynth = createLabyrynth(); //Составляем лабиринт
+            findWay(labyrynth, new Point(0, 0), "source"); //В каждую клетку пишем расстояние до входа
+            findWay(labyrynth, new Point(cellX - 1, 0), "dest"); //... до выхода
+            { //Записываем, какие клетки содержат путь от входа до выхода
+                let t = new Point(0, 0);
+                while (t.x !== cellX - 1 || t.y !== 0) {
+                    labyrynth[t.y][t.x].finalPath = true;
+                    t = labyrynth[t.y][t.x].par;
+                }
+                labyrynth[0][cellX - 1].finalPath = true;
+            }
+            let keyPoint = wayToPath(labyrynth); //Точка с ключем - максимально отдаленная от правильного пути
+            labyrynth[keyPoint.y][keyPoint.x].keyHere = true;
+            
+
             labyrynth[0][0].top = false;
             labyrynth[0][cellX - 1].top = false;
             // labyrynth[0][1] = { top: false, right: true, bottom: true, left: true };
@@ -1956,16 +2034,26 @@ const generate = (width, height, seed, changes) => {
             // labyrynth[1][2] = { top: true, right: false, bottom: true, left: true };
             // labyrynth[1][1] = { top: true, right: true, bottom: true, left: false };
 
-            logLabyrynth(labyrynth);
+            // logLabyrynth(labyrynth);
             clearZone(loc.x, loc.y, cellX * cellW, cellY * cellH);
             for (let i = 0; i < cellX; i++) {
                 for (let j = 0; j < cellY; j++) {
                     let type = getCellType(labyrynth[cellY - j - 1][i]);
-                    let stype = Math.round(random() * (rooms[type].length - 1));
-                    if (i === 1 && j === 2) {
-                        // stype = 1;
-                        // continue;
+                    let stype;
+                    if (labyrynth[cellY - j - 1][i].keyHere) {
+                        let tarr = [];
+                        for (let k = 0; k < rooms[type].length; k++)
+                            if (rooms[type][k].hasChest)
+                                tarr.push(k);
+                        stype = tarr[Math.round(random() * (tarr.length - 1))];
                     }
+                    else {
+                        stype = Math.round(random() * (rooms[type].length - 1));
+                    }
+                    // if (i === 1 && j === 2) {
+                    //     stype = 1;
+                    //     continue;
+                    // }
                     let room = rooms[type][stype];
                     const chestf = (x, y, layer) => {
                         let table;
@@ -1974,6 +2062,9 @@ const generate = (width, height, seed, changes) => {
                         else
                             table = commonTable;
                         let inv = table[Math.floor(random() * table.length)];
+                        if (labyrynth[cellY - j - 1][i].keyHere) {
+                            inv.push({ id: 280, count: 1 });
+                        }
                         setChest(x, y, layer, inv);
                     }
                     drawByScheme(loc.add(i * cellW, j * cellH), blocksMap, room.firstL, room.secondL, chestf);

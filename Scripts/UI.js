@@ -1,3 +1,5 @@
+'use strict';
+
 /* .drawObjects(texture, array)
         * texture - текстура, полученная из .createTexture
         * array - массив, состоящий из объектов вида:
@@ -34,7 +36,7 @@ const getBlockRect = (x, y, width, height) => {
     }
 }
 
-setOnClickListener = (sprite, clickAction, holdAction, releaseAction, longHoldAction) => {
+const setOnClickListener = (sprite, clickAction, holdAction, releaseAction, longHoldAction) => {
     sprite.click = clickAction;
     sprite.hold = holdAction;
     sprite.release = releaseAction;

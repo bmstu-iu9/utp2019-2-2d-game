@@ -84,11 +84,12 @@ _fragmentShader[1] = `
 	uniform float u_sizeBlock;
 	uniform vec2 u_center;
 	uniform float u_radius;
+	uniform float u_devicePixelRatio;
 
 	varying vec2 v_texCoord;
 	
 	void main() {
-		float minAlpha = 0.2;
+		float minAlpha = 0.25;
 		vec4 tex = texture2D(u_texture0, v_texCoord);
 		float tex2alpha = (texture2D(u_texture2, v_texCoord)).a;
 		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) / 2.0)).x;
@@ -96,8 +97,8 @@ _fragmentShader[1] = `
 		float alpha = tex2alpha < 0.01
 			? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0
 				? 1.0
-				: clamp(sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha / 5.0) / u_radius + minAlpha / 5.0,
-					minAlpha, 1.0))
+				: clamp((sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha / 5.0)
+					* u_devicePixelRatio * u_devicePixelRatio / u_radius + minAlpha / 5.0), minAlpha, 1.0))
 			: 1.0;
 		vec4 color = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
 		gl_FragColor = color;
@@ -208,6 +209,9 @@ _vertexShader[5] = `
 	uniform vec2 u_resolution;
 	uniform float u_number;
 	uniform float u_time;
+	uniform float u_pos;
+	uniform float u_devicePixelRatio;
+	uniform float u_move;
 	
 	float hash(float i) {
 		vec2 p = fract(vec2(i * 5.3983, i * 5.4427));
@@ -216,16 +220,17 @@ _vertexShader[5] = `
 	}
 	
 	void main() {
-		float delta = a_id / u_number;
+		float delta = (a_id * u_pos) / u_number;
 		float offset = floor(u_time + delta) / 1000.0;
-		float x = (hash(offset + delta) * u_resolution.x + u_translate.x) * 2.0 ;
-		float y = fract(u_time * u_resolution.y * 500.0 + hash(delta)) * -2.0 + 1.0;
+		float t = u_time * u_resolution.y * 31.25 + hash(delta) + u_move * u_resolution.y * 1.1;
+		float x = (hash(delta / floor(t)) * u_resolution.x + u_translate.x) * 2.0;
+		float y = fract(t) * -2.0 + 1.0;
 		if (y >= u_translate.y) {
 			gl_Position = vec4(x, y, 0.0, 1.0);
-			gl_PointSize = 2.0;
-		} else if (u_translate.y - y < u_resolution.y * 64.0) {
+			gl_PointSize = 2.0 / u_devicePixelRatio;
+		} else if (u_translate.y - y < u_resolution.y * 4.0) {
 			gl_Position = vec4(x, u_translate.y, 0.0, 1.0);
-			gl_PointSize = 2.0;
+			gl_PointSize = 2.0 / u_devicePixelRatio;
 		}
 	}`;
 

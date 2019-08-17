@@ -4,6 +4,7 @@ let _fpsTime = performance.now();
 let _fpsCountner = 0;
 let _startFps = _fpsTime;
 let _fpsCountnerAVG = 0;
+const _classFpsStyle = document.getElementsByClassName('fps')[0].style;
 
 const fpsUpdate = () => {
 	const nowTime = performance.now();
@@ -34,4 +35,11 @@ const fpsUpdate = () => {
 		_fpsTime += delta - (delta % 1000);
 		_fpsCountner = 0;
 	}
+	const dpr = 1 / window.devicePixelRatio;
+	_classFpsStyle.top = (20 * dpr) + 'px';
+	_classFpsStyle.left = (20 * dpr) + 'px';
+	_classFpsStyle.fontSize = (20 * dpr) + 'px';
+	_classFpsStyle.padding = (10 * dpr) + 'px ' + (17 * dpr) + 'px';
 }
+
+requestAnimationFrame(fpsUpdate);

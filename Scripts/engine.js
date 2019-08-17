@@ -206,9 +206,9 @@ class Render {
 					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
 						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
 					<h6>1: ${navigator.userAgent}<br>
-					2: ${this.gl.getParameter(this.gl.VERSION)}<br>
-					3: ${this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)}<br>
-					4: ${this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}<br>`;
+						2: ${this.gl.getParameter(this.gl.VERSION)}<br>
+						3: ${this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)}<br>
+						4: ${this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}<br>`;
 				console.log(this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
 				console.log(this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
 			} else {
@@ -218,7 +218,7 @@ class Render {
 					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
 						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
 					<h6>1: ${navigator.userAgent}<br>
-					2: ${this.gl.getParameter(this.gl.VERSION)}<br>`;
+						2: ${this.gl.getParameter(this.gl.VERSION)}<br>`;
 			}
 			throw new Error('Browser is very old');
 		}
@@ -277,7 +277,8 @@ class Render {
 				'u_light',
 				'u_sizeBlock',
 				'u_center',
-				'u_radius'
+				'u_radius',
+				'u_devicePixelRatio'
 			]); // получение uniform-переменных из шейдеров
 		
 		// привязка текстур к текстурным блокам
@@ -359,7 +360,10 @@ class Render {
 				'u_translate',
 				'u_resolution',
 				'u_number',
-				'u_time'
+				'u_time',
+				'u_pos',
+				'u_devicePixelRatio',
+				'u_move'
 			]); // получение uniform-переменных из шейдеров
 		
 		// используем шейдерную программу
@@ -381,7 +385,7 @@ class Render {
 		
 		// погода
 		this.rain = false;
-		this.speedRain = 4;
+		this.speedRain = 5;
 		this.weather = [];
 		this.weather[0] = this.gl.createBuffer();
 		this.weather[1] = 0;
@@ -537,7 +541,7 @@ class Render {
 		
 		this.gl.useProgram(this.program[3]);
 		
-		const w = 48 / 80;
+		this.playerAsp = playerResolutionY / (playerResolutionX + this.size) / 2;
 			
 		// заполняем буферы
 		for (let i in playerAnims) {
@@ -548,27 +552,27 @@ class Render {
 			arrayOfPosition.push(
 				// голова
 				0, body[2] / playerResolutionY,
-				w, body[2] / playerResolutionY,
+				this.playerAsp, body[2] / playerResolutionY,
 				0, head[2] / playerResolutionY,
 				0, head[2] / playerResolutionY,
-				w, body[2] / playerResolutionY,
-				w, head[2] / playerResolutionY,
+				this.playerAsp, body[2] / playerResolutionY,
+				this.playerAsp, head[2] / playerResolutionY,
 				
 				// тело
 				0, legs[2] / playerResolutionY,
-				w, legs[2] / playerResolutionY,
+				this.playerAsp, legs[2] / playerResolutionY,
 				0, body[2] / playerResolutionY,
 				0, body[2] / playerResolutionY,
-				w, legs[2] / playerResolutionY,
-				w, body[2] / playerResolutionY,
+				this.playerAsp, legs[2] / playerResolutionY,
+				this.playerAsp, body[2] / playerResolutionY,
 				
 				// ноги
 				0, 0,
-				w, 0,
+				this.playerAsp, 0,
 				0, legs[2] / playerResolutionY,
 				0, legs[2] / playerResolutionY,
-				w, 0,
-				w, legs[2] / playerResolutionY);
+				this.playerAsp, 0,
+				this.playerAsp, legs[2] / playerResolutionY);
 			
 			arrayOfTexCoord.push(
 				// голова
@@ -624,33 +628,69 @@ class Render {
 		// используем шейдерную программу
 		this.gl.useProgram(this.program[3]);
 		
-		// задаём буферы
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
-		this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
-		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
-		
-		const w = 48 / 80;
+		const textureSize = [this.playerResolution[0] / this.playerAsp, this.playerResolution[1]];
 		
 		// отрисовываем в буфер кадров
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
 		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
 			this.texturePlayer, 0);
-		this.gl.viewport(0, 0, this.playerResolution[0] / w, this.playerResolution[1]);
+		this.gl.viewport(0, 0, textureSize[0], textureSize[1]);
 		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		
-		item = { 'angle': 30 }
-		// item: { 'angle': angle, '': }
 		if (item !== undefined) {
 			// отрисовка предмета в руке
-			const angleInRad = this.degToRad(360 - item.angle);
+			const angleInRad = this.degToRad(item.angle);
 			const rotation = [Math.sin(angleInRad), Math.cos(angleInRad)];
 			this.setUniform2fv(this.uniform[3].u_rotation, rotation);
-			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[4]);
-			// this.gl.drawArrays(this.gl.TRIANGLES, ???, 6);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[3]);
+			
+			const posX = item.pos[0] / textureSize[0];
+			const posY = item.pos[1] / textureSize[1];
+			const width = this.size / textureSize[0];
+			const height = this.size / textureSize[1];
+			
+			// координаты предмета в руке
+			const arrayOfPosition = [
+				posX, posY,
+				posX + width, posY,
+				posX, posY + height,
+				posX, posY + height,
+				posX + width, posY,
+				posX + width, posY + height];
+			
+			// создаём буфер координат в руке
+			const positionBuffer = this.gl.createBuffer();
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfPosition), this.gl.STATIC_DRAW);
+			this.gl.enableVertexAttribArray(this.attribute[3].a_position);
+			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
+			
+			// текстурные координаты предмета в руке
+			const arrayOfTexCoord = [
+				item.a[0], item.b[1],
+				item.b[0], item.b[1],
+				item.a[0], item.a[1],
+				item.a[0], item.a[1],
+				item.b[0], item.b[1],
+				item.b[0], item.a[1]];
+			
+			// создаём буфер текстурных координат в руке
+			const texCoordBuffer = this.gl.createBuffer();
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfTexCoord), this.gl.STATIC_DRAW);
+			this.gl.enableVertexAttribArray(this.attribute[3].a_texCoord);
+			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
+			
+			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 			this.setUniform2fv(this.uniform[3].u_rotation, [0.0, 1.0]);
 		}
+		
+		// задаём буферы
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBufferPlayer);
+		this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBufferPlayer);
+		this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 		
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[2]); // используем текстуру игрока
 		this.gl.drawArrays(this.gl.TRIANGLES, head * 18, 6);
@@ -845,7 +885,7 @@ class Render {
 		
 		for (let i = 0; i <= asp * scale + 1; i++) {
 			this.gl.uniform3f(this.uniform[0].u_translate[0],
-				xc * ch + i - asp * scale / 2, yc * ch - scale / 2, z);
+				xc * ch + i * scale - asp * scale / 2, yc * ch - scale / 2, z);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		
@@ -856,11 +896,11 @@ class Render {
 		//this.gl.disable(this.gl.DEPTH_TEST);
 		
 		this.gl.useProgram(this.program[2]);
-		const deltaX = (xp - xc) * this.size + this.gl.canvas.width / 2;
-		const deltaY = (yp - yc + 1.5) * this.size + this.gl.canvas.height / 2;
+		const deltaX = (xp - xc) * this.size / scale + this.gl.canvas.width / 2;
+		const deltaY = (yp - yc + 1.5) * this.size / scale + this.gl.canvas.height / 2;
 		
 		this.gl.uniform4fv(this.uniform[2].u_dynamicLight[0],
-			[deltaX, deltaY, dynamicLight[0] * this.size, dynamicLight[1]]);
+			[deltaX, deltaY, dynamicLight[0] * this.size / scale, dynamicLight[1]]);
 		this.gl.uniform1f(this.uniform[2].u_sizeBlock[0], this.size);
 		this.gl.uniformMatrix4fv(this.uniform[2].u_projectionMatrix[0], false, [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
@@ -918,6 +958,7 @@ class Render {
 				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
 			this.gl.uniform1f(this.uniform[1].u_resolution[0], this.gl.canvas.height);
 			this.setUniform1f(this.uniform[1].u_radius, 250.0 * scale);
+			this.setUniform1f(this.uniform[1].u_devicePixelRatio, window.devicePixelRatio);
 			
 			// отрисовка 1 слоя с полупрозрачным кругом
 			for (let c in this.arrayOfChunks) {
@@ -978,8 +1019,8 @@ class Render {
 		if (this.weather[3] > 0) {
 			this.gl.useProgram(this.program[5]);
 			const xh = Math.round(this.gl.canvas.width * scale / this.size / 2 + 1);
-			const maxnum = Math.ceil(this.size * this.gl.canvas.height / 1000);
-			const raw = this.weather[3] * this.gl.canvas.height / 1000;
+			const maxnum = Math.ceil(this.size * this.gl.canvas.height * window.devicePixelRatio / 1000);
+			const raw = this.weather[3] * this.gl.canvas.height * window.devicePixelRatio / 1000;
 			const num = Math.ceil(raw);
 			const max = maxnum * xh * 2;
 			const xt = -(xc % 1);
@@ -988,39 +1029,44 @@ class Render {
 			this.gl.vertexAttribPointer(this.attribute[5].a_id, 1, this.gl.FLOAT, false, 0, 0);
 			
 			// если количество капелек не хватает (из-за увеличения размера экрана), то пересоздаём буфер с ними
-			if (max > this.weather[1]) {
-				const wIDs = new Float32Array(max);
-				for (let i = 0; i < max; i++) {
-					wIDs[i] = i;
+			if (maxnum > this.weather[1]) {
+				const wIDs = new Float32Array(maxnum);
+				for (let i = 0; i < maxnum; i++) {
+					wIDs[i] = i + 1;
 				}
 				this.gl.bufferData(this.gl.ARRAY_BUFFER, wIDs, this.gl.STATIC_DRAW);
-				this.gl.uniform1f(this.uniform[5].u_number[0], max);
-				this.weather[1] = max;
+				this.weather[1] = maxnum;
 			}
 			
 			const w = this.size / this.gl.canvas.width / scale;
-			const h = 2 / this.gl.canvas.height / scale;
+			const h = this.size / this.gl.canvas.height / scale;
 			
+			this.gl.uniform1f(this.uniform[5].u_number[0], max);
 			this.gl.uniform1f(this.uniform[5].u_time[0], time * this.speedRain * 0.0001);
 			this.gl.uniform2fv(this.uniform[5].u_resolution[0], [w, h]);
+			this.setUniform1f(this.uniform[5].u_devicePixelRatio, window.devicePixelRatio);
+			this.setUniform1f(this.uniform[5].u_move, yc);
 			
 			// TODO: Переделать под ANGLE_instanced_arrays
 			// отрисовка дождя
 			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1; // средний шаг дождя в блоках
-			for (let i = 0; i < xh; i += d) {
+			for (let i = 0; i <= xh; i += d) {
 				// левая половина экрана
 				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-				this.gl.uniform2fv(this.uniform[5].u_translate[0], [(xt - i) * w, Math.max(yt0, this.weather[2]) * h]);
-				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2, num);
+				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc - i));
+				this.gl.uniform2fv(this.uniform[5].u_translate[0],
+					[(xt - i) * w, Math.max(yt0, this.weather[2] * scale) * h / 16]);
+				this.gl.drawArrays(this.gl.POINTS, 0, num);
 				
 				// правая половина экрана
 				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
+				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc + i + d));
 				this.gl.uniform2fv(this.uniform[5].u_translate[0],
-					[(xt + i + d) * w, Math.max(yt1, this.weather[2]) * h]);
-				this.gl.drawArrays(this.gl.POINTS, maxnum * i * 2 + maxnum, num);
+					[(xt + i + d) * w, Math.max(yt1, this.weather[2] * scale) * h / 16]);
+				this.gl.drawArrays(this.gl.POINTS, 0, num);
 			}
 			
-			this.weather[2] -= deltaTime * this.speedRain * 92;
+			this.weather[2] -= deltaTime * this.speedRain * 100 / scale;
 			if (this.rain) {
 				this.weather[3] = Math.min(this.weather[3] + deltaTime * this.speedRain / 6, this.size);
 			} else {
@@ -1175,8 +1221,8 @@ class Render {
 	resizeCanvas(multiplier) {
 		// подгоняем канвас под размер экрана
 		multiplier = multiplier || 1;
-		const width = Math.floor(this.gl.canvas.clientWidth * multiplier * window.devicePixelRatio);
-		const height = Math.floor(this.gl.canvas.clientHeight * multiplier * window.devicePixelRatio);
+		const width = Math.floor(this.gl.canvas.clientWidth * multiplier/* * window.devicePixelRatio*/);
+		const height = Math.floor(this.gl.canvas.clientHeight * multiplier/* * window.devicePixelRatio*/);
 		if (this.gl.canvas.width !== width || this.gl.canvas.height !== height) {
 			this.gl.canvas.width = width;
 			this.gl.canvas.height = height;

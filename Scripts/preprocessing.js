@@ -1,7 +1,7 @@
 'use strict';
 
 let imageCounter = 0, totalImages = 0;
-let heigthCount = 66;  // Количество блоков, которые влезают на экран по высоте
+let heigthCount = 50;  // Количество блоков, которые влезают на экран по высоте
 let cameraScale = 1;  // Масштаб, 1 - стандарт, зависит от heigthCount
 const blockSize = 32;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры

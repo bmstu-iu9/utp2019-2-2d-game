@@ -70,7 +70,7 @@ const beginPlay = () => {
 		}
 
     } else {
-		gameArea = generate(1000, 1000, key);
+		gameArea = generate(2000, 1000, key);
 
     	let px = gameArea.width / 2;
     	let py = 0;

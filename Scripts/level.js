@@ -295,11 +295,11 @@ const playerMovement = () => {
 			player.vy = Math.max(player.vy, 0);
 			if (controller.up.active) {
 				if (controller.shift.active) {
-					if (player.sp >= Player.JUMP_SPEED * 2 / 3 / 10) {
+					if (player.sp >= Player.JUMP_SPEED * 2 / 3 / 30) {
 						player.vy = Player.JUMP_SPEED * 2 / 3;
 
 						// Уменьшение выносливости
-	                	player.updateSP(player.sp - Player.JUMP_SPEED * 2 / 3 / 10);
+	                	player.updateSP(player.sp - Player.JUMP_SPEED * 2 / 3 / 30);
 	                	staminaNotUsed = false;
 					}
 				} else {
@@ -307,7 +307,7 @@ const playerMovement = () => {
 						player.vy = Player.JUMP_SPEED;
 
 						// Уменьшение выносливости
-	                	player.updateSP(player.sp - Player.JUMP_SPEED / 10);
+	                	player.updateSP(player.sp - Player.JUMP_SPEED / 30);
 	                	staminaNotUsed = false;
 	                }
 				}

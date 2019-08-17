@@ -772,14 +772,17 @@ const items = {
             return getTextureCoordinates(12, 0)
         },
         interactFunction: (x, y, layout) => {
-            if (player.hand.item === 280) {
-                player.deleteFromInvByIndex(player.fastInv[player.hand.index], 1);
-                gameArea.gameAreaMapSet(x, y, layout, 60);
-                for (let i = x + 1; gameArea.map[i][y][layout] === 53; i++) {
-                    gameArea.gameAreaMapSet(i, y, layout, 60);
-                }
-                for (let i = x - 1; gameArea.map[i][y][layout] === 53; i--) {
-                    gameArea.gameAreaMapSet(i, y, layout, 60);
+            for (let i = 0; i < player.inv.items.length; i++) {
+                if (player.inv.items[i] === 280) {
+                    player.deleteFromInvByIndex(i, 1);
+                    gameArea.gameAreaMapSet(x, y, layout, 60);
+                    for (let i = x + 1; gameArea.map[i][y][layout] === 53; i++) {
+                        gameArea.gameAreaMapSet(i, y, layout, 60);
+                    }
+                    for (let i = x - 1; gameArea.map[i][y][layout] === 53; i--) {
+                        gameArea.gameAreaMapSet(i, y, layout, 60);
+                    }
+                    break;
                 }
             }
         },
@@ -805,14 +808,17 @@ const items = {
             return getTextureCoordinates(11, 0)
         },
         interactFunction: (x, y, layout) => {
-            if (player.hand.item === 280) {
-                player.deleteFromInvByIndex(player.fastInv[player.hand.index], 1);
-                gameArea.gameAreaMapSet(x, y, layout, 62);
-                for (let i = y + 1; gameArea.map[x][i][layout] === 54; i++) {
-                    gameArea.gameAreaMapSet(x, i, layout, 62);
-                }
-                for (let i = y - 1; gameArea.map[x][i][layout] === 54; i--) {
-                    gameArea.gameAreaMapSet(x, i, layout, 62);
+            for (let i = 0; i < player.inv.items.length; i++) {
+                if (player.inv.items[i] === 280) {
+                    player.deleteFromInvByIndex(i, 1);
+                    gameArea.gameAreaMapSet(x, y, layout, 62);
+                    for (let i = y + 1; gameArea.map[x][i][layout] === 54; i++) {
+                        gameArea.gameAreaMapSet(x, i, layout, 62);
+                    }
+                    for (let i = y - 1; gameArea.map[x][i][layout] === 54; i--) {
+                        gameArea.gameAreaMapSet(x, i, layout, 62);
+                    }
+                    break;
                 }
             }
         },

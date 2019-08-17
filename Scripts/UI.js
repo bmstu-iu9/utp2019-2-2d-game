@@ -239,7 +239,7 @@ const showFloatMessage = (str) => {
             counter = 0;
         } else {
             counter++;
-            if (counter * 2 / 3 > width) width = counter * 2 / 3;
+            if (counter * 1 / 2 > width) width = counter * 1 / 2;
         }
     }
 
@@ -261,7 +261,7 @@ const showFloatMessage = (str) => {
                 y: -height * fontSize - 30
             },
             pb: {
-                x: width * fontSize + 30,
+                x: width * fontSize + 40,
                 y: -10
             }
         },
@@ -276,7 +276,7 @@ const showFloatMessage = (str) => {
                         y: -height * fontSize - 30
                     },
                     pb: {
-                        x: width * fontSize + 30,
+                        x: width * fontSize + 40,
                         y: -10
                     }
                 }
@@ -284,7 +284,7 @@ const showFloatMessage = (str) => {
             closed: {
                 indent: {
                     pa: {
-                        x: - width * fontSize - 30,
+                        x: - width * fontSize - 40,
                         y: -height * fontSize - 30
                     },
                     pb: {
@@ -358,7 +358,7 @@ const showFloatMessage = (str) => {
                 y: -10
             }
         });
-    contentPanel.add(createText(str));
+    contentPanel.add(createText(str, true));
 
     darkPanel.add(contentPanel);
 
@@ -1274,7 +1274,7 @@ const getLetterTexture = (s) => {
     }
 }
 
-const createText = (word) => {
+const createText = (word, notCompress) => {
     word = word.toUpperCase();
     let strings = word.split('\n');
     let stringHeight = 1 / strings.length;
@@ -1325,7 +1325,7 @@ const createText = (word) => {
             });
         wordCard.recountRect = (rect, indent, parent, image) => {
             rect.pb.x = 2 / 3 * strings[n].length / strings.length * (parent.pb[1] - parent.pa[1]) / (parent.pb[0] - parent.pa[0]);
-            if (rect.pb.x > 1) {
+            if (rect.pb.x > 1 && !notCompress) {
                 rect.pb.y = (n + 1) * stringHeight - 1 / rect.pb.x * (parent.pb[1] - parent.pa[1]) / (parent.pb[0] - parent.pa[0]);
                 rect.pb.x = 1;
             }

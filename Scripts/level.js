@@ -542,6 +542,11 @@ const mouseControl = () => {
 	    		+ Player.HEIGHT / 2);
 	    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
 	      		&& player.sp > 0) {
+	    		//Неломаемый блок (подсказка)
+	    		if (items[gameArea.get(targetX, targetY, layout)].durability > 300) {
+	    			showFloatMessage("I do not think I can break it");
+	    		}
+
 	            // Анимация
 	            player.setAnimation("body", "kick");
 

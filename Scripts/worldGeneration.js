@@ -1533,6 +1533,28 @@ const generate = (width, height, seed, changes) => {
                     setBlock(x, y, GameArea.SECOND_LAYOUT, DUNGEON_BRICK_BLOCK);
                     setBlock(x, y, GameArea.BACK_LAYOUT, DUNGEON_BRICK_BLOCK);
                 }
+                const fillEllipse = (center, xr, yr, setf) => {
+                    //setf - функция установки точки
+                    let xr_2 = xr * xr;
+                    let yr_2 = yr * yr;
+                    let xr1_2 = (xr - 2) * (xr - 1);
+                    let yr1_2 =  (yr - 2) * (yr - 1);
+                    for (let x = -xr; x < xr; x++) {
+                        let x_2 = x * x;
+                        for (let y = -yr; y < yr; y++) {
+                            let tx = random() < 0.4 ? xr1_2 : xr_2;
+                            let ty = random() < 0.4 ? yr1_2 : yr_2;
+                            if (x * x / tx + y * y / ty < 1)
+                                setf(center.x + x, center.y + y);
+                        }
+                    }
+                }
+                //Установка пещеры перед входом
+                drawLine(loc.add(35, 125), loc.add(45, 155), (x, y) => {
+                    fillEllipse(new Point(x, y), 4, 3, (x, y) => {
+                        setBlock(x, y, GameArea.FIRST_LAYOUT, AIR_BLOCK);
+                    });
+                });
                 const vW_2 = w * w;
                 const vH_2 = h * h;
                 //Верхняя и нижняя границы
@@ -2093,7 +2115,7 @@ const generate = (width, height, seed, changes) => {
     treeGen(16, 19, Math.floor(width * 2 / 3));
 
     // villageGen();
-    dungeonGen(new Point(500, 700));
+    dungeonGen(new Point(100, 100)); //500 700
     underSpecial1Gen(200, 200, 5);
     oreGen();
     

@@ -17,6 +17,7 @@ let _textureItems;
 const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с верхним концом [сек]
 const WATER_TIME_UPDATE = 0.2;
 const LAVA_TIME_UPDATE = 0.4;
+const FIRE_TIME_UPDATE = 0.15;
 const LEAF_TIME_ALIVE = 1;  // Рандомный промежуток с верхним концом [сек]
 const LEAF_UNDEAD_PART = 0.3;
 const LIQUID_DESTROY_LIST = [6, 18, 19, 370];  // id, которые смывает жидкость
@@ -2130,11 +2131,14 @@ const items = {
         name: 'fire-1',
         update: (x, y, l) => {
             setTimeout(() => {
-                gameArea.map[x][y][l] = undefined;
-                if (gameArea.get(x, y - 1, l) !== undefined) {
-                    gameArea.placeBlock(x, y, l, 9049);
+                if (items[gameArea.get(x, y, l)].type === 'fire') {
+                    gameArea.gameAreaMapSet(x, y, l, undefined);
+                    if (items[gameArea.get(x, y - 1, l)].type === 'wood') {
+                        gameArea.gameAreaMapSet(x, y, l, 9049);
+                    }
+                    gameArea.updateBlock(x, y, l);
                 }
-            }, 100);
+            }, FIRE_TIME_UPDATE * 1000);
         }
     },
 
@@ -2151,11 +2155,14 @@ const items = {
         name: 'fire-2',
         update: (x, y, l) => {
             setTimeout(() => {
-                gameArea.map[x][y][l]=undefined;
-                if (gameArea.get(x, y - 1, l) !== undefined) {
-                    gameArea.placeBlock(x, y, l, 9048);
+                if (items[gameArea.get(x, y, l)].type === 'fire') {
+                    gameArea.gameAreaMapSet(x, y, l, undefined);
+                    if (items[gameArea.get(x, y - 1, l)].type === 'wood') {
+                        gameArea.gameAreaMapSet(x, y, l, 9048);
+                    }
+                    gameArea.updateBlock(x, y, l);
                 }
-            }, 100);
+            }, FIRE_TIME_UPDATE * 1000);
         }
     }
 }

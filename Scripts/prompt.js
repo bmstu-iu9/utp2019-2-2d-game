@@ -1,3 +1,5 @@
+'use strict';
+
 const prompts = [
     {
         condition: () => gameArea.get(Math.floor(player.x) - 1, Math.floor(player.y), player.layout) === 17

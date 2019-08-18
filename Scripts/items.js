@@ -660,7 +660,15 @@ const items = {
         name: 'Glass',
         type: 'other',
         isBlock: true,
-        weight: WEIGHT_OF_BLOCKS
+        isCollissed: true,
+        durability: 0.5,
+        brightness: 7,
+        isNaturalLight: true,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(14, 1)
+        }
     },
 
     '21':

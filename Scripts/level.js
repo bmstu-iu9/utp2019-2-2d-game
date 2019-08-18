@@ -158,6 +158,8 @@ const eventTick = () => {
 	}
 	
 	// В последнюю очередь
+	// Проверка подсказок
+	promptSet.check();
 	if (player.sp === player.maxSP) player.heal(0.5 * deltaTime);
 	// Анимации
 	animationsTickCount++;
@@ -441,7 +443,7 @@ const playerMovement = () => {
 	player.fx = newX;
 	player.fy = newY;
 
-	// Анимация + звук падения
+	// Анимация падения
 	if (!player.onGround()) {
 		player.setAnimation("legs", "jump");
 	}
@@ -493,7 +495,6 @@ const mouseControl = () => {
 
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
-
 		// Нажатие по интерфейсу
 		let interactWithUI = false;
 		if (buttonHoldCounter <= buttonLongHoldLength) {

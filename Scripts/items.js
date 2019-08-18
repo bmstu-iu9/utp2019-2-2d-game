@@ -1,3 +1,5 @@
+'use strict';
+
 const WOODEN_EFFICIENCY = 2;
 const STONE_EFFICIENCY = 4;
 const IRON_EFFICIENCY = 7;
@@ -843,7 +845,15 @@ const items = {
         name: 'Glass',
         type: 'other',
         isBlock: true,
-        weight: WEIGHT_OF_BLOCKS
+        isCollissed: true,
+        durability: 0.5,
+        brightness: 7,
+        isNaturalLight: true,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(14, 1)
+        }
     },
 
     '21':

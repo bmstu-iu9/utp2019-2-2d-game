@@ -1,3 +1,5 @@
+'use strict';
+
 // Список того, что можно крафтить по инвентарю
 const getCrafts = (inventory, isCraftingTable, isFurnace) => {
 
@@ -86,6 +88,12 @@ let crafts = {
 		needId: [ 17 ],
 		needCount: [ 1 ],
 		resultCount: 2
+	},
+	'20': {
+		needId: [ 12, 263 ],
+		needCount: [ 1, 1 ],
+		needFurance: true,
+		resultCount: 3
 	},
 	'21': {
 		needId: [ 1 ],

@@ -264,6 +264,7 @@ const lavaFlowing = (x, y, l, id) => {
                     || items[gameArea.get(dx[i], dy[i], l)].type === 'flowingWater') {
 
                      gameArea.destroyBlock(dx[i], dy[i], l);
+                     gameArea.placeBlock(dx[i], dy[i], l, 4);
                 }
             }
         }

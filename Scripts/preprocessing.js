@@ -18,7 +18,7 @@ let _fontUI;
 
 const loadImage = (source) => {
 	totalImages++;
-	let tmp = new Image();
+	const tmp = new Image();
 	tmp.src = source;
 	tmp.onload = () => {
 		imageCounter++;

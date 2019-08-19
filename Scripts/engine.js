@@ -10,7 +10,7 @@
 
 	ИНИЦИАЛИЗАЦИЯ:
 Инициализация движка:
-const r = new Render();
+const r = new Engine();
 r.init(image, background, playerImage);
 	image - это объект Image
 	background - это изображение с фоном объекта Image
@@ -170,7 +170,7 @@ image.onload = () => {
 ***********************************************************************************************************************/
 
 
-class Render {
+class Engine {
 	constructor() {
 		const canvas = document.getElementById('canvas'); // получаем канвас
 		this.gl = canvas.getContext('webgl', {
@@ -1054,14 +1054,14 @@ class Render {
 			for (let i = 0; i <= xh; i += d) {
 				// левая половина экрана
 				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-				this.setUniform1f(this.uniform[5].u_pos, Math.floor(xc - i));
+				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc - i));
 				this.gl.uniform2fv(this.uniform[5].u_translate[0],
 					[(xt - i) * w, Math.max(yt0, this.weather[2] * scale) * h / 16]);
 				this.gl.drawArrays(this.gl.POINTS, 0, num);
 				
 				// правая половина экрана
 				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
-				this.setUniform1f(this.uniform[5].u_pos, Math.floor(xc + i + d));
+				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc + i + d));
 				this.gl.uniform2fv(this.uniform[5].u_translate[0],
 					[(xt + i + d) * w, Math.max(yt1, this.weather[2] * scale) * h / 16]);
 				this.gl.drawArrays(this.gl.POINTS, 0, num);
@@ -1376,4 +1376,4 @@ class Render {
 }
 
 // инициализация графического движка
-const render = new Render();
+const render = new Engine();

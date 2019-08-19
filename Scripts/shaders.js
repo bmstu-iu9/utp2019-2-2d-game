@@ -92,13 +92,13 @@ _fragmentShader[1] = `
 		float minAlpha = 0.25;
 		vec4 tex = texture2D(u_texture0, v_texCoord);
 		float tex2alpha = (texture2D(u_texture2, v_texCoord)).a;
-		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) / 2.0)).x;
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) * 0.5)).x;
 		vec2 delta = u_center - gl_FragCoord.xy;
 		float alpha = tex2alpha < 0.01
 			? (mod(gl_FragCoord.x + gl_FragCoord.y, 4.0) < 2.0
 				? 1.0
-				: clamp((sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha / 5.0)
-					* u_devicePixelRatio * u_devicePixelRatio / u_radius + minAlpha / 5.0), minAlpha, 1.0))
+				: clamp((sqrt(delta.x * delta.x + delta.y * delta.y) * (1.0 - minAlpha * 0.2)
+					* u_devicePixelRatio * u_devicePixelRatio / u_radius + minAlpha * 0.2), minAlpha, 1.0))
 			: 1.0;
 		vec4 color = vec4(tex.rgb * lightTex * u_light, tex.a * alpha);
 		gl_FragColor = color;
@@ -134,7 +134,7 @@ _fragmentShader[2] = `
 
 	void main() {
 		vec4 tex = texture2D(u_texture0, v_texCoord);
-		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) / 2.0)).x;
+		float lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) * 0.5)).x;
 		float radius = u_dynamicLight.p;
 		float maxLight = u_dynamicLight.a;
 		vec2 delta = u_dynamicLight.xy - gl_FragCoord.xy;
@@ -221,8 +221,8 @@ _vertexShader[5] = `
 	
 	void main() {
 		float delta = (a_id * u_pos) / u_number;
-		float offset = floor(u_time + delta) / 1000.0;
-		float t = u_time * u_resolution.y * 31.25 + hash(delta) + u_move * u_resolution.y * 1.1;
+		float offset = floor(u_time + delta) * 0.001;
+		float t = u_time * u_resolution.y * 31.25 + hash(delta) + u_move * u_resolution.y * 1.15;
 		float x = (hash(delta / floor(t)) * u_resolution.x + u_translate.x) * 2.0;
 		float y = fract(t) * -2.0 + 1.0;
 		if (y >= u_translate.y) {
@@ -235,8 +235,8 @@ _vertexShader[5] = `
 	}`;
 
 _fragmentShader[5] = `
-	precision mediump float;
+	precision lowp float;
 	
 	void main() {
-		gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+		gl_FragColor = vec4(0.0, 0.0, 1.0, 0.9);
 	}`;

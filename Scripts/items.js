@@ -790,9 +790,10 @@ const items = {
                     for (let i = x - 1; gameArea.map[i][y][layout] === 53; i--) {
                         gameArea.gameAreaMapSet(i, y, layout, 60);
                     }
-                    break;
+                    return;
                 }
             }
+            showFloatMessage("Locked. Need a key. It must be somewhere in this place.");
         },
         canPlace: (x, y, layout) => {
             return (gameArea.map[x][y - 1][layout] === 61
@@ -826,9 +827,10 @@ const items = {
                     for (let i = y - 1; gameArea.map[x][i][layout] === 54; i--) {
                         gameArea.gameAreaMapSet(x, i, layout, 62);
                     }
-                    break;
+                    return;
                 }
             }
+            showFloatMessage("Locked. Need a key. It must be somewhere in this place.");
         },
         canPlace: (x, y, layout) => {
             return (gameArea.map[x][y - 1][layout] === 61

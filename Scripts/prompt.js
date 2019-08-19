@@ -21,6 +21,12 @@ const prompts = [
         condition: () => player.hp !== player.maxHP && player.sp !== player.maxSP,
         message: "you got a damage. keep full stamina to heal.",
         time: 3
+    },
+
+    {
+        condition: () => player.layout === GameArea.FIRST_LAYOUT,
+        message: "press a and d to move, w to jump", // + hand info
+        time: 3
     }
 ];
 
@@ -28,7 +34,7 @@ const prompts = [
 class PromptSet {
     constructor() {
         this.set = new Set();
-        this.add = (condition, message, time = 1) => {
+        this.add = (condition, message, time) => {
             const lines = message.split("\n");
             message = lines[lines.length - 1];
             for (let i = lines.length - 2; i >= 0; i--) {

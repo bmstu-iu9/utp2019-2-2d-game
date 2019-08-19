@@ -913,6 +913,16 @@ const items = {
                     && gameArea.map[x + 1][y][layout] === 60) gameArea.interactWithBlock(x + 1, y, layout);
             if (inRange(x - 1, 0, gameArea.height)
                     && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
+
+            //Сообщение перед входом в данж
+            if (gameArea.map[x][y][GameArea.SECOND_LAYOUT] === 55 
+                && gameArea.map[x][y][GameArea.BACK_LAYOUT] !== 55 
+                && gameArea.map[x][y + 1][GameArea.SECOND_LAYOUT] !== 55) {
+                    //55 - id кирпича данжа
+                    showFloatMessage("These are ancient catacombs. Valuable treasures must be inside them", 5);
+                    gameArea.gameAreaMapSet(x, y, GameArea.BACK_LAYOUT, 55); 
+                    //Установка данж-блока на задний слой (мы его не видим) под люк отключает показ сообщения
+                }
         },
         canPlace: (x, y, layout) => {
             return (gameArea.map[x + 1][y][layout] === 61

@@ -72,7 +72,16 @@ const beginPlay = () => {
     } else {
 		gameArea = generate(2000, 1000, key);
 
-    	let px = gameArea.width / 2;
+		let px = gameArea.width / 2;
+		for (let i = px; i < gameArea.width; i++) {
+			if (gameArea.get(i, gameArea.elevationMap[i] + 1, 2) === undefined
+				&& gameArea.get(i - 1, gameArea.elevationMap[i] + 1, 2) === undefined
+				&& gameArea.get(i + 1, gameArea.elevationMap[i] + 1, 2) === undefined) {
+
+				px = i;
+				break;
+			}
+		}
     	let py = 0;
     	for (let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
     		py = Math.max(py, gameArea.elevationMap[i] + 1);

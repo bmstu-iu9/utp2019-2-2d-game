@@ -2,20 +2,34 @@ const prompts = [
     {  // start prompt
         startCondition: () => !controller.left.active && !controller.right.active,
         stopCondition: () => controller.left.active || controller.right.active,
-        message: "press a and d to move"
+        message: "press -a- or -d- to move"
     },
 
     {  // second prompt
         startCondition: () => controller.left.active || controller.right.active,
         stopCondition: () => controller.up.active,
-        message: "press w to jump"
+        message: "press -w- to jump"
+    },
+
+    {
+        startCondition: () => controller.up.active,
+        stopCondition: () => controller.mouse.click === 1,
+        message: "hold LMB to destroy the block.",
+        time: 5
+    },
+
+    {
+        startCondition: () => player.hand.info !== undefined && player.hand.info.isBlock,
+        stopCondition: () => player.hand.info === undefined,
+        message: "right click to place the block.",
+        time: 5
     },
 
     {
         startCondition: () => gameArea.get(Math.floor(player.x) - 1, Math.floor(player.y), player.layout) === 17
             || gameArea.get(Math.floor(player.x) + 1, Math.floor(player.y), player.layout) === 17,
         stopCondition: () => controller.down.active,
-        message: "press s to switch to another layer."
+        message: "press -s- to switch to another layer."
     },
 
     {
@@ -23,7 +37,7 @@ const prompts = [
             [Math.floor(player.y + Player.HEAD_Y)][player.layout]].type === "water",
         stopCondition: () => items[gameArea.map[Math.floor(player.x + Player.HEAD_X)]
             [Math.floor(player.y + Player.HEAD_Y)][player.layout]].type !== "water",
-        message: "you are choking under water. pop up to stop it.",
+        message: "you are choking under water. press w to pop up",
         time: 3
     },
 
@@ -39,7 +53,7 @@ const prompts = [
         stopCondition: () => player.sp === player.maxSP,
         message: "you got a damage. keep full stamina to heal.",
         time: 3
-    } // + hand info
+    }
 ];
 
 

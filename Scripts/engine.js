@@ -432,8 +432,7 @@ class Engine {
 	}
 
 	createObjects(arrayOfObjects) {
-		this.arrayOfObjects = arrayOfObjects;
-		this.IDs = [];
+		this.arrayOfObjects = {};
 		
 		const backgroundAsp = 512 / 512; // размер фона
 		
@@ -518,7 +517,7 @@ class Engine {
 			1, 1];
 		
 		for (let i in arrayOfObjects) {
-			this.IDs[arrayOfObjects[i].id] = i;
+			this.arrayOfObjects[arrayOfObjects[i].id] = arrayOfObjects[i];
 		}
 		
 		this.setProgram(0);
@@ -793,7 +792,7 @@ class Engine {
 				const xh = x * w;
 				for (let y = 0; y < this.heightChunk; y++) {
 					const yh = y * h;
-					const aoo = this.arrayOfObjects[this.IDs[blocksOfChunk[i][y][x]]];
+					const aoo = this.arrayOfObjects[blocksOfChunk[i][y][x]];
 					if (aoo != undefined) {
 						arrayOfBuffer.push(
 							xh, yh,

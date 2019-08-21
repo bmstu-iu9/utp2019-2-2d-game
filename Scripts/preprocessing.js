@@ -199,6 +199,7 @@ const preprocessing = () => {
 			deltaTime = 0.1;
 		}
 		oldTime = newTime;
+		cameraScale = (heigthCount * blockSize) / render.getCanvasSize()[1];
 
 		eventTick();
 
@@ -249,7 +250,6 @@ const preprocessing = () => {
 		}
 
 		gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
-		cameraScale = (heigthCount * blockSize) / render.getCanvasSize()[1];
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 		const lightOfPlayer = player.getLight(); // освещённость игрока
 		const dynamicLight = [9, player.light]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение (от 0 до 1)

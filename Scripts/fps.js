@@ -36,7 +36,7 @@ const fpsUpdate = () => {
 	}
 	const dpr = 1 / window.devicePixelRatio;
 	_classFpsStyle.top = (20 * dpr) + 'px';
-	_classFpsStyle.left = (1700 * dpr) + 'px';
+	_classFpsStyle.right = (20 * dpr) + 'px';
 	_classFpsStyle.fontSize = (20 * dpr) + 'px';
 	_classFpsStyle.padding = (10 * dpr) + 'px ' + (17 * dpr) + 'px';
 }

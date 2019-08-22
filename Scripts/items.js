@@ -20,8 +20,7 @@ const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с в�
 const WATER_TIME_UPDATE = 0.2;
 const LAVA_TIME_UPDATE = 0.4;
 const FIRE_TIME_UPDATE = 0.15;
-const LEAF_TIME_ALIVE = 1;  // Рандомный промежуток с верхним концом [сек]
-const LEAF_UNDEAD_PART = 0.3;
+const LEAF_DESTROY_CHANCE = 0.1;  // Шанс разрушения прочности блока листвы при падении
 const LIQUID_DESTROY_LIST = [6, 18, 19, 370];  // id, которые смывает жидкость
 
 const createItem = (id, count) => {
@@ -416,43 +415,10 @@ const fallingLeaf = (x, y, layout) => {
         }
     }
     dfs(x, y);
-    const fall = (x, y, time) => {
-        if (time <= 0) {
-            if (gameArea.map[x][y][layout] === 18) {
-                gameArea.destroyBlock(x, y, layout, player, "leafFall");
-            }
-            return;
-        }
-        setTimeout(() => {
-            if (time === undefined) {
-                if ((y - 1) >= 0 && gameArea.map[x][y][layout] === 18
-                && (gameArea.map[x][y - 1][layout] === undefined
-                    || !items[gameArea.map[x][y - 1][layout]].isCollissed)) {
-                    gameArea.destroyBlock(x, y, layout, player, "leafFall");
-                    gameArea.placeBlock(x, y - 1, layout, 18);
-                    fall(x, y - 1, undefined);
-                } else if ((y - 1) >= 0 && gameArea.map[x][y - 1][layout] === 18) {
-                    fall(x, y, undefined);
-                }
-            } else {
-                if ((y - 1) >= 0 && gameArea.map[x][y - 1][layout] === undefined
-                && gameArea.map[x][y][layout] === 18) {
-                    gameArea.destroyBlock(x, y, layout, player, "leafFall");
-                    gameArea.placeBlock(x, y - 1, layout, 18);
-                    fall(x, y - 1, time - GameArea.FALLING_BLOCKS);
-                } else {
-                    fall(x, y, time - GameArea.FALLING_BLOCKS);
-                }
-            }
-        }, GameArea.FALLING_BLOCKS * 1000);
-    }
     for (let i in visit) {
         if (gameArea.map[visit[i].x][visit[i].y][layout] === 18) {
-            if (Math.random() >= LEAF_UNDEAD_PART) {
-                fall(visit[i].x, visit[i].y, LEAF_TIME_ALIVE * Math.random());
-            } else {
-                fall(visit[i].x, visit[i].y, undefined);
-            }
+            gameArea.destroyBlock(visit[i].x, visit[i].y, layout, player, 'fallingLeaf');
+            gameArea.placeBlock(visit[i].x, visit[i].y, layout, 9050);
         }
     }
 }
@@ -2174,6 +2140,71 @@ const items = {
                     gameArea.updateBlock(x, y, l);
                 }
             }, FIRE_TIME_UPDATE * 1000);
+        }
+    },
+
+    '9050':
+    {
+        id: '9050',
+        name: 'falled-leaf-1',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+                gameArea.placeBlock(x, y, l, 9051);
+            }
+        }
+    },
+
+    '9051':
+    {
+        id: '9051',
+        name: 'falled-leaf-2',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+                gameArea.placeBlock(x, y, l, 9052);
+            }
+        }
+    },
+
+    '9052':
+    {
+        id: '9052',
+        name: 'falled-leaf-3',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+            }
         }
     }
 }

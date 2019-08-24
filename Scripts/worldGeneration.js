@@ -2201,8 +2201,9 @@ const generate = (width, height, seed, changes) => {
                 setChest(x, y, layer, inv);
             }
             drawByScheme(loc.add((cellX - 2) * cellW, cellY * cellH), blocksMap, finalFL, finalSL, chestFinalf);
-
-            // setBlock(500, 790, GameArea.FIRST_LAYOUT, WOOD_BLOCK)
+            for (let i = 0; i < cellX * cellW; i++)
+                for (let j = 0; j < 13; j++)
+                    setZone(loc.x + i, loc.y + (cellY * cellH) + j, CAVE_SPECIAL_ZONE);
         }
 
         create(vLoc, 30, 30, 6, 4);

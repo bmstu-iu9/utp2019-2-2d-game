@@ -194,35 +194,6 @@ class Engine {
 			}
 		}
 		
-		// пытаемся получить доступ к расширению
-		this.ext = this.gl.getExtension('ANGLE_instanced_arrays');
-		if (!this.ext) {
-			const debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
-			canvas.parentNode.removeChild(canvas);
-			if (debugInfo) {
-				document.getElementById("loading").innerHTML =
-					`ERROR #2!<br>
-					Please create an issue for<br>
-					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
-						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
-					<h6>1: ${navigator.userAgent}<br>
-						2: ${this.gl.getParameter(this.gl.VERSION)}<br>
-						3: ${this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)}<br>
-						4: ${this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}<br>`;
-				console.log(this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
-				console.log(this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
-			} else {
-				document.getElementById("loading").innerHTML =
-					`ERROR #3!<br>
-					Please create an issue for<br>
-					<a href="https://github.com/bmstu-iu9/utp2019-2-2d-game/issues">
-						github.com/bmstu-iu9/utp2019-2-2d-game</a><br>with this information:<br>
-					<h6>1: ${navigator.userAgent}<br>
-						2: ${this.gl.getParameter(this.gl.VERSION)}<br>`;
-			}
-			throw new Error('Browser is very old');
-		}
-		
 		// заливаем экран цветом 
 		this.resizeCanvas();
 		this.gl.clearColor(0.53, 0.81, 0.98, 1.0);
@@ -704,13 +675,17 @@ class Engine {
 		const width = this.widthChunk * this.size;
 		const height = this.heightChunk * this.size;
 		const c = `${x}x${y}`;
+		const count = blocksOfChunk.length;
+		
+		const liquid = [8, 9, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146,
+			147, 148, 149, 150, 151, 152];
 		
 		// буфер кадров
 		if (this.arrayOfChunks[c] === undefined) {
 			if (this.unusedArrayOfChunks.length === 0) {
 				// при отсутствии буфера кадров создадим его
 				const texture = [], blockBuffer = [], texBuffer = [];
-				for (let i in blocksOfChunk) {
+				for (let i = 0; i < count + 1; i++) {
 					texture[i] = this.gl.createTexture();
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texture[i]);
 					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA,
@@ -776,8 +751,12 @@ class Engine {
 		const w = 1 / this.widthChunk;
 		const h = 1 / this.heightChunk;
 		
+		const liquidArrayOfBuffer = [];
+		const liquidTextureOfBuffer = [];
+		let lv = 0;
+		
 		// отрисовка слоёв
-		for (let i in this.arrayOfChunks[c].tex) {
+		for (let i = 0; i < count; i++) {
 			const arrayOfBuffer = [];
 			const textureOfBuffer = [];
 			
@@ -792,40 +771,76 @@ class Engine {
 				const xh = x * w;
 				for (let y = 0; y < this.heightChunk; y++) {
 					const yh = y * h;
-					const aoo = this.arrayOfObjects[blocksOfChunk[i][y][x]];
+					const id = blocksOfChunk[i][y][x];
+					const aoo = this.arrayOfObjects[id];
 					if (aoo != undefined) {
-						arrayOfBuffer.push(
-							xh, yh,
-							xh + w, yh,
-							xh, yh + h,
-							xh, yh + h,
-							xh + w, yh,
-							xh + w, yh + h);
 						const a0 = aoo.a[0], a1 = aoo.a[1], b0 = aoo.b[0], b1 = aoo.b[1];
-						textureOfBuffer.push(
-							a0, b1,
-							b0, b1,
-							a0, a1,
-							a0, a1,
-							b0, b1,
-							b0, a1);
-						v += 6;
+						if (liquid.indexOf(id) != -1) {
+							liquidArrayOfBuffer.push(
+								xh, yh,
+								xh + w, yh,
+								xh, yh + h,
+								xh, yh + h,
+								xh + w, yh,
+								xh + w, yh + h);
+							
+							liquidTextureOfBuffer.push(
+								a0, b1,
+								b0, b1,
+								a0, a1,
+								a0, a1,
+								b0, b1,
+								b0, a1);
+							lv += 6;
+						} else {
+							arrayOfBuffer.push(
+								xh, yh,
+								xh + w, yh,
+								xh, yh + h,
+								xh, yh + h,
+								xh + w, yh,
+								xh + w, yh + h);
+							
+							textureOfBuffer.push(
+								a0, b1,
+								b0, b1,
+								a0, a1,
+								a0, a1,
+								b0, b1,
+								b0, a1);
+							v += 6;
+						}
 					}
 				}
 			}
 			
 			if (v > 0) {
 				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[i]);
-				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.STREAM_DRAW);
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(arrayOfBuffer), this.gl.DYNAMIC_DRAW);
 				this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
 				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[i]);
-				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.STREAM_DRAW);
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
 				this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 				this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
-			} // TODO: Переделать под ANGLE_instanced_arrays
+			}
 		}
 		
-		for (let i in this.arrayOfChunks[c].tex) {
+		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
+			this.arrayOfChunks[c].tex[count], 0);
+		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+		
+		if (lv > 0) {
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[count]);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(liquidArrayOfBuffer), this.gl.DYNAMIC_DRAW);
+			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[count]);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(liquidTextureOfBuffer), this.gl.DYNAMIC_DRAW);
+			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
+			this.gl.drawArrays(this.gl.TRIANGLES, 0, lv);
+		}
+		
+		for (let i = 0; i < count + 1; i++) {
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[i]);
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_LINEAR);
@@ -937,7 +952,7 @@ class Engine {
 				this.gl.uniform1f(this.uniform[2].u_light[0], ls);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
-			} // TODO: Попробовать переделать под ANGLE_instanced_arrays
+			}
 		}
 		this.setProgram(0);
 		
@@ -978,7 +993,7 @@ class Engine {
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
 					this.gl.uniform3f(this.uniform[1].u_translate[0], xc, yc, -2);
 					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
-				} // TODO: Попробовать переделать под ANGLE_instanced_arrays
+				}
 			}
 		} else {
 			this.setProgram(2);
@@ -996,7 +1011,7 @@ class Engine {
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
 					this.gl.uniform3fv(this.uniform[2].u_translate[0], [xc, yc, -2]);
 					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
-				} // TODO: Попробовать переделать под ANGLE_instanced_arrays
+				}
 			}
 		}
 		this.setProgram(0);
@@ -1010,6 +1025,24 @@ class Engine {
 				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
 				this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
+			}
+		}
+		
+		this.setProgram(2);
+			
+		this.gl.uniform1f(this.uniform[2].u_light[0], 1);
+			
+		// отрисовка 1 слоя без полупрозрачного круга
+		for (let c in this.arrayOfChunks) {
+			if (this.arrayOfChunks[c] !== undefined) {
+				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
+				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+				this.gl.activeTexture(this.gl.TEXTURE1);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
+				this.gl.activeTexture(this.gl.TEXTURE0);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[3]);
+				this.gl.uniform3fv(this.uniform[2].u_translate[0], [xc, yc, -2]);
+				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			}
 		}
 		
@@ -1041,13 +1074,13 @@ class Engine {
 			const w = this.size / this.gl.canvas.width / scale;
 			const h = this.size / this.gl.canvas.height / scale;
 			
+			// устанавливаем параметры дождя
 			this.setUniform1f(this.uniform[5].u_number, max);
 			this.gl.uniform1f(this.uniform[5].u_time[0], time * this.speedRain * 0.0001);
 			this.setUniform2fv(this.uniform[5].u_resolution, [w, h]);
 			this.setUniform1f(this.uniform[5].u_devicePixelRatio, window.devicePixelRatio);
 			this.setUniform1f(this.uniform[5].u_move, yc);
 			
-			// TODO: Переделать под ANGLE_instanced_arrays
 			// отрисовка дождя
 			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1; // средний шаг дождя в блоках
 			for (let i = 0; i <= xh; i += d) {

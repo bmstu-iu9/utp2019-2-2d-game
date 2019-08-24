@@ -1935,26 +1935,3 @@ const generate = (width, height, seed, changes) => {
     return new GameArea(worldMap, elevationMap, shadowMap, width, height, chestsInvs);
     //#endregion
 }
-
-// Визуализация полученной матрицы в консоли
-const visualisator = (gameArea) => {
-    let str = "";
-    for (let i = 0; i < gameArea.width; i++) {
-        for (let j = 0; j < gameArea.height; j++) {
-            let block = gameArea.map[i][j][GameArea.FIRST_LAYOUT];
-            if (block != undefined) {
-                if (block == 17) {
-                    str += "#";
-                } else {
-                    if (block == 18) {
-                        str += "@";
-                    } else str += block;
-                }
-            } else {
-                str += " ";
-            }
-        }
-        console.log(str);
-        str = "";
-    }
-}

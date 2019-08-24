@@ -26,5 +26,5 @@ const cheat = {
 }
 
 const __cheat_apply = () => {
-    
+    //Вызывается при загрузке мира
 }

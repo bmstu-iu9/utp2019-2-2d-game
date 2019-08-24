@@ -616,7 +616,6 @@ const items = {
         isCanInteractThrow: true,
         hasGravity: false,
         density: 0.9,
-        isNaturalLight: true,
         update: (x, y, layout) => {
             lavaFlowing(x, y, layout, 10);
         }
@@ -625,7 +624,7 @@ const items = {
     '11':  // Не будет использоваться
     {
         id: '11',
-        type: 'flowingWater',
+        type: 'flowingLava',
         durability: 1,
         brightness: 8,
         isCanInteractThrow: true,
@@ -1719,7 +1718,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-0',
         update: (x, y, layout) => {
@@ -1735,7 +1733,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-1',
         update: (x, y, layout) => {
@@ -1751,7 +1748,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-2',
         update: (x, y, layout) => {
@@ -1767,7 +1763,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-3',
         update: (x, y, layout) => {
@@ -1783,7 +1778,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-4',
         update: (x, y, layout) => {
@@ -1799,7 +1793,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-5',
         update: (x, y, layout) => {
@@ -1815,7 +1808,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-6',
         update: (x, y, layout) => {
@@ -1831,7 +1823,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-7',
         update: (x, y, layout) => {
@@ -1847,7 +1838,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-8',
         update: (x, y, layout) => {
@@ -1863,7 +1853,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-9',
         update: (x, y, layout) => {
@@ -1879,7 +1868,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-10',
         update: (x, y, layout) => {
@@ -1895,7 +1883,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-11',
         update: (x, y, layout) => {
@@ -1911,7 +1898,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-12',
         update: (x, y, layout) => {
@@ -1927,7 +1913,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-13',
         update: (x, y, layout) => {
@@ -1943,7 +1928,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-14',
         update: (x, y, layout) => {
@@ -1959,7 +1943,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-15',
         update: (x, y, layout) => {
@@ -1975,7 +1958,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-16',
         update: (x, y, layout) => {
@@ -1991,7 +1973,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-17',
         update: (x, y, layout) => {
@@ -2007,7 +1988,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-18',
         update: (x, y, layout) => {
@@ -2023,7 +2003,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-19',
         update: (x, y, layout) => {
@@ -2039,7 +2018,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-20',
         update: (x, y, layout) => {
@@ -2055,7 +2033,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-21',
         update: (x, y, layout) => {
@@ -2071,7 +2048,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-22',
         update: (x, y, layout) => {
@@ -2087,7 +2063,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-23',
         update: (x, y, layout) => {
@@ -2104,7 +2079,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         name: 'fire-1',
         update: (x, y, l) => {
             setTimeout(() => {
@@ -2128,7 +2102,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         name: 'fire-2',
         update: (x, y, l) => {
             setTimeout(() => {

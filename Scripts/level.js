@@ -113,7 +113,6 @@ const setTimeOfDay = (currentTime, lenghtOfDay) => {
 // На первом тике после инициализации мира
 const onStart = () => {
 	initUI();
-	__cheat_apply();
 }
 
 // Вызывается каждый кадр
@@ -263,7 +262,7 @@ const playerActionButtons = () => {
 // Движение игрока
 const playerMovement = () => {
 
-	if(!__cheat_noLayout && controller.down.active) {
+	if(controller.down.active) {
 		 if(!controller.downClick) {
 		 	controller.downClick = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
@@ -281,8 +280,7 @@ const playerMovement = () => {
 	let headY = Math.floor(player.y + Player.HEAD_Y);
 
 	// Урон от удушья 
-	if (!__cheat_spectator &&
-		gameArea.map[headX][headY][player.layout]
+	if (gameArea.map[headX][headY][player.layout]
 		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
 			|| items[gameArea.map[headX][headY][player.layout]].type == "flowingWater"
 			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
@@ -292,13 +290,7 @@ const playerMovement = () => {
 	}
 	let liquidK = player.getLiquidK();
 
-	if (__cheat_spectator) {
-		if (controller.left.active) player.fx -= Player.SPEED * deltaTime;
-		if (controller.right.active) player.fx += Player.SPEED * deltaTime;
-		if (controller.up.active) player.fy += Player.SPEED * deltaTime;
-		if (controller.down.active) player.fy -= Player.SPEED * deltaTime;
-	}
-	else if (liquidK == 0) { // Если игрок на суше
+	if (liquidK == 0) { // Если игрок на суше
 		if (player.onGround()) { //....................................................... Если игрок на поверхности
 			player.vy = Math.max(player.vy, 0);
 			if (controller.up.active) {

@@ -57,8 +57,6 @@ class GameArea{
         this.chunkWidth = 1;
         // Возвращает освещение конкретного блока
         this.getLight = (x, y) => {
-            if (__cheat_fullbright)
-                return 1;
             let grad = (y > this.elevationMap[x])
                 ? 1
                 : ((y < 0.9 * this.elevationMap[x])
@@ -347,8 +345,6 @@ class GameArea{
 
         // К этому блоку можно приставлять другие
         this.canAttach = (x, y, layout) => {
-            if (__cheat_freePlacement)
-                return true;
             return this.exist(x, y)
                     && this.map[x][y][layout] !== undefined
                     && items[this.map[x][y][layout]].type !== "water"

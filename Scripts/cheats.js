@@ -1,18 +1,6 @@
-var __cheat_fullbright = true;
-var __cheat_spectator = true;
-var __cheat_seed = undefined;
-var __cheat_freePlacement = true;
-var __cheat_noLayout = true;
+let __cheat_seed = undefined;
 
 const cheat = {
-    bright() {
-        __cheat_fullbright = !__cheat_fullbright;
-        console.log(`Set bright to ${__cheat_fullbright ? "fullbright" : "normal"}`);
-    },
-    spectator() {
-        __cheat_spectator = !__cheat_spectator;
-        console.log(`Set spectator mode to ${__cheat_spectator ? "enabled" : "disabled"}`);
-    },
     seed() {
         console.log(`Seed: ${__cheat_seed}`);
     },
@@ -32,10 +20,6 @@ const cheat = {
         player.fx += x;
         player.fy += y;
     },
-    freePlacement() {
-        __cheat_freePlacement = !__cheat_freePlacement;
-        console.log(`Set fullplacement to ${__cheat_freePlacement ? "fullbright" : "normal"}`);
-    },
     get(id, count = 1) {
         player.addToInv(createItem(id, count));
     },
@@ -49,17 +33,11 @@ const cheat = {
 }
 
 const __cheat_apply = () => {
-    cheat.tp(138, 227);
-    cheat.get(790, 1);
-    cheat.get(791, 1);
-    cheat.get(21, 100);
-    // cheat.get(55, 100);
-    cheat.get(12, 40);
-    cheat.get(19, 20)
+    
 }
 
 const writeScheme = (x, y, w, h) => {
-    //writeScheme(510, 810, 50, 20)
+    //writeScheme(130, 160, 30, 30)
     const bMap = {
         2:  'm', //GRASS_BKOCK
         3:  'n', //DIRT_BLOCK

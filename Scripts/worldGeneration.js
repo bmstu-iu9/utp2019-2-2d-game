@@ -1,7 +1,5 @@
 'use strict';
 
-var __observe = [];
-
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
     // seed = 1566486820930;
@@ -1184,7 +1182,6 @@ const generate = (width, height, seed, changes) => {
             }
             setBlock(loc.x, loc.y, GameArea.FIRST_LAYOUT, DIRT_BLOCK);
             setTree(loc.add(0, 1), xradius - 4, 2 * yradius - dirtLevel - 10);
-            // __observe.push(loc); //TEMP
         }
 
         const checkZone = (center, w, h) => {

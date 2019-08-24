@@ -53,6 +53,12 @@ const prompts = [
         stopCondition: () => player.sp === player.maxSP,
         message: "you got a damage. keep full stamina to heal.",
         time: 3
+    },
+
+    {
+        startCondition: () => player.inv.weight !== 0,
+        stopCondition: () => controller.inv.active || controller.craft.active,
+        message: "press -i- to open inventary,\npress -o- to open crafts.       "  // Баг с отчетом символов
     }
 ];
 

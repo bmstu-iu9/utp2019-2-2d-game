@@ -20,8 +20,7 @@ const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с в�
 const WATER_TIME_UPDATE = 0.2;
 const LAVA_TIME_UPDATE = 0.4;
 const FIRE_TIME_UPDATE = 0.15;
-const LEAF_TIME_ALIVE = 1;  // Рандомный промежуток с верхним концом [сек]
-const LEAF_UNDEAD_PART = 0.3;
+const LEAF_DESTROY_CHANCE = 0.1;  // Шанс разрушения прочности блока листвы при падении
 const LIQUID_DESTROY_LIST = [6, 18, 19, 370];  // id, которые смывает жидкость
 
 const createItem = (id, count) => {
@@ -416,43 +415,10 @@ const fallingLeaf = (x, y, layout) => {
         }
     }
     dfs(x, y);
-    const fall = (x, y, time) => {
-        if (time <= 0) {
-            if (gameArea.map[x][y][layout] === 18) {
-                gameArea.destroyBlock(x, y, layout, player, "leafFall");
-            }
-            return;
-        }
-        setTimeout(() => {
-            if (time === undefined) {
-                if ((y - 1) >= 0 && gameArea.map[x][y][layout] === 18
-                && (gameArea.map[x][y - 1][layout] === undefined
-                    || !items[gameArea.map[x][y - 1][layout]].isCollissed)) {
-                    gameArea.destroyBlock(x, y, layout, player, "leafFall");
-                    gameArea.placeBlock(x, y - 1, layout, 18);
-                    fall(x, y - 1, undefined);
-                } else if ((y - 1) >= 0 && gameArea.map[x][y - 1][layout] === 18) {
-                    fall(x, y, undefined);
-                }
-            } else {
-                if ((y - 1) >= 0 && gameArea.map[x][y - 1][layout] === undefined
-                && gameArea.map[x][y][layout] === 18) {
-                    gameArea.destroyBlock(x, y, layout, player, "leafFall");
-                    gameArea.placeBlock(x, y - 1, layout, 18);
-                    fall(x, y - 1, time - GameArea.FALLING_BLOCKS);
-                } else {
-                    fall(x, y, time - GameArea.FALLING_BLOCKS);
-                }
-            }
-        }, GameArea.FALLING_BLOCKS * 1000);
-    }
     for (let i in visit) {
         if (gameArea.map[visit[i].x][visit[i].y][layout] === 18) {
-            if (Math.random() >= LEAF_UNDEAD_PART) {
-                fall(visit[i].x, visit[i].y, LEAF_TIME_ALIVE * Math.random());
-            } else {
-                fall(visit[i].x, visit[i].y, undefined);
-            }
+            gameArea.destroyBlock(visit[i].x, visit[i].y, layout, player, 'fallingLeaf');
+            gameArea.placeBlock(visit[i].x, visit[i].y, layout, 9050);
         }
     }
 }
@@ -650,7 +616,6 @@ const items = {
         isCanInteractThrow: true,
         hasGravity: false,
         density: 0.9,
-        isNaturalLight: true,
         update: (x, y, layout) => {
             lavaFlowing(x, y, layout, 10);
         }
@@ -659,7 +624,7 @@ const items = {
     '11':  // Не будет использоваться
     {
         id: '11',
-        type: 'flowingWater',
+        type: 'flowingLava',
         durability: 1,
         brightness: 8,
         isCanInteractThrow: true,
@@ -1753,7 +1718,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-0',
         update: (x, y, layout) => {
@@ -1769,7 +1733,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-1',
         update: (x, y, layout) => {
@@ -1785,7 +1748,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-2',
         update: (x, y, layout) => {
@@ -1801,7 +1763,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-3',
         update: (x, y, layout) => {
@@ -1817,7 +1778,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-4',
         update: (x, y, layout) => {
@@ -1833,7 +1793,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-5',
         update: (x, y, layout) => {
@@ -1849,7 +1808,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-6',
         update: (x, y, layout) => {
@@ -1865,7 +1823,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-7',
         update: (x, y, layout) => {
@@ -1881,7 +1838,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-8',
         update: (x, y, layout) => {
@@ -1897,7 +1853,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-9',
         update: (x, y, layout) => {
@@ -1913,7 +1868,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-10',
         update: (x, y, layout) => {
@@ -1929,7 +1883,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-11',
         update: (x, y, layout) => {
@@ -1945,7 +1898,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-12',
         update: (x, y, layout) => {
@@ -1961,7 +1913,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-13',
         update: (x, y, layout) => {
@@ -1977,7 +1928,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-14',
         update: (x, y, layout) => {
@@ -1993,7 +1943,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-15',
         update: (x, y, layout) => {
@@ -2009,7 +1958,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-16',
         update: (x, y, layout) => {
@@ -2025,7 +1973,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-17',
         update: (x, y, layout) => {
@@ -2041,7 +1988,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-18',
         update: (x, y, layout) => {
@@ -2057,7 +2003,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-19',
         update: (x, y, layout) => {
@@ -2073,7 +2018,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-20',
         update: (x, y, layout) => {
@@ -2089,7 +2033,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-21',
         update: (x, y, layout) => {
@@ -2105,7 +2048,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-22',
         update: (x, y, layout) => {
@@ -2121,7 +2063,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         density: 0.9,
         name: 'flowing-lava-23',
         update: (x, y, layout) => {
@@ -2138,7 +2079,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         name: 'fire-1',
         update: (x, y, l) => {
             setTimeout(() => {
@@ -2162,7 +2102,6 @@ const items = {
         brightness: 8,
         isCollissed: false,
         isCanInteractThrow: true,
-        isNaturalLight: true,
         name: 'fire-2',
         update: (x, y, l) => {
             setTimeout(() => {
@@ -2174,6 +2113,71 @@ const items = {
                     gameArea.updateBlock(x, y, l);
                 }
             }, FIRE_TIME_UPDATE * 1000);
+        }
+    },
+
+    '9050':
+    {
+        id: '9050',
+        name: 'falled-leaf-1',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+                gameArea.placeBlock(x, y, l, 9051);
+            }
+        }
+    },
+
+    '9051':
+    {
+        id: '9051',
+        name: 'falled-leaf-2',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+                gameArea.placeBlock(x, y, l, 9052);
+            }
+        }
+    },
+
+    '9052':
+    {
+        id: '9052',
+        name: 'falled-leaf-3',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+            }
         }
     }
 }

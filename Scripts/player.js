@@ -50,7 +50,7 @@ class Player {
         this.defaultLight = 0.2;
         this.light = this.defaultLight;
         
-        // Инвентарь, в начале пуст. Блоки пока не стакаются
+        // Инвентарь, в начале пуст
         this.inv = {
             "items" : [],
             "count" : [],

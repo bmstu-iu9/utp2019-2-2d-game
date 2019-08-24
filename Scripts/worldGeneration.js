@@ -109,7 +109,7 @@ const generate = (width, height, seed, changes) => {
             return NONE_ZONE;
         return worldZones[x][y] !== undefined ? worldZones[x][y] : NONE_ZONE;
     }
-    const setChest = (x, y, layer, loot) => {
+    const setChest = (x, y, layer, loot) => { //Устанавливает инвентарь сундука (но не сам блок!)
         let tinv = [
             [],
             [],
@@ -136,6 +136,7 @@ const generate = (width, height, seed, changes) => {
 
     //Функции рисования сложных объектов (эллипсы, линии, карты и т.д.)
     //#region draws
+    //Вызывает setf(x, y) для каждого блока на линии
     const drawLine = (startPoint, stopPoint, setf) => {
         if (Math.abs(stopPoint.x - startPoint.x) >= Math.abs(stopPoint.y - startPoint.y)) {
             if (startPoint.x > stopPoint.x) {
@@ -574,6 +575,7 @@ const generate = (width, height, seed, changes) => {
             return false;
         }
 
+        //Создает одну горизонтальную пещеру из заданной точки в случайном напрвлении
         const createHorCave = (startPoint) => {
             let side = random() < 0.5 ? 1 : -1;
             let count = 0;
@@ -604,7 +606,6 @@ const generate = (width, height, seed, changes) => {
             }
             if (len < 60)
                 return;
-            // curve(segs);
             for (let i = 1; i < segs.length; i++) {
                 createCaveSeg(segs[i - 1], segs[i], CAVE_ZONE);
             }
@@ -613,6 +614,7 @@ const generate = (width, height, seed, changes) => {
         //Процесс выбора точек старта
         let seqStart = Math.floor(random() * 90);
         for (let i = seqStart; i < seqStart + count; i++) {
+            // https://habr.com/ru/post/440892/
             let g = 1.32471795724474602596;
             let a1 = 1.0 / g;
             let a2 = 1.0 / (g * g);
@@ -651,11 +653,9 @@ const generate = (width, height, seed, changes) => {
                         radius * radius >= (i - x) * (i - x) + (j - y) * (j - y)) {
                         if (random() > 0.3) {
                             if (getBlock(i, j, GameArea.FIRST_LAYOUT) === STONE_BLOCK) {
-                                // setZone(i, j, ORE_ZONE);
                                 setBlock(i, j, GameArea.FIRST_LAYOUT, type);
                             }
                             if (random() < 0.5 && getBlock(i, j, GameArea.SECOND_LAYOUT) === STONE_BLOCK) {
-                                // setZone(i, j, ORE_ZONE);
                                 setBlock(i, j, GameArea.SECOND_LAYOUT, type);
                             }
                         }
@@ -673,7 +673,6 @@ const generate = (width, height, seed, changes) => {
 					Math.floor(random() * width), Math.floor(minHeight) + Math.floor(random() * (maxHeight - minHeight)));
             }
         }
-
         placeOres(COAL_ORE_BLOCK, 1 / 300, 3, 2, 0, 0.7);
         placeOres(IRON_ORE_BLOCK, 1 / 400, 2, 1, 0, 0.5);
         placeOres(GOLD_ORE_BLOCK, 1 / 600, 2, 1, 0.1, 0.4);
@@ -971,6 +970,7 @@ const generate = (width, height, seed, changes) => {
             }
         }
 
+        //Попытка присоединиться к другим пещерам сверху
         const findCaveNear = (loc, xradius, yradius) => {
             let flag = false;
             for (let i = 3; i < yradius + 25; i += 3) { //Справа
@@ -1022,6 +1022,7 @@ const generate = (width, height, seed, changes) => {
             }
         } 
 
+        //Создать каменную "подложку"
         const clearZone = (loc, xradius, yradius) => {
             const outaCoeff = 4;
             const outbCoeff = 3;
@@ -1124,7 +1125,6 @@ const generate = (width, height, seed, changes) => {
                 };
 
                 const createBranch = (start, depth)=> {
-                    //TODO: красивые деревья
                     if (random() < 0.3) { //Две ветки
                         let rand = random();
                         let dy = Math.floor(height / maxDepth);
@@ -1184,6 +1184,7 @@ const generate = (width, height, seed, changes) => {
             setTree(loc.add(0, 1), xradius - 4, 2 * yradius - dirtLevel - 10);
         }
 
+        //Проверить возможность создания в данной точке
         const checkZone = (center, w, h) => {
             if (center.x - w < 5 || center.x + w > width - 5)
                 return false;
@@ -1216,14 +1217,14 @@ const generate = (width, height, seed, changes) => {
     //Создание данжа
     const dungeonGen = (vLoc) => {
         const create = (loc, cellW, cellH, cellX, cellY) => {
+            const brickBlock = DUNGEON_BRICK_BLOCK; //При создании комнат использовать STONE_BRICK_BLOCK
+
             const clearZone = (x, y, w, h) => {
                 const clearBlock = (x, y) => {
                     setZone(x, y, CAVE_SPECIAL_ZONE);
-                    const tblock = DUNGEON_BRICK_BLOCK;
-                    // const tblock = STONE_BRICK_BLOCK;
-                    setBlock(x, y, GameArea.FIRST_LAYOUT, tblock);
-                    setBlock(x, y, GameArea.SECOND_LAYOUT, tblock);
-                    setBlock(x, y, GameArea.BACK_LAYOUT, tblock);
+                    setBlock(x, y, GameArea.FIRST_LAYOUT, brickBlock);
+                    setBlock(x, y, GameArea.SECOND_LAYOUT, brickBlock);
+                    setBlock(x, y, GameArea.BACK_LAYOUT, brickBlock);
                 }
                 const fillEllipse = (center, xr, yr, setf) => {
                     //setf - функция установки точки
@@ -1433,8 +1434,7 @@ const generate = (width, height, seed, changes) => {
             //#region rooms
             const blocksMap = {
                 'a': STONE_BRICK_BLOCK,
-                'b': DUNGEON_BRICK_BLOCK,
-                // 'b': STONE_BRICK_BLOCK,                
+                'b': brickBlock,              
                 'c': COBBLESTONE_BLOCK,
                 'd': CLOSED_DOOR_BLOCK,
                 'e': CHEST_BLOCK,

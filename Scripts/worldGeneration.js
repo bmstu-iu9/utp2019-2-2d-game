@@ -927,6 +927,28 @@ const generate = (width, height, seed, changes) => {
             }
         }
     }
+
+    const createSideBounds = () => {
+        const placeBlock = (x, y) => {
+            if (getBlock(x, y, GameArea.BACK_LAYOUT) !== STONE_BLOCK)
+                return;
+            setBlock(x, y, GameArea.FIRST_LAYOUT, STONE_BLOCK);
+            setBlock(x, y, GameArea.SECOND_LAYOUT, STONE_BLOCK);
+            setBlock(x, y, GameArea.BACK_LAYOUT, STONE_BLOCK);
+        }
+        let h = elevationMap[0];
+        for (let i = 4; i < h; i++) {
+            let bound = (0.5 + Math.sin(i * 0.4) / 2) * 5 + 1 + (random() * 4);
+            for (let j = 0; j < bound; j++)
+                placeBlock(j, i);
+        }
+        h = elevationMap[width - 1];
+        for (let i = 4; i < h; i++) {
+            let bound = (0.5 + Math.sin(i * 0.4) / 2) * 5 + 1 + (random() * 4);
+            for (let j = 0; j < bound; j++)
+                placeBlock(width - 1 - j, i);
+        }
+    }
     //#endregion
 
     //Методы генерации особых объектов
@@ -1834,12 +1856,11 @@ const generate = (width, height, seed, changes) => {
     caveGen(width / 100, height / 3);
     undergroundCavseGen(100, 50, 60);
     treeGen(16, 19, Math.floor(width * 2 / 3));
-
-    // villageGen();
     dungeonGen(new Point(100, 100)); //500 700
     underSpecial1Gen(200, 200, 5);
     lavaLakes(20, height / 2, 1 / 4000);
     oreGen();
+    createSideBounds();
     
     //Слой бедрока
     for (let x = 0; x < width; x++) {

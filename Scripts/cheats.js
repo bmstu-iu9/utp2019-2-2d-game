@@ -1,9 +1,8 @@
-var __cheat_fullbright = false;
-var __cheat_spectator = false;
+var __cheat_fullbright = true;
+var __cheat_spectator = true;
 var __cheat_seed = undefined;
 var __cheat_freePlacement = true;
-// var __gameArea = undefined;
-var __cheat_noLayout = false;
+var __cheat_noLayout = true;
 
 const cheat = {
     bright() {
@@ -53,7 +52,8 @@ const __cheat_apply = () => {
     cheat.tp(138, 227);
     cheat.get(790, 1);
     cheat.get(791, 1);
-    cheat.get(55, 100);
+    cheat.get(21, 100);
+    // cheat.get(55, 100);
     cheat.get(12, 40);
     cheat.get(19, 20)
 }

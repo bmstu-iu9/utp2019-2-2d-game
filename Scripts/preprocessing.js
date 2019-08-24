@@ -144,7 +144,8 @@ const preprocessing = () => {
 					if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
 						// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 						if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) {
-							layoutChunk.chunk[j - startY][i - startX] = 9;
+							layoutChunk.chunk[j - startY][i - startX] =
+							gameArea.map[Math.floor(i)][Math.floor(j)][layout] - 9000 + 129;
 						} else {
 							layoutChunk.chunk[j - startY][i - startX] =
 								gameArea.map[Math.floor(i)][Math.floor(j)][layout];
@@ -198,6 +199,7 @@ const preprocessing = () => {
 			deltaTime = 0.1;
 		}
 		oldTime = newTime;
+		cameraScale = (heigthCount * blockSize) / render.getCanvasSize()[1];
 
 		eventTick();
 
@@ -248,7 +250,6 @@ const preprocessing = () => {
 		}
 
 		gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
-		cameraScale = (heigthCount * blockSize) / render.getCanvasSize()[1];
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 		const lightOfPlayer = player.getLight(); // освещённость игрока
 		const dynamicLight = [9, player.light]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение (от 0 до 1)

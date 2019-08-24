@@ -72,7 +72,16 @@ const beginPlay = () => {
     } else {
 		gameArea = generate(2000, 1000, key);
 
-    	let px = gameArea.width / 2;
+		let px = gameArea.width / 2;
+		for (let i = px; i < gameArea.width; i++) {
+			if (gameArea.get(i, gameArea.elevationMap[i] + 1, 2) === undefined
+				&& gameArea.get(i - 1, gameArea.elevationMap[i] + 1, 2) === undefined
+				&& gameArea.get(i + 1, gameArea.elevationMap[i] + 1, 2) === undefined) {
+
+				px = i;
+				break;
+			}
+		}
     	let py = 0;
     	for (let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
     		py = Math.max(py, gameArea.elevationMap[i] + 1);
@@ -158,6 +167,8 @@ const eventTick = () => {
 	}
 	
 	// В последнюю очередь
+	// Проверка подсказок
+	promptSet.check();
 	if (player.sp === player.maxSP) player.heal(0.5 * deltaTime);
 	// Анимации
 	animationsTickCount++;
@@ -283,12 +294,15 @@ const playerMovement = () => {
 	if (gameArea.map[headX][headY][player.layout]
 		&& (items[gameArea.map[headX][headY][player.layout]].type == "water"
 			|| items[gameArea.map[headX][headY][player.layout]].type == "flowingWater"
+			|| items[gameArea.map[headX][headY][player.layout]].type == "lava"
+			|| items[gameArea.map[headX][headY][player.layout]].type == "flowingLava"
 			|| items[gameArea.map[headX][headY][player.layout]].isCollissed)) {
 		player.choke(deltaTime);
 	} else {
 		player.updateBP(Math.min(player.bp + 2 * Player.CHOKE_SPEED * deltaTime, 100));
 	}
-	let liquidK = player.getLiquidK();
+	const liquid = player.getLiquidK();
+	const liquidK = liquid[0];
 
 	if (liquidK == 0) { // Если игрок на суше
 		if (player.onGround()) { //....................................................... Если игрок на поверхности
@@ -336,6 +350,9 @@ const playerMovement = () => {
 		}
 		if (!controller.left.active && !controller.right.active) player.vx = 0; //....... Если нет движения в стороны
 	} else { //.......................................................................... Если в жидкости
+		if (liquid[1].has('lava') || liquid[1].has('flowingLava')) {
+			player.burning(deltaTime);
+		}
 		if (controller.left.active) player.vx -= Player.SPEED * deltaTime;
 		if (controller.right.active) player.vx += Player.SPEED * deltaTime;
 		if (controller.up.active) player.vy += Player.SPEED * deltaTime;
@@ -436,7 +453,7 @@ const playerMovement = () => {
 	player.fx = newX;
 	player.fy = newY;
 
-	// Анимация + звук падения
+	// Анимация падения
 	if (!player.onGround()) {
 		player.setAnimation("legs", "jump");
 	}
@@ -488,7 +505,6 @@ const mouseControl = () => {
 
     // Когда зажата ЛКМ
     if (controller.mouse.click === 1) {
-
 		// Нажатие по интерфейсу
 		let interactWithUI = false;
 		if (buttonHoldCounter <= buttonLongHoldLength) {

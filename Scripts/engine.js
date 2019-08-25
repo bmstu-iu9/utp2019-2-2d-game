@@ -672,6 +672,8 @@ class Engine {
 		const img0 = this.widthChunk * this.size / this.texturesSize[0];
 		const img1 = this.widthChunk * this.size / this.texturesSize[1];
 		this.gl.uniform2f(this.uniform[6].u_sizeTexture[0], img0, img1);
+		
+		delete this.texturesSize;
 	}
 	
 	getPlayerParts(head, body, legs, item) {
@@ -931,18 +933,23 @@ class Engine {
 			}
 		}
 		
-		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
-			this.arrayOfChunks[c].tex[count], 0);
-		this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-		
+		// отрисовка анимаций
 		if (lv > 0) {
+			// привязываем буфер кадров и очищаем его
+			this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
+				this.arrayOfChunks[c].tex[count], 0);
+			this.gl.clearColor(1.0, 1.0, 1.0, 0.0);
+			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+			
+			// задаём буферы отрисовки
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[count]);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(animateArrayOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[count]);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(animateTextureOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
+			
+			// отрисовываем
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, lv);
 			this.arrayOfChunks[c].exist[count] = true;
 		} else {

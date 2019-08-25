@@ -1077,8 +1077,10 @@ class Engine {
 			this.gl.uniform1f(this.uniform[0].u_light[0], Math.max(lightOfPlayer, dynamicLight[1]));
 			this.gl.uniform2fv(this.uniform[0].u_translate[0], [xp * ch, yp * ch]);
 			if (rotatePlayer > 0) {
+				// игровой персонаж повёрнут направо
 				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
+				// игровой персонаж повёрнут налево
 				this.gl.drawArrays(this.gl.TRIANGLES, 12, 6);
 			}
 			
@@ -1146,7 +1148,7 @@ class Engine {
 		this.setUniform1f(this.uniform[6].u_sizeBlock, this.size);
 		this.setUniformMatrix4fv(this.uniform[6].u_projectionMatrix, false, projectionMatrix);
 		this.setUniform1f(this.uniform[6].u_resolution, this.gl.canvas.height);
-		this.gl.uniform1f(this.uniform[6].u_time[0], Math.sin(time / 640));
+		this.gl.uniform1f(this.uniform[6].u_time[0], Math.pow(Math.sin(time / 8000), 2) * 5);
 			
 		// отрисовка анимаций 1 слоя без полупрозрачного круга
 		for (let c in this.arrayOfChunks) {

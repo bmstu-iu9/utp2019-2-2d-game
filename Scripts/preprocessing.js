@@ -122,20 +122,12 @@ const preprocessing = () => {
 			return id === 8 || id === 9 || (id >= 129 && id <= 152);
 		}
 		
-		const waterID = (id) => {
-			return id === 8 || id === 9 || (id >= 9000 && id <= 9023);
-		}
-		
 		// лава
 		const lavaTex = (id) => {
 			return id === 10 || id === 11 || (id >= 153 && id <= 176);
 		}
 		
-		const lavaID = (id) => {
-			return id === 10 || id === 11 || (id >= 9024 && id <= 9047);
-		}
-		
-		render.initAnimations([[waterTex, waterID, 191], [lavaTex, lavaID, 192]]);
+		render.initAnimations([[waterTex, 191], [lavaTex, 192]]);
 	}
 
 	let OnScreen = {};

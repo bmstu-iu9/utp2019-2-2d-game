@@ -662,9 +662,8 @@ class Engine {
 	initAnimations(array) {
 		this.animation = [];
 		for (let i in array) {
-			this.animation[i * 3] = array[i][0];
-			this.animation[i * 3 + 1] = array[i][1];
-			this.animation[i * 3 + 2] = array[i][2];
+			this.animation[i * 2] = array[i][0];
+			this.animation[i * 2 + 1] = array[i][1];
 		}
 		
 		this.setProgram(6);
@@ -853,8 +852,8 @@ class Engine {
 					let aoo = this.arrayOfObjects[id];
 					if (aoo != undefined) {
 						if (this.animation[0](id)) {
-							if (this.animation[1](blocksOfChunk[i][yb + 1][xb])) {
-								aoo = this.arrayOfObjects[this.animation[2]];
+							if (this.animation[0](blocksOfChunk[i][yb + 1][xb])) {
+								aoo = this.arrayOfObjects[this.animation[1]];
 							}
 							
 							animateArrayOfBuffer.push(
@@ -874,9 +873,9 @@ class Engine {
 								b0, b1,
 								b0, a1);
 							lv += 6;
-						} else if (this.animation[3](id)) {
-							if (this.animation[4](blocksOfChunk[i][yb + 1][xb])) {
-								aoo = this.arrayOfObjects[this.animation[5]];
+						} else if (this.animation[2](id)) {
+							if (this.animation[2](blocksOfChunk[i][yb + 1][xb])) {
+								aoo = this.arrayOfObjects[this.animation[3]];
 							}
 							
 							animateArrayOfBuffer.push(

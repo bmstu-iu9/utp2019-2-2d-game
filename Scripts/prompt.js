@@ -1,3 +1,5 @@
+'use strict';
+
 const prompts = [
     {  // start prompt
         startCondition: () => !controller.left.active && !controller.right.active,

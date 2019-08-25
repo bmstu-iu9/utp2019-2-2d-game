@@ -353,7 +353,8 @@ class Engine {
 				'u_translate',
 				'u_resolution',
 				'u_sizeBlock',
-				'u_time'
+				'u_time',
+				'u_sizeTexture'
 			]); // получение uniform-переменных из шейдеров
 		
 		// привязка текстур к текстурным блокам
@@ -371,8 +372,8 @@ class Engine {
 		
 		// буфер чанков
 		this.arrayOfChunks = {};
-		this.unusedArrayOfChunks = [];
 		this.frameBufferTextures = {};
+		this.unusedArrayOfChunks = [];
 		this.frameBuffer = this.gl.createFramebuffer();
 		
 		// указываем как упаковывать данные (кратность обработки)
@@ -401,6 +402,10 @@ class Engine {
 		// создание текстуры
 		this.textures = [];
 		for (let i in images) {
+			if (images[i].width !== images[i].height) {
+				throw new Error('Width image != height image');
+			}
+			
 			const texture = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			
@@ -419,7 +424,13 @@ class Engine {
 			this.textures.push(texture);
 		}
 		
+		this.texturesSize = [];
+		
 		for (let i in animations) {
+			if (animations[i].width !== animations[i].height) {
+				throw new Error('Width image != height image');
+			}
+			
 			const texture = this.gl.createTexture();
 			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			
@@ -436,6 +447,7 @@ class Engine {
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
 			
 			this.textures.push(texture);
+			this.texturesSize.push(animations[i].width);
 		}
 	}
 	
@@ -654,6 +666,12 @@ class Engine {
 			this.animation[i * 3 + 1] = array[i][1];
 			this.animation[i * 3 + 2] = array[i][2];
 		}
+		
+		this.setProgram(6);
+		
+		const img0 = this.widthChunk * this.size / this.texturesSize[0];
+		const img1 = this.widthChunk * this.size / this.texturesSize[1];
+		this.gl.uniform2f(this.uniform[6].u_sizeTexture[0], img0, img1);
 	}
 	
 	getPlayerParts(head, body, legs, item) {
@@ -739,6 +757,7 @@ class Engine {
 			if (this.unusedArrayOfChunks.length === 0) {
 				// при отсутствии буфера кадров создадим его
 				const texture = [], blockBuffer = [], texBuffer = [];
+				const exist = [];
 				for (let i = 0; i < count + 1; i++) {
 					texture[i] = this.gl.createTexture();
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texture[i]);
@@ -753,6 +772,8 @@ class Engine {
 					
 					blockBuffer[i] = this.gl.createBuffer();
 					texBuffer[i] = this.gl.createBuffer();
+					
+					exist[i] = false;
 				}
 				
 				const light = this.gl.createTexture();
@@ -772,6 +793,7 @@ class Engine {
 				this.arrayOfChunks[c] = {
 					x: x,
 					y: y,
+					exist: exist,
 					tex: texture,
 					light: light,
 					blockBuffer: blockBuffer,
@@ -903,6 +925,9 @@ class Engine {
 				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureOfBuffer), this.gl.DYNAMIC_DRAW);
 				this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 				this.gl.drawArrays(this.gl.TRIANGLES, 0, v);
+				this.arrayOfChunks[c].exist[i] = true;
+			} else {
+				this.arrayOfChunks[c].exist[i] = false;
 			}
 		}
 		
@@ -919,6 +944,9 @@ class Engine {
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(animateTextureOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, lv);
+			this.arrayOfChunks[c].exist[count] = true;
+		} else {
+			this.arrayOfChunks[c].exist[count] = false;
 		}
 		
 		for (let i = 0; i < count + 1; i++) {
@@ -968,11 +996,12 @@ class Engine {
 		const top = yc * ch + scale / 2;
 		const near = 0.01;
 		const far = 11;
-		this.setUniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, [
+		const projectionMatrix = [
 			2.0 / (right - left), 0.0, 0.0, 0.0,
 			0.0, 2.0 / (top - bottom), 0.0, 0.0,
 			0.0, 0.0, -2.0 / (far - near), 0.0,
-			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0];
+		this.setUniformMatrix4fv(this.uniform[0].u_projectionMatrix, false, projectionMatrix);
 		
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
@@ -980,14 +1009,13 @@ class Engine {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT/* | this.gl.DEPTH_BUFFER_BIT*/);
 		
 		// отрисовка фона
-		const z = 0.1 - far;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[1]);
 		this.setUniform1f(this.uniform[0].u_resolution, 1 / scale);
 		this.gl.uniform1f(this.uniform[0].u_light[0], lightOfDay);
 		
 		for (let i = 0; i <= asp * scale + 1; i++) {
-			this.gl.uniform3f(this.uniform[0].u_translate[0],
-				xc * ch + i * scale - asp * scale / 2, yc * ch - scale / 2, z);
+			this.gl.uniform2f(this.uniform[0].u_translate[0],
+				xc * ch + i * scale - asp * scale * 0.5, yc * ch - scale * 0.5);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 		}
 		
@@ -1004,11 +1032,7 @@ class Engine {
 		this.gl.uniform4fv(this.uniform[2].u_dynamicLight[0],
 			[deltaX, deltaY, dynamicLight[0] * this.size / scale, dynamicLight[1]]);
 		this.setUniform1f(this.uniform[2].u_sizeBlock, this.size);
-		this.setUniformMatrix4fv(this.uniform[2].u_projectionMatrix, false, [
-			2.0 / (right - left), 0.0, 0.0, 0.0,
-			0.0, 2.0 / (top - bottom), 0.0, 0.0,
-			0.0, 0.0, -2.0 / (far - near), 0.0,
-			(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+		this.setUniformMatrix4fv(this.uniform[2].u_projectionMatrix, false, projectionMatrix);
 		this.setUniform1f(this.uniform[2].u_resolution, this.gl.canvas.height);
 		
 		// яркость 2 слоя
@@ -1021,16 +1045,18 @@ class Engine {
 		
 		// отрисовка 2 и 3 слоя
 		for (let c in this.arrayOfChunks) {
-			if (this.arrayOfChunks[c] !== undefined) {
-				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
-				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
-				this.gl.activeTexture(this.gl.TEXTURE1);
-				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
-				this.gl.activeTexture(this.gl.TEXTURE0);
+			const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
+			const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+			this.gl.activeTexture(this.gl.TEXTURE1);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
+			this.gl.activeTexture(this.gl.TEXTURE0);
+			this.gl.uniform2fv(this.uniform[2].u_translate[0], [xc, yc]);
+			if (this.arrayOfChunks[c].exist[2]) {
 				this.gl.uniform1f(this.uniform[2].u_light[0], ls / 2);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[2]);
-				this.gl.uniform3fv(this.uniform[2].u_translate[0], [xc, yc, -3]);
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
+			}
+			if (this.arrayOfChunks[c].exist[1]) {
 				this.gl.uniform1f(this.uniform[2].u_light[0], ls);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
@@ -1043,7 +1069,7 @@ class Engine {
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
 			this.gl.uniform1f(this.uniform[0].u_light[0], Math.max(lightOfPlayer, dynamicLight[1]));
-			this.gl.uniform3fv(this.uniform[0].u_translate[0], [xp * ch, yp * ch, -1]);
+			this.gl.uniform2fv(this.uniform[0].u_translate[0], [xp * ch, yp * ch]);
 			if (rotatePlayer > 0) {
 				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
@@ -1054,18 +1080,14 @@ class Engine {
 			this.gl.uniform2fv(this.uniform[1].u_center[0], [deltaX, deltaY]);
 			this.setUniform1f(this.uniform[1].u_light, 1);
 			this.setUniform1f(this.uniform[1].u_sizeBlock, this.size);
-			this.setUniformMatrix4fv(this.uniform[1].u_projectionMatrix, false, [
-				2.0 / (right - left), 0.0, 0.0, 0.0,
-				0.0, 2.0 / (top - bottom), 0.0, 0.0,
-				0.0, 0.0, -2.0 / (far - near), 0.0,
-				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+			this.setUniformMatrix4fv(this.uniform[1].u_projectionMatrix, false, projectionMatrix);
 			this.setUniform1f(this.uniform[1].u_resolution, this.gl.canvas.height);
 			this.setUniform1f(this.uniform[1].u_radius, 250.0 * scale);
 			this.setUniform1f(this.uniform[1].u_devicePixelRatio, window.devicePixelRatio);
 			
 			// отрисовка 1 слоя с полупрозрачным кругом
 			for (let c in this.arrayOfChunks) {
-				if (this.arrayOfChunks[c] !== undefined) {
+				if (this.arrayOfChunks[c].exist[0]) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 					this.gl.activeTexture(this.gl.TEXTURE1);
@@ -1074,7 +1096,7 @@ class Engine {
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[1]);
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
-					this.gl.uniform3f(this.uniform[1].u_translate[0], xc, yc, -2);
+					this.gl.uniform2f(this.uniform[1].u_translate[0], xc, yc);
 					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 				}
 			}
@@ -1085,14 +1107,14 @@ class Engine {
 			
 			// отрисовка 1 слоя без полупрозрачного круга
 			for (let c in this.arrayOfChunks) {
-				if (this.arrayOfChunks[c] !== undefined) {
+				if (this.arrayOfChunks[c].exist[0]) {
 					const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 					const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 					this.gl.activeTexture(this.gl.TEXTURE1);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
 					this.gl.activeTexture(this.gl.TEXTURE0);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[0]);
-					this.gl.uniform3fv(this.uniform[2].u_translate[0], [xc, yc, -2]);
+					this.gl.uniform2f(this.uniform[2].u_translate[0], xc, yc);
 					this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 				}
 			}
@@ -1104,7 +1126,7 @@ class Engine {
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
 			this.gl.uniform1f(this.uniform[0].u_light[0], Math.max(lightOfPlayer, dynamicLight[1]));
-			this.gl.uniform3fv(this.uniform[0].u_translate[0], [xp * ch, yp * ch, -1]);
+			this.gl.uniform2fv(this.uniform[0].u_translate[0], [xp * ch, yp * ch]);
 			if (rotatePlayer > 0) {
 				this.gl.drawArrays(this.gl.TRIANGLES, 6, 6);
 			} else {
@@ -1112,20 +1134,17 @@ class Engine {
 			}
 		}
 		
+		// анимации
 		this.setProgram(6);
 			
 		this.setUniform1f(this.uniform[6].u_sizeBlock, this.size);
-			this.setUniformMatrix4fv(this.uniform[6].u_projectionMatrix, false, [
-				2.0 / (right - left), 0.0, 0.0, 0.0,
-				0.0, 2.0 / (top - bottom), 0.0, 0.0,
-				0.0, 0.0, -2.0 / (far - near), 0.0,
-				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
-			this.setUniform1f(this.uniform[6].u_resolution, this.gl.canvas.height);
+		this.setUniformMatrix4fv(this.uniform[6].u_projectionMatrix, false, projectionMatrix);
+		this.setUniform1f(this.uniform[6].u_resolution, this.gl.canvas.height);
 		this.gl.uniform1f(this.uniform[6].u_time[0], Math.sin(time / 640));
 			
 		// отрисовка анимаций 1 слоя без полупрозрачного круга
 		for (let c in this.arrayOfChunks) {
-			if (this.arrayOfChunks[c] !== undefined) {
+			if (this.arrayOfChunks[c].exist[3]) {
 				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
 				this.gl.activeTexture(this.gl.TEXTURE3);
@@ -1136,7 +1155,7 @@ class Engine {
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
 				this.gl.activeTexture(this.gl.TEXTURE0);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[3]);
-				this.gl.uniform2fv(this.uniform[6].u_translate[0], [xc, yc]);
+				this.gl.uniform2f(this.uniform[6].u_translate[0], xc, yc);
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			}
 		}

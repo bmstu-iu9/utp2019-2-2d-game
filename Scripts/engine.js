@@ -11,10 +11,13 @@
 	ИНИЦИАЛИЗАЦИЯ:
 Инициализация движка:
 const r = new Engine();
-r.init(image, background, playerImage);
+r.init([image, background, playerImage, interface], [waterAnimation, lavaAnimation]);
 	image - это объект Image
 	background - это изображение с фоном объекта Image
 	playerImage - это изображение с игроком объекта Image
+	interface - это изображение с интерфейсом объекта Image
+	waterAnimation - это изображение с анимацией воды
+	lavaAnimation - это изображение с анимацией лавы
 
 Пример использования типа Image:
 const image = new Image();
@@ -42,12 +45,20 @@ image.onload = () => {
 			x1, y1 - координаты левого верхнего угла на текстуре [0..1]
 			x2, y2 - координаты нижнего правого угла на текстуре [0..1]
 
+Инициализация анимаций:
+.initAnimations(array)
+	array - это массив таких массивов:
+		[function, id]
+			function - функция, которая должна проверять, подходит ли этот блок под анимацию
+			id - затычка для анимации (не знаю как это назвать, спрашивайте Надима, если вдруг это нужно, но всё равно
+				никто это читать не будет и не знаю зачем я это всё пишу)
+
 
 	ОТРИСОВКА:
 Отрисовка чанка в буфер кадров (создание/обновление):
 .drawChunk(x, y, blocksOfChunk, lightChunk)
 	x, y - координаты чанка
-	blocksOfChunk - массив чанков блоков
+	blocksOfChunk - массив чанков блоков (чанки должны передаваться на 1 больше по высоте!)
 	lightChunk - чанк освещения (будет применён на все слои)
 
 Удаление чанка из буфера кадров:
@@ -396,6 +407,8 @@ class Engine {
 		this.weather[1] = 0;
 		this.weather[2] = 0;
 		this.weather[3] = 0;
+		this.weather[4] = 0; // статус молнии
+		this.lightChance = 0;
 	}
 	
 	init(images, animations) {
@@ -1170,62 +1183,83 @@ class Engine {
 		
 		this.gl.flush(); // очистка данных (?)
 		
-		// дождь
+		// погода
 		if (this.weather[3] > 0) {
-			this.setProgram(5);
-			const xh = Math.round(this.gl.canvas.width * scale / this.size / 2 + 1);
-			const maxnum = Math.ceil(this.size * this.gl.canvas.height * window.devicePixelRatio / 1000);
-			const raw = this.weather[3] * this.gl.canvas.height * window.devicePixelRatio / 1000;
-			const num = Math.ceil(raw);
-			const max = maxnum * xh * 2;
-			const xt = -(xc % 1);
-			
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.weather[0]);
-			this.gl.vertexAttribPointer(this.attribute[5].a_id, 1, this.gl.FLOAT, false, 0, 0);
-			
-			// если количество капелек не хватает (из-за увеличения размера экрана), то пересоздаём буфер с ними
-			if (maxnum > this.weather[1]) {
-				const wIDs = new Float32Array(maxnum);
-				for (let i = 0; i < maxnum; i++) {
-					wIDs[i] = i + 1;
+			if (this.weather[4] > 0 && (this.weather[4] <= 0.1 || this.weather[4] > 0.2)) {
+				// вспышка молнии
+				this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
+				this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+				if (this.weather[4] > 0.3) {
+					this.weather[4] = 0;
+				} else {
+					this.weather[4] += deltaTime;
 				}
-				this.gl.bufferData(this.gl.ARRAY_BUFFER, wIDs, this.gl.STATIC_DRAW);
-				this.weather[1] = maxnum;
-			}
-			
-			const w = this.size / this.gl.canvas.width / scale;
-			const h = this.size / this.gl.canvas.height / scale;
-			
-			// устанавливаем параметры дождя
-			this.setUniform1f(this.uniform[5].u_number, max);
-			this.gl.uniform1f(this.uniform[5].u_time[0], time * this.speedRain * 0.0001);
-			this.setUniform2fv(this.uniform[5].u_resolution, [w, h]);
-			this.setUniform1f(this.uniform[5].u_devicePixelRatio, window.devicePixelRatio);
-			this.setUniform1f(this.uniform[5].u_move, yc);
-			
-			// отрисовка дождя
-			const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1; // средний шаг дождя в блоках
-			for (let i = 0; i <= xh; i += d) {
-				// левая половина экрана
-				const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
-				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc - i));
-				this.gl.uniform2fv(this.uniform[5].u_translate[0],
-					[(xt - i) * w, Math.max(yt0, this.weather[2] * scale) * h / 16]);
-				this.gl.drawArrays(this.gl.POINTS, 0, num);
-				
-				// правая половина экрана
-				const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
-				this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc + i + d));
-				this.gl.uniform2fv(this.uniform[5].u_translate[0],
-					[(xt + i + d) * w, Math.max(yt1, this.weather[2] * scale) * h / 16]);
-				this.gl.drawArrays(this.gl.POINTS, 0, num);
-			}
-			
-			this.weather[2] -= deltaTime * this.speedRain * 100 / scale;
-			if (this.rain) {
-				this.weather[3] = Math.min(this.weather[3] + deltaTime * this.speedRain / 6, this.size);
 			} else {
-				this.weather[3] -= deltaTime * this.speedRain / 6;
+				if (this.weather[4] > 0) {
+					this.weather[4] += deltaTime;
+				} else if (yp + 1 >= this.elevationMap[Math.floor(xp)]) {
+					if (Math.random() < this.lightChance) {
+						this.weather[4] = deltaTime;
+					}
+				}
+				
+				// дождь
+				this.setProgram(5);
+				
+				const xh = Math.round(this.gl.canvas.width * scale / this.size * 0.5 + 1);
+				const maxnum = Math.ceil(this.size * this.gl.canvas.height * window.devicePixelRatio * 0.001);
+				const raw = this.weather[3] * this.gl.canvas.height * window.devicePixelRatio * 0.001;
+				const num = Math.ceil(raw);
+				const max = maxnum * xh * 2;
+				const xt = -(xc % 1);
+				
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.weather[0]);
+				this.gl.vertexAttribPointer(this.attribute[5].a_id, 1, this.gl.FLOAT, false, 0, 0);
+				
+				// если количество капелек не хватает (из-за увеличения размера экрана), то пересоздаём буфер с ними
+				if (maxnum > this.weather[1]) {
+					const wIDs = new Float32Array(maxnum);
+					for (let i = 0; i < maxnum; i++) {
+						wIDs[i] = i + 1;
+					}
+					this.gl.bufferData(this.gl.ARRAY_BUFFER, wIDs, this.gl.STATIC_DRAW);
+					this.weather[1] = maxnum;
+				}
+				
+				const w = this.size / this.gl.canvas.width / scale;
+				const h = this.size / this.gl.canvas.height / scale;
+				
+				// устанавливаем параметры дождя
+				this.setUniform1f(this.uniform[5].u_number, max);
+				this.gl.uniform1f(this.uniform[5].u_time[0], time * this.speedRain * 0.0001);
+				this.setUniform2fv(this.uniform[5].u_resolution, [w, h]);
+				this.setUniform1f(this.uniform[5].u_devicePixelRatio, window.devicePixelRatio);
+				this.setUniform1f(this.uniform[5].u_move, yc);
+				
+				// отрисовка дождя
+				const d = num === 1 ? Math.ceil(Math.log(1 / raw) / Math.log(2)) : 1; // средний шаг дождя в блоках
+				for (let i = 0; i <= xh; i += d) {
+					// левая половина экрана
+					const yt0 = (this.elevationMap[Math.floor(xc - i)] + 1 - yc) * this.size;
+					this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc - i));
+					this.gl.uniform2fv(this.uniform[5].u_translate[0],
+						[(xt - i) * w, Math.max(yt0, this.weather[2] * scale) * h / 16]);
+					this.gl.drawArrays(this.gl.POINTS, 0, num);
+					
+					// правая половина экрана
+					const yt1 = (this.elevationMap[Math.floor(xc + i + d)] + 1 - yc) * this.size;
+					this.gl.uniform1f(this.uniform[5].u_pos[0], Math.floor(xc + i + d));
+					this.gl.uniform2fv(this.uniform[5].u_translate[0],
+						[(xt + i + d) * w, Math.max(yt1, this.weather[2] * scale) * h / 16]);
+					this.gl.drawArrays(this.gl.POINTS, 0, num);
+				}
+				
+				this.weather[2] -= deltaTime * this.speedRain * 100 / scale;
+				if (this.rain) {
+					this.weather[3] = Math.min(this.weather[3] + deltaTime * this.speedRain / 6, this.size);
+				} else {
+					this.weather[3] -= deltaTime * this.speedRain / 6;
+				}
 			}
 		}
 	}

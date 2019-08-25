@@ -19,6 +19,13 @@ const prompts = [
     },
 
     {
+        startCondition: () => controller.mouse.click === 1,
+        stopCondition: () => controller.f.active,
+        message: "press -f- to save world,      \npress -g- to delete world.",
+        time: 3
+    },
+
+    {
         startCondition: () => player.hand.info !== undefined && player.hand.info.isBlock,
         stopCondition: () => player.hand.info === undefined,
         message: "right click to place the block.",

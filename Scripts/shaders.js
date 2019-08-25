@@ -57,7 +57,7 @@ _fragmentShader[0] = `
 		gl_FragColor = vec4(tex.rgb * u_light, tex.a);
 	}`;
 
-// шейдеры для 1 слоя
+// шейдеры для 1 слоя с полупрозрачным кругом
 _vertexShader[1] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
@@ -104,7 +104,7 @@ _fragmentShader[1] = `
 		gl_FragColor = color;
 	}`;
 
-// шейдеры для 2 и 3 слоя
+// шейдеры для 1 (без полупрозрачного круга), 2 и 3 слоёв
 _vertexShader[2] = `
 	attribute vec2 a_position;
 	attribute vec2 a_texCoord;
@@ -239,4 +239,49 @@ _fragmentShader[5] = `
 	
 	void main() {
 		gl_FragColor = vec4(0.0, 0.0, 1.0, 0.9);
+	}`;
+
+// анимация жидкости на 1 слое без полупрозрачного круга
+_vertexShader[6] = `
+	attribute vec2 a_position;
+	attribute vec2 a_texCoord;
+
+	uniform vec2 u_translate;
+	uniform mat4 u_projectionMatrix;
+	uniform float u_resolution;
+
+	varying vec2 v_texCoord;
+	varying vec2 v_texAnimation;
+
+	void main() {
+		v_texCoord = a_texCoord;
+		vec4 pos = vec4(a_position / u_resolution + u_translate, -1.0, 1.0);
+		gl_Position = u_projectionMatrix * pos;
+	}`;
+
+_fragmentShader[6] = `
+	precision mediump float;
+
+	uniform sampler2D u_texture0;
+	uniform sampler2D u_texture1;
+	uniform sampler2D u_texture2;
+	uniform sampler2D u_texture3;
+	uniform float u_sizeBlock;
+	uniform float u_time;
+
+	varying vec2 v_texCoord;
+	varying vec2 v_texAnimation;
+
+	void main() {
+		vec4 tex = texture2D(u_texture0, v_texCoord);
+		if (tex.a > 0.95) {
+			vec3 lightTex = (texture2D(u_texture1, (v_texCoord + 1.0 / u_sizeBlock) * 0.5)).xyz;
+			vec4 color = vec4(lightTex, 1.0);
+			if (tex.r > 0.95) {
+				color *= texture2D(u_texture2, v_texCoord * 16.0 + vec2(u_time, 0.0));
+			} else if (tex.g > 0.95) {
+				color *= texture2D(u_texture3, v_texCoord * 16.0 + vec2(u_time, 0.0));
+			}
+			gl_FragColor = color;
+		}
 	}`;

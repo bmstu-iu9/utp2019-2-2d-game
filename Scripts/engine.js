@@ -337,6 +337,35 @@ class Engine {
 				'u_move'
 			]); // получение uniform-переменных из шейдеров
 		
+		// SHADER PROGRAM 6
+		const vertexShader6 = this.createShader(this.gl.VERTEX_SHADER, _vertexShader[6]);
+		const fragmentShader6 = this.createShader(this.gl.FRAGMENT_SHADER, _fragmentShader[6]);
+		this.program[6] = this.createProgram(vertexShader6, fragmentShader6);
+		this.setProgram(6);
+		
+		this.attribute[6] = this.createAttributeLocation(this.program[6], [
+				'a_position',
+				'a_texCoord'
+			]); // получение атрибутов из шейдеров
+		
+		this.uniform[6] = this.createUniformLocation(this.program[6], [
+				'u_projectionMatrix',
+				'u_translate',
+				'u_resolution',
+				'u_sizeBlock',
+				'u_time'
+			]); // получение uniform-переменных из шейдеров
+		
+		// привязка текстур к текстурным блокам
+		const texture0UniformLocation6 = this.gl.getUniformLocation(this.program[6], 'u_texture0');
+		const texture1UniformLocation6 = this.gl.getUniformLocation(this.program[6], 'u_texture1');
+		const texture2UniformLocation6 = this.gl.getUniformLocation(this.program[6], 'u_texture2');
+		const texture3UniformLocation6 = this.gl.getUniformLocation(this.program[6], 'u_texture3');
+		this.gl.uniform1i(texture0UniformLocation6, 0);
+		this.gl.uniform1i(texture1UniformLocation6, 1);
+		this.gl.uniform1i(texture2UniformLocation6, 2);
+		this.gl.uniform1i(texture3UniformLocation6, 3);
+		
 		// используем шейдерную программу
 		this.setProgram(0);
 		
@@ -368,7 +397,7 @@ class Engine {
 		this.weather[3] = 0;
 	}
 	
-	init(images) {
+	init(images, animations) {
 		// создание текстуры
 		this.textures = [];
 		for (let i in images) {
@@ -383,6 +412,25 @@ class Engine {
 			
 			// генерируем текстуру из изображения
 			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, images[i]);
+			
+			// генерируем уменьшенные копии
+			this.gl.generateMipmap(this.gl.TEXTURE_2D);
+			
+			this.textures.push(texture);
+		}
+		
+		for (let i in animations) {
+			const texture = this.gl.createTexture();
+			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+			
+			// задание параметров текстуры
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_NEAREST);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+			
+			// генерируем текстуру из изображения
+			this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, animations[i]);
 			
 			// генерируем уменьшенные копии
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
@@ -599,6 +647,15 @@ class Engine {
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 	}
 	
+	initAnimations(array) {
+		this.animation = [];
+		for (let i in array) {
+			this.animation[i * 3] = array[i][0];
+			this.animation[i * 3 + 1] = array[i][1];
+			this.animation[i * 3 + 2] = array[i][2];
+		}
+	}
+	
 	getPlayerParts(head, body, legs, item) {
 		// используем шейдерную программу
 		this.setProgram(3);
@@ -677,9 +734,6 @@ class Engine {
 		const c = `${x}x${y}`;
 		const count = blocksOfChunk.length;
 		
-		const liquid = [8, 9, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146,
-			147, 148, 149, 150, 151, 152];
-		
 		// буфер кадров
 		if (this.arrayOfChunks[c] === undefined) {
 			if (this.unusedArrayOfChunks.length === 0) {
@@ -751,8 +805,8 @@ class Engine {
 		const w = 1 / this.widthChunk;
 		const h = 1 / this.heightChunk;
 		
-		const liquidArrayOfBuffer = [];
-		const liquidTextureOfBuffer = [];
+		const animateArrayOfBuffer = [];
+		const animateTextureOfBuffer = [];
 		let lv = 0;
 		
 		// отрисовка слоёв
@@ -767,16 +821,19 @@ class Engine {
 			
 			let v = 0;
 			
-			for (let x = 0; x < this.widthChunk; x++) {
-				const xh = x * w;
-				for (let y = 0; y < this.heightChunk; y++) {
-					const yh = y * h;
-					const id = blocksOfChunk[i][y][x];
-					const aoo = this.arrayOfObjects[id];
+			for (let xb = 0; xb < this.widthChunk; xb++) {
+				const xh = xb * w;
+				for (let yb = 0; yb < this.heightChunk; yb++) {
+					const yh = yb * h;
+					let id = blocksOfChunk[i][yb][xb];
+					let aoo = this.arrayOfObjects[id];
 					if (aoo != undefined) {
-						const a0 = aoo.a[0], a1 = aoo.a[1], b0 = aoo.b[0], b1 = aoo.b[1];
-						if (liquid.indexOf(id) != -1) {
-							liquidArrayOfBuffer.push(
+						if (this.animation[0](id)) {
+							if (this.animation[1](blocksOfChunk[i][yb + 1][xb])) {
+								aoo = this.arrayOfObjects[this.animation[2]];
+							}
+							
+							animateArrayOfBuffer.push(
 								xh, yh,
 								xh + w, yh,
 								xh, yh + h,
@@ -784,7 +841,30 @@ class Engine {
 								xh + w, yh,
 								xh + w, yh + h);
 							
-							liquidTextureOfBuffer.push(
+							const a0 = aoo.a[0], a1 = aoo.a[1], b0 = aoo.b[0], b1 = aoo.b[1];
+							animateTextureOfBuffer.push(
+								a0, b1,
+								b0, b1,
+								a0, a1,
+								a0, a1,
+								b0, b1,
+								b0, a1);
+							lv += 6;
+						} else if (this.animation[3](id)) {
+							if (this.animation[4](blocksOfChunk[i][yb + 1][xb])) {
+								aoo = this.arrayOfObjects[this.animation[5]];
+							}
+							
+							animateArrayOfBuffer.push(
+								xh, yh,
+								xh + w, yh,
+								xh, yh + h,
+								xh, yh + h,
+								xh + w, yh,
+								xh + w, yh + h);
+							
+							const a0 = aoo.a[0], a1 = aoo.a[1], b0 = aoo.b[0], b1 = aoo.b[1];
+							animateTextureOfBuffer.push(
 								a0, b1,
 								b0, b1,
 								a0, a1,
@@ -801,6 +881,7 @@ class Engine {
 								xh + w, yh,
 								xh + w, yh + h);
 							
+							const a0 = aoo.a[0], a1 = aoo.a[1], b0 = aoo.b[0], b1 = aoo.b[1];
 							textureOfBuffer.push(
 								a0, b1,
 								b0, b1,
@@ -832,10 +913,10 @@ class Engine {
 		
 		if (lv > 0) {
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].blockBuffer[count]);
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(liquidArrayOfBuffer), this.gl.DYNAMIC_DRAW);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(animateArrayOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(this.attribute[3].a_position, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayOfChunks[c].texBuffer[count]);
-			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(liquidTextureOfBuffer), this.gl.DYNAMIC_DRAW);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(animateTextureOfBuffer), this.gl.DYNAMIC_DRAW);
 			this.gl.vertexAttribPointer(this.attribute[3].a_texCoord, 2, this.gl.FLOAT, false, 0, 0);
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, lv);
 		}
@@ -845,6 +926,7 @@ class Engine {
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_LINEAR);
 		}
+		
 	}
 	
 	deleteChunk(x, y) {
@@ -932,7 +1014,7 @@ class Engine {
 		// яркость 2 слоя
 		let ls;
 		if (slicePlayer === 1) {
-			ls = 0.65; // если игрок на 1 слое
+			ls = 0.63; // если игрок на 1 слое
 		} else {
 			ls = 0.75; // если игрок на 2 слое
 		}
@@ -954,9 +1036,10 @@ class Engine {
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			}
 		}
-		this.setProgram(0);
 		
-		if (slicePlayer === 2) {			
+		if (slicePlayer === 2) {
+			this.setProgram(0);
+			
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
 			this.gl.uniform1f(this.uniform[0].u_light[0], Math.max(lightOfPlayer, dynamicLight[1]));
@@ -1014,9 +1097,10 @@ class Engine {
 				}
 			}
 		}
-		this.setProgram(0);
 		
 		if (slicePlayer === 1) {
+			this.setProgram(0);
+			
 			// отрисовка игрока
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texturePlayer);
 			this.gl.uniform1f(this.uniform[0].u_light[0], Math.max(lightOfPlayer, dynamicLight[1]));
@@ -1028,20 +1112,31 @@ class Engine {
 			}
 		}
 		
-		this.setProgram(2);
+		this.setProgram(6);
 			
-		this.gl.uniform1f(this.uniform[2].u_light[0], 1);
+		this.setUniform1f(this.uniform[6].u_sizeBlock, this.size);
+			this.setUniformMatrix4fv(this.uniform[6].u_projectionMatrix, false, [
+				2.0 / (right - left), 0.0, 0.0, 0.0,
+				0.0, 2.0 / (top - bottom), 0.0, 0.0,
+				0.0, 0.0, -2.0 / (far - near), 0.0,
+				(right + left) / (left - right), (top + bottom) / (bottom - top), (far + near) / (near - far), 1.0]);
+			this.setUniform1f(this.uniform[6].u_resolution, this.gl.canvas.height);
+		this.gl.uniform1f(this.uniform[6].u_time[0], Math.sin(time / 640));
 			
-		// отрисовка 1 слоя без полупрозрачного круга
+		// отрисовка анимаций 1 слоя без полупрозрачного круга
 		for (let c in this.arrayOfChunks) {
 			if (this.arrayOfChunks[c] !== undefined) {
 				const xc = this.widthChunk * this.arrayOfChunks[c].x * ch;
 				const yc = this.heightChunk * this.arrayOfChunks[c].y * ch;
+				this.gl.activeTexture(this.gl.TEXTURE3);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[5]);
+				this.gl.activeTexture(this.gl.TEXTURE2);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[4]);
 				this.gl.activeTexture(this.gl.TEXTURE1);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].light);
 				this.gl.activeTexture(this.gl.TEXTURE0);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[3]);
-				this.gl.uniform3fv(this.uniform[2].u_translate[0], [xc, yc, -2]);
+				this.gl.uniform2fv(this.uniform[6].u_translate[0], [xc, yc]);
 				this.gl.drawArrays(this.gl.TRIANGLES, 18, 6);
 			}
 		}

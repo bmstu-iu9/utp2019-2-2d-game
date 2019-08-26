@@ -34,13 +34,12 @@ const beginPlay = () => {
     window.addEventListener("mousemove", (event) => {
     	controller.mouseMove(event);
     });
-    window.addEventListener("mouseup", (event) => {
-    	controller.mouseUp(event);
+    window.addEventListener("mouseup", (event) => {  // для yandex mousedown вызывается вместе с mouseup
+		setTimeout((event) => controller.mouseUp(event), 20, event);
     });
     window.addEventListener("mousedown", (event) => {
     	controller.mouseDown(event);
     });
-
     if (choosedWorld() !== undefined) {
 		key = loadingResult.key;
 		BlocksGlobalChange = loadingResult.change;

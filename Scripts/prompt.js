@@ -1,3 +1,5 @@
+'use strict';
+
 const prompts = [
     {  // start prompt
         startCondition: () => !controller.left.active && !controller.right.active,
@@ -16,6 +18,13 @@ const prompts = [
         stopCondition: () => controller.mouse.click === 1,
         message: "hold LMB to destroy the block.",
         time: 5
+    },
+
+    {
+        startCondition: () => controller.mouse.click === 1,
+        stopCondition: () => controller.f.active,
+        message: "press -f- to save world,      \npress -g- to delete world.",
+        time: 3
     },
 
     {

@@ -1,3 +1,5 @@
+'use strict';
+
 const WOODEN_EFFICIENCY = 2;
 const STONE_EFFICIENCY = 4;
 const IRON_EFFICIENCY = 7;
@@ -16,7 +18,10 @@ const itemSize = 32;
 let _textureItems;
 const GRASS_TIME_UPDATE = 30;  // Рандомный промежуток с верхним концом [сек]
 const WATER_TIME_UPDATE = 0.2;
-
+const LAVA_TIME_UPDATE = 0.4;
+const FIRE_TIME_UPDATE = 0.15;
+const LEAF_DESTROY_CHANCE = 0.1;  // Шанс разрушения прочности блока листвы при падении
+const LIQUID_DESTROY_LIST = [6, 18, 19, 370];  // id, которые смывает жидкость
 
 const createItem = (id, count) => {
     if (items[id].isTool) {
@@ -41,52 +46,381 @@ const createItem = (id, count) => {
 }
 
 
-// Never used
+// Water
+const WATER_ID = 8;
 const isWater = (id) => {
-    return (id >= 9000 && id <= 9016) || id === 8;
+    return id === 8 || (id >= 9000 && id <= 9023);
 }
-const firstLowerFullWater = (currentId, targetId) => {
-    if (currentId === 8) {
-        return false;
+const waterFull = (id) => {  // 0 - пустая вода, 8 - самая заполненная
+    if (id === 8 || id === 9008) {
+        return 8;
     }
-    if (!isWater(currentId)) {
-        return true;
+    if (id >= 9000 && id <= 9016) {
+        return 8.5 - Math.abs(9008 - id);
     }
-    return ((currentId - 9000) % 8 > (targetId - 9000) % 8)
-        || (targetId === 9016 && currentId !== 9016);
+    return 9024 - id;
 }
-const needPlaceWater = (targetId, id) => {
-    return targetId === undefined;
+const rotateWater = (id) => {
+    if (id >= 9000 && id <= 9007) {
+        return -1;
+    }
+    if (id >= 9009 && id <= 9016) {
+        return 1;
+    }
+    return 0;
 }
-
-
-const fallingWaterUpdate = (x, y, l, gA, id) => {
+const createWater = (full, rotate) => {
+    if (rotate === 0) {
+        if (full === 8) {
+            return 9008;
+        }
+        return 9024 - full;
+    }
+    return 9008 + Math.sign(rotate) * (8.5 - full);
+}
+const isInteger = (num) => {
+    return (num ^ 0) === num;
+}
+const waterFlowing = (x, y, l, id) => {
     setTimeout(() => {
-        if ((y + 1) < gA.height && firstLowerFullWater(gA.map[x][y + 1][l], id)
-            && (x - 1) >= 0 && firstLowerFullWater(gA.map[x - 1][y][l], id)
-            && (x + 1) < gA.width && firstLowerFullWater(gA.map[x + 1][y][l], id)) {
-    
-            gA.placeBlock(x, y, l, undefined);
-            return;
-        }
-        if ((y - 1) >= 0 && gA.map[x][y - 1][l] === 9016) {
-            return;
+        const idFull = waterFull(id);
+        if (id !== WATER_ID && isWater(gameArea.get(x, y, l))) {
+            if (idFull === 8 && (!isWater(gameArea.get(x, y + 1, l))
+                && !(isWater(gameArea.get(x - 1, y, l)) && isWater(gameArea.get(x + 1, y, l))
+                    && waterFull(gameArea.get(x - 1, y, l)) === 8
+                    && waterFull(gameArea.get(x + 1, y, l)) === 8))) {
+
+                gameArea.destroyBlock(x, y, l, player);
+                return;
+            }
+
+            const currentWaterFullest = (x, y) => {
+                return !isWater(gameArea.get(x, y, l)) || idFull >= waterFull(gameArea.get(x, y, l));
+            }
+            if (idFull !== 8
+                && (currentWaterFullest(x, y + 1) || (y + 1) >= gameArea.height)
+                && (currentWaterFullest(x + 1, y) || (x + 1) >= gameArea.width)
+                && (currentWaterFullest(x - 1, y) || (x - 1) < 0)) {
+
+                gameArea.destroyBlock(x, y, l, player);
+                return;
+            }
         }
 
-        if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
-            // 16 - вода стоит
-            gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
-        } else {
-            if ((x - 1) >= 0 && id !== 9007 && needPlaceWater(gA.map[x - 1][y][l], id)) {
-                // 0 ... 7 - вода течет влево (0 - макс наполнена)
-                gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(id + 1));
+        if (!isWater(gameArea.map[x][y][l])) {
+            return;
+        }
+        const idRotate = rotateWater(id);
+        const flow = (X) => {
+            if (gameArea.map[X][y][l] === undefined || isWater(gameArea.map[X][y][l])
+            || LIQUID_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
+
+                if (idFull === 0.5) {
+                    return;
+                }
+
+                if (isWater(gameArea.map[X][y][l])) {
+                    const targetFull = waterFull(gameArea.map[X][y][l]);
+
+                    if (isInteger(idFull)) {
+
+                        if (0.5 + targetFull === idFull) {
+                            if (X - x !== rotateWater(gameArea.map[X][y][l])) {
+                                gameArea.placeBlock(X, y, l,
+                                    gameArea.makeFlowingWaterBlock(createWater(idFull, 0)));
+                            }
+                        }
+
+                        if (1 + targetFull <= idFull) {
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
+                        }
+                    } else {
+
+                        if (1 + targetFull === idFull) {
+                            if (idRotate !== rotateWater(gameArea.map[X][y][l])) {
+                                gameArea.placeBlock(X, y, l,
+                                    gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, 0)));
+                            }
+                        }
+
+                        if (1 + targetFull < idFull) {
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingWaterBlock(createWater(idFull - 1, idRotate)));
+                        }
+                    }
+                } else if (gameArea.map[X][y][l] === undefined) {
+
+                    if (isInteger(idFull)) {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
+                    } else if (X - x === idRotate) {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
+                    } else {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
+                    }
+                } else {
+
+                    if (isInteger(idFull)) {
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 0.5, X - x)));
+                    } else if (X - x === idRotate) {
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull - 1, X - x)));
+                    } else {
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingWaterBlock(createWater(idFull, X - x)));
+                    }
+                }
             }
-            if ((x + 1) < gA.height && id !== 9015 && needPlaceWater(gA.map[x + 1][y][l], id)) {
-                // 8 ... 15 - вода течет вправо (8 - макс наполнена)
-                gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(id + 1));
+        }
+
+        if ((y - 1) >= 0 && (gameArea.map[x][y - 1][l] === undefined
+            || (isWater(gameArea.map[x][y - 1][l]) && gameArea.map[x][y - 1][l] !== WATER_ID))) {
+            if (waterFull(gameArea.map[x][y - 1][l]) !== 8) {
+                gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
+            }
+            if (isWater(gameArea.get(x - 1, y, l))) {
+                flow(x - 1);
+            }
+            if (isWater(gameArea.get(x + 1, y, l))) {
+                flow(x + 1);
+            }
+        } else if ((y - 1) >= 0 && LIQUID_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
+            gameArea.destroyBlock(x, y - 1, l, player, "liquid destroy list");
+            gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingWaterBlock(createWater(8, 0)));
+            if (isWater(gameArea.get(x - 1, y, l))) {
+                flow(x - 1);
+            }
+            if (isWater(gameArea.get(x + 1, y, l))) {
+                flow(x + 1);
+            }
+        } else {
+            if (x - 1 >= 0) {
+                flow(x - 1);
+            }
+            if (x + 1 < gameArea.width) {
+                flow(x + 1);
             }
         }
     }, WATER_TIME_UPDATE * 1000);
+}
+
+
+// Lava
+const LAVA_ID = 10;
+const isLava = (id) => {
+    return id === 10 || (id >= 9024 && id <= 9047);
+}
+const lavaFull = (id) => {
+    if (id === 10 || id === 9032) {
+        return 8;
+    }
+    if (id >= 9024 && id <= 9040) {
+        return 8.5 - Math.abs(9032 - id);
+    }
+    return 9048 - id;
+}
+const rotateLava = (id) => {
+    if (id >= 9024 && id <= 9031) {
+        return -1;
+    }
+    if (id >= 9033 && id <= 9040) {
+        return 1;
+    }
+    return 0;
+}
+const createLava = (full, rotate) => {
+    if (rotate === 0) {
+        if (full === 8) {
+            return 9032;
+        }
+        return 9048 - full;
+    }
+    return 9032 + Math.sign(rotate) * (8.5 - full);
+}
+const lavaFlowing = (x, y, l, id) => {
+    setTimeout(() => {
+        const dx = [x, x, x + 1, x - 1],
+            dy = [y + 1, y - 1, y, y];
+        for (let i = 0; i < dx.length; i++) {
+            if (items[gameArea.get(dx[i], dy[i], l)] !== undefined) {
+                if (items[gameArea.get(dx[i], dy[i], l)].type === 'wood') {
+                    if (gameArea.get(dx[i], dy[i] + 1, l) === undefined) {
+                        gameArea.placeBlock(dx[i], dy[i] + 1, l, 9048);
+                    }
+                    const id = gameArea.get(dx[i], dy[i], l);
+                    setTimeout(() => {
+                        if (id === gameArea.get(dx[i], dy[i], l)) {
+                            gameArea.destroyBlock(dx[i], dy[i], l);
+                        }
+                    }, 1000 * items[gameArea.get(dx[i], dy[i], l)].durability);
+                }
+                if (items[gameArea.get(dx[i], dy[i], l)].type === 'water'
+                    || items[gameArea.get(dx[i], dy[i], l)].type === 'flowingWater') {
+
+                     gameArea.destroyBlock(dx[i], dy[i], l);
+                     gameArea.placeBlock(dx[i], dy[i], l, 4);
+                }
+            }
+        }
+
+        const idFull = lavaFull(id);
+        if (id !== LAVA_ID && isLava(gameArea.get(x, y, l))) {
+            if (idFull === 8 && (!isLava(gameArea.get(x, y + 1, l))
+                && !(isLava(gameArea.get(x - 1, y, l)) && isLava(gameArea.get(x + 1, y, l))
+                    && lavaFull(gameArea.get(x - 1, y, l)) === 8
+                    && lavaFull(gameArea.get(x + 1, y, l)) === 8))) {
+
+                gameArea.destroyBlock(x, y, l, player);
+                return;
+            }
+
+            const currentLavaFullest = (x, y) => {
+                return !isLava(gameArea.get(x, y, l)) || idFull >= lavaFull(gameArea.get(x, y, l));
+            }
+            if (idFull !== 8
+                && (currentLavaFullest(x, y + 1) || (y + 1) >= gameArea.height)
+                && (currentLavaFullest(x + 1, y) || (x + 1) >= gameArea.width)
+                && (currentLavaFullest(x - 1, y) || (x - 1) < 0)) {
+
+                gameArea.destroyBlock(x, y, l, player);
+                return;
+            }
+        }
+
+        if (!isLava(gameArea.map[x][y][l])) {
+            return;
+        }
+        const idRotate = rotateLava(id);
+        const flow = (X) => {
+            if (gameArea.map[X][y][l] === undefined || isLava(gameArea.map[X][y][l])
+            || LIQUID_DESTROY_LIST.indexOf(gameArea.map[X][y][l]) !== -1) {
+
+                if (idFull === 0.5) {
+                    return;
+                }
+
+                if (isLava(gameArea.map[X][y][l])) {
+                    const targetFull = lavaFull(gameArea.map[X][y][l]);
+
+                    if (isInteger(idFull)) {
+
+                        if (0.5 + targetFull === idFull) {
+                            if (X - x !== rotateLava(gameArea.map[X][y][l])) {
+                                gameArea.placeBlock(X, y, l,
+                                    gameArea.makeFlowingLavaBlock(createLava(idFull, 0)));
+                            }
+                        }
+
+                        if (1 + targetFull <= idFull) {
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingLavaBlock(createLava(idFull - 0.5, X - x)));
+                        }
+                    } else {
+
+                        if (1 + targetFull === idFull) {
+                            if (idRotate !== rotateLava(gameArea.map[X][y][l])) {
+                                gameArea.placeBlock(X, y, l,
+                                    gameArea.makeFlowingLavaBlock(createLava(idFull - 0.5, 0)));
+                            }
+                        }
+
+                        if (1 + targetFull < idFull) {
+                            gameArea.placeBlock(X, y, l,
+                                gameArea.makeFlowingLavaBlock(createLava(idFull - 1, idRotate)));
+                        }
+                    }
+                } else if (gameArea.map[X][y][l] === undefined) {
+
+                    if (isInteger(idFull)) {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingLavaBlock(createLava(idFull - 0.5, X - x)));
+                    } else if (X - x === idRotate) {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingLavaBlock(createLava(idFull - 1, X - x)));
+                    } else {
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingLavaBlock(createLava(idFull, X - x)));
+                    }
+                } else {
+
+                    if (isInteger(idFull)) {
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingLavaBlock(createLava(idFull - 0.5, X - x)));
+                    } else if (X - x === idRotate) {
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingLavaBlock(createLava(idFull - 1, X - x)));
+                    } else {
+                        gameArea.destroyBlock(X, y, l, player, "liquid destroy list");
+                        gameArea.placeBlock(X, y, l,
+                            gameArea.makeFlowingLavaBlock(createLava(idFull, X - x)));
+                    }
+                }
+            }
+        }
+
+        if ((y - 1) >= 0 && (gameArea.map[x][y - 1][l] === undefined
+            || (isLava(gameArea.map[x][y - 1][l]) && gameArea.map[x][y - 1][l] !== LAVA_ID))) {
+            if (lavaFull(gameArea.map[x][y - 1][l]) !== 8) {
+                gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingLavaBlock(createLava(8, 0)));
+            }
+            if (isLava(gameArea.get(x - 1, y, l))) {
+                flow(x - 1);
+            }
+            if (isLava(gameArea.get(x + 1, y, l))) {
+                flow(x + 1);
+            }
+        } else if ((y - 1) >= 0 && LIQUID_DESTROY_LIST.indexOf(gameArea.map[x][y - 1][l]) !== -1) {
+            gameArea.destroyBlock(x, y - 1, l, player, "liquid destroy list");
+            gameArea.placeBlock(x, y - 1, l, gameArea.makeFlowingLavaBlock(createLava(8, 0)));
+            if (isLava(gameArea.get(x - 1, y, l))) {
+                flow(x - 1);
+            }
+            if (isLava(gameArea.get(x + 1, y, l))) {
+                flow(x + 1);
+            }
+        } else {
+            if (x - 1 >= 0) {
+                flow(x - 1);
+            }
+            if (x + 1 < gameArea.width) {
+                flow(x + 1);
+            }
+        }
+    }, LAVA_TIME_UPDATE * 1000);
+}
+
+
+// Leaf
+const fallingLeaf = (x, y, layout) => {
+    let visit = {};
+    const dfs = (x, y) => {
+        if (visit[x + "x" + y] === undefined && gameArea.get(x, y, layout) === 18) {
+            visit[x + "x" + y] = {
+                x: x,
+                y: y
+            };
+            dfs(x + 1, y);
+            dfs(x - 1, y);
+            dfs(x, y + 1);
+            dfs(x, y - 1);
+        }
+    }
+    dfs(x, y);
+    for (let i in visit) {
+        if (gameArea.map[visit[i].x][visit[i].y][layout] === 18) {
+            gameArea.destroyBlock(visit[i].x, visit[i].y, layout, player, 'fallingLeaf');
+            gameArea.placeBlock(visit[i].x, visit[i].y, layout, 9050);
+        }
+    }
 }
 
 
@@ -134,18 +468,18 @@ const items = {
         texture: () => {
             return getTextureCoordinates(1, 0)
         },
-        update: (x, y, l, gA) => {
-            if (gA.map[x][y + 1][l] === undefined) {
+        update: (x, y, l) => {
+            if (gameArea.map[x][y + 1][l] === undefined) {
                 return;
             }
             setTimeout(() => {
-                if ((y + 1) >= gA.height) {
+                if ((y + 1) >= gameArea.height) {
                     return;
                 }
-                if (gA.map[x][y + 1][l] !== undefined && items[gA.map[x][y + 1][l]].isCollissed
-                                                                            && gA.map[x][y][l] === 2) {
-                    gA.gameAreaMapSet(x, y, l, undefined);
-                    gA.placeBlock(x, y, l, 3);
+                if (gameArea.map[x][y + 1][l] !== undefined && items[gameArea.map[x][y + 1][l]].isCollissed
+                && gameArea.map[x][y][l] === 2) {
+                    gameArea.gameAreaMapSet(x, y, l, undefined);
+                    gameArea.placeBlock(x, y, l, 3);
                 }
             }, GRASS_TIME_UPDATE * Math.random() * 1000);
         }
@@ -167,18 +501,18 @@ const items = {
         texture: () => {
             return getTextureCoordinates(2, 0)
         },
-        update: (x, y, l, gA) => {
-            if (gA.map[x][y + 1][l] !== undefined) {
+        update: (x, y, l) => {
+            if (gameArea.map[x][y + 1][l] !== undefined) {
                 return;
             }
             setTimeout(() => {
-                if ((y + 1) >= gA.height) {
+                if ((y + 1) >= gameArea.height) {
                     return;
                 }
-                if ((gA.map[x][y + 1][l] === undefined || !items[gA.map[x][y + 1][l]].isCollissed)
-                        && gA.map[x][y][l] === 3) {
-                    gA.gameAreaMapSet(x, y, l, undefined);
-                    gA.placeBlock(x, y, l, 2);
+                if ((gameArea.map[x][y + 1][l] === undefined || !items[gameArea.map[x][y + 1][l]].isCollissed)
+                && gameArea.map[x][y][l] === 3) {
+                    gameArea.gameAreaMapSet(x, y, l, undefined);
+                    gameArea.placeBlock(x, y, l, 2);
                 }
             }, GRASS_TIME_UPDATE * Math.random() * 1000);
         }
@@ -252,36 +586,12 @@ const items = {
         hasGravity: false,
         density: 0.5,
         isNaturalLight: true,
-        update: (x, y, l, gA, id = 8) => {
-            setTimeout(() => {
-                if (id === 9016
-                    && (y + 1) < gA.height && !isWater(gA.map[x][y + 1][l])) {
-            
-                    gA.placeBlock(x, y, l, undefined);
-                    return;
-                }
-                if ((y - 1) >= 0 && (gA.map[x][y - 1][l] >= 9000 && gA.map[x][y - 1][l] <= 9016)) {
-                    return;
-                }
-
-                if ((y - 1) >= 0 && needPlaceWater(gA.map[x][y - 1][l], id)) {
-                    // 16 - вода стоит
-                    gA.placeBlock(x, y - 1, l, gA.makeFlowingWaterBlock(9000 + 16));
-                } else {
-                    if ((x - 1) >= 0 && needPlaceWater(gA.map[x - 1][y][l], id)) {
-                        // 0 ... 7 - вода течет влево (0 - макс наполнена)
-                        gA.placeBlock(x - 1, y, l, gA.makeFlowingWaterBlock(9000));
-                    }
-                    if ((x + 1) < gA.height && needPlaceWater(gA.map[x + 1][y][l], id)) {
-                        // 8 ... 16 - вода течет вправо (8 - макс наполнена)
-                        gA.placeBlock(x + 1, y, l, gA.makeFlowingWaterBlock(9000 + 8));
-                    }
-                }
-            }, WATER_TIME_UPDATE * 1000);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 8);
         }
     },
 
-    '9':
+    '9':  // Не будет использоваться
     {
         id: '9',
         type: 'flowingWater',
@@ -296,22 +606,25 @@ const items = {
     '10':
     {
         id: '10',
-        name: 'Lava',
+        name: 'lava',
         dropId: '326',
         weight: WEIGHT_OF_INSTRUMENTS,
-        type: 'water',
+        type: 'lava',
         durability: 1,
         brightness: 8,
-        isCanInteractThrow: true,
         isCollissed: false,
-        hasGravity: true,
-        density: 0.9
+        isCanInteractThrow: true,
+        hasGravity: false,
+        density: 0.9,
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 10);
+        }
     },
 
-    '11':
+    '11':  // Не будет использоваться
     {
         id: '11',
-        type: 'flowingWater',
+        type: 'flowingLava',
         durability: 1,
         brightness: 8,
         isCanInteractThrow: true,
@@ -406,9 +719,34 @@ const items = {
         texture: () => {
             return getTextureCoordinates(9, 0)
         },
-        update: (x, y, l, gA, reason) => {
-            if (reason === "destroyAround") {
-                gA.goodDestroy(x, y, l, player);
+        destroyFunction: (x, y, layout) => {
+            if (gameArea.get(x - 1, y, layout) === 17) {
+                gameArea.goodDestroy(x - 1, y, layout, player);
+            }
+            if (gameArea.get(x + 1, y, layout) === 17) {
+                gameArea.goodDestroy(x + 1, y, layout, player);
+            }
+            if (gameArea.get(x - 1, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x - 1, y + 1, layout, player);
+            }
+            if (gameArea.get(x + 1, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x + 1, y + 1, layout, player);
+            }
+            if (gameArea.get(x, y + 1, layout) === 17) {
+                gameArea.goodDestroy(x, y + 1, layout, player);
+            }
+            // leaf
+            if (gameArea.get(x - 1, y, layout) === 18) {
+                fallingLeaf(x - 1, y, layout);
+            }
+            if (gameArea.get(x + 1, y, layout) === 18) {
+                fallingLeaf(x + 1, y, layout);
+            }
+            if (gameArea.get(x, y + 1, layout) === 18) {
+                fallingLeaf(x, y + 1, layout);
+            }
+            if (gameArea.get(x, y - 1, layout) === 18) {
+                fallingLeaf(x, y - 1, layout);
             }
         }
     },
@@ -419,7 +757,7 @@ const items = {
         name: 'Leaf',
         type: 'leaf',
         isBlock: true,
-        isAlwaysGoodDestroy: true,
+        isAlwaysGoodDestroy: false,
         dropId: '18',
         weight: WEIGHT_OF_BLOCKS,
         durability: 0.5,
@@ -429,9 +767,20 @@ const items = {
         texture: () => {
             return getTextureCoordinates(10, 0)
         },
-        update: (x, y, l, gA, reason) => {
-            if (reason === "destroyAround") {
-                gA.goodDestroy(x, y, l, player);
+        destroyFunction: (x, y, layout, reason) => {
+            if (reason === undefined) {
+                if (gameArea.get(x - 1, y, layout) === 18) {
+                    player.destroy(x - 1, y, layout);
+                }
+                if (gameArea.get(x + 1, y, layout) === 18) {
+                    player.destroy(x + 1, y, layout);
+                }
+                if (gameArea.get(x, y - 1, layout) === 18) {
+                    player.destroy(x, y - 1, layout);
+                }
+                if (gameArea.get(x, y + 1, layout) === 18) {
+                    player.destroy(x, y + 1, layout);
+                }
             }
         }
     },
@@ -461,7 +810,15 @@ const items = {
         name: 'Glass',
         type: 'other',
         isBlock: true,
-        weight: WEIGHT_OF_BLOCKS
+        isCollissed: true,
+        durability: 0.5,
+        brightness: 7,
+        isNaturalLight: true,
+        isSolid: true,
+        weight: WEIGHT_OF_BLOCKS,
+        texture: () => {
+            return getTextureCoordinates(14, 1)
+        }
     },
 
     '21':
@@ -807,28 +1164,34 @@ const items = {
         }
     },
 
-    '264': 
-    { 
+    '264':
+    {
         id: '264',
-        name: 'Diamond', 
+        name: 'Diamond',
         weight: WEIGHT_OF_ORES,
         texture: () => {
             return getTextureCoordinates(1, 2)
         }
     },
 
-    '265': 
-    { 
-        id: '265', 
-        name: 'Iron', 
-        weight: WEIGHT_OF_ORES
+    '265':
+    {
+        id: '265',
+        name: 'Iron',
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(2, 2)
+        }
     },
 
-    '266': 
-    { 
-        id: '266', 
-        name: 'Gold', 
-        weight: WEIGHT_OF_ORES
+    '266':
+    {
+        id: '266',
+        name: 'Gold',
+        weight: WEIGHT_OF_ORES,
+        texture: () => {
+            return getTextureCoordinates(3, 2)
+        }
     },
 
     '267': {
@@ -988,8 +1351,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-0',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9000);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9000);
         }
     },
 
@@ -1004,8 +1367,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-1',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9001);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9001);
         }
     },
 
@@ -1020,8 +1383,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-2',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9002);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9002);
         }
     },
 
@@ -1036,8 +1399,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-3',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9003);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9003);
         }
     },
 
@@ -1052,8 +1415,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-4',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9004);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9004);
         }
     },
 
@@ -1068,8 +1431,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-5',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9005);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9005);
         }
     },
 
@@ -1084,8 +1447,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-6',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9006);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9006);
         }
     },
 
@@ -1100,8 +1463,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-7',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9007);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9007);
         }
     },
 
@@ -1116,8 +1479,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-8',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9008);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9008);
         }
     },
 
@@ -1132,8 +1495,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-9',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9009);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9009);
         }
     },
 
@@ -1148,8 +1511,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-10',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9010);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9010);
         }
     },
 
@@ -1164,8 +1527,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-11',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9011);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9011);
         }
     },
 
@@ -1180,8 +1543,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-12',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9012);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9012);
         }
     },
 
@@ -1196,8 +1559,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-13',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9013);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9013);
         }
     },
 
@@ -1212,8 +1575,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-14',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9014);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9014);
         }
     },
 
@@ -1228,8 +1591,8 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-15',
-        update: (x, y, l, gA) => {
-            fallingWaterUpdate(x, y, l, gA, 9015);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9015);
         }
     },
 
@@ -1244,86 +1607,577 @@ const items = {
         isNaturalLight: true,
         density: 0.5,
         name: 'flowing-water-16',
-        update: (x, y, l, gA) => {
-            items['8'].update(x, y, l, gA, 9016);
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9016);
+        }
+    },
+
+    '9017':
+    {
+        id: '9017',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 6,
+        isCollissed: false,
+        isNaturalLight: true,
+        name: 'flowing-water-17',
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9017);
+        }
+    },
+
+    '9018':
+    {
+        id: '9018',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 6,
+        isCollissed: false,
+        isNaturalLight: true,
+        name: 'flowing-water-18',
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9018);
+        }
+    },
+
+    '9019':
+    {
+        id: '9019',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 6,
+        isCollissed: false,
+        isNaturalLight: true,
+        name: 'flowing-water-19',
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9019);
+        }
+    },
+
+    '9020':
+    {
+        id: '9020',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 6,
+        isCollissed: false,
+        isNaturalLight: true,
+        name: 'flowing-water-20',
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9020);
+        }
+    },
+
+    '9021':
+    {
+        id: '9021',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 6,
+        isCollissed: false,
+        isNaturalLight: true,
+        name: 'flowing-water-21',
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9021);
+        }
+    },
+
+    '9022':
+    {
+        id: '9022',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 6,
+        isCollissed: false,
+        isNaturalLight: true,
+        name: 'flowing-water-22',
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9022);
+        }
+    },
+
+    '9023':
+    {
+        id: '9023',
+        type: 'flowingWater',
+        durability: 1,
+        brightness: 6,
+        isCollissed: false,
+        isNaturalLight: true,
+        name: 'flowing-water-23',
+        update: (x, y, layout) => {
+            waterFlowing(x, y, layout, 9023);
+        }
+    },
+
+    '9024':
+    {
+        id: '9024',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-0',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9024);
+        }
+    },
+
+    '9025':
+    {
+        id: '9025',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-1',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9025);
+        }
+    },
+
+    '9026':
+    {
+        id: '9026',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-2',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9026);
+        }
+    },
+
+    '9027':
+    {
+        id: '9027',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-3',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9027);
+        }
+    },
+
+    '9028':
+    {
+        id: '9028',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-4',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9028);
+        }
+    },
+
+    '9029':
+    {
+        id: '9029',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-5',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9029);
+        }
+    },
+
+    '9030':
+    {
+        id: '9030',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-6',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9030);
+        }
+    },
+
+    '9031':
+    {
+        id: '9031',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-7',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9031);
+        }
+    },
+
+    '9032':
+    {
+        id: '9032',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-8',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9032);
+        }
+    },
+
+    '9033':
+    {
+        id: '9033',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-9',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9033);
+        }
+    },
+
+    '9034':
+    {
+        id: '9034',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-10',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9034);
+        }
+    },
+
+    '9035':
+    {
+        id: '9035',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-11',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9035);
+        }
+    },
+
+    '9036':
+    {
+        id: '9036',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-12',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9036);
+        }
+    },
+
+    '9037':
+    {
+        id: '9037',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-13',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9037);
+        }
+    },
+
+    '9038':
+    {
+        id: '9038',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-14',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9038);
+        }
+    },
+
+    '9039':
+    {
+        id: '9039',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-15',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9039);
+        }
+    },
+
+    '9040':
+    {
+        id: '9040',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-16',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9040);
+        }
+    },
+
+    '9041':
+    {
+        id: '9041',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-17',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9041);
+        }
+    },
+
+    '9042':
+    {
+        id: '9042',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-18',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9042);
+        }
+    },
+
+    '9043':
+    {
+        id: '9043',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-19',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9043);
+        }
+    },
+
+    '9044':
+    {
+        id: '9044',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-20',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9044);
+        }
+    },
+
+    '9045':
+    {
+        id: '9045',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-21',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9045);
+        }
+    },
+
+    '9046':
+    {
+        id: '9046',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-22',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9046);
+        }
+    },
+
+    '9047':
+    {
+        id: '9047',
+        type: 'flowingLava',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        density: 0.9,
+        name: 'flowing-lava-23',
+        update: (x, y, layout) => {
+            lavaFlowing(x, y, layout, 9047);
+        }
+    },
+
+    '9048':
+    {
+        
+        id: '9048',
+        type: 'fire',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        name: 'fire-1',
+        update: (x, y, l) => {
+            setTimeout(() => {
+                if (items[gameArea.get(x, y, l)].type === 'fire') {
+                    gameArea.gameAreaMapSet(x, y, l, undefined);
+                    if (items[gameArea.get(x, y - 1, l)].type === 'wood') {
+                        gameArea.gameAreaMapSet(x, y, l, 9049);
+                    }
+                    gameArea.updateBlock(x, y, l);
+                }
+            }, FIRE_TIME_UPDATE * 1000);
+        }
+    },
+
+    '9049':
+    {
+        
+        id: '9049',
+        type: 'fire',
+        durability: 1,
+        brightness: 8,
+        isCollissed: false,
+        isCanInteractThrow: true,
+        name: 'fire-2',
+        update: (x, y, l) => {
+            setTimeout(() => {
+                if (items[gameArea.get(x, y, l)].type === 'fire') {
+                    gameArea.gameAreaMapSet(x, y, l, undefined);
+                    if (items[gameArea.get(x, y - 1, l)].type === 'wood') {
+                        gameArea.gameAreaMapSet(x, y, l, 9048);
+                    }
+                    gameArea.updateBlock(x, y, l);
+                }
+            }, FIRE_TIME_UPDATE * 1000);
+        }
+    },
+
+    '9050':
+    {
+        id: '9050',
+        name: 'falled-leaf-1',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+                gameArea.placeBlock(x, y, l, 9051);
+            }
+        }
+    },
+
+    '9051':
+    {
+        id: '9051',
+        name: 'falled-leaf-2',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+                gameArea.placeBlock(x, y, l, 9052);
+            }
+        }
+    },
+
+    '9052':
+    {
+        id: '9052',
+        name: 'falled-leaf-3',
+        type: 'leaf',
+        isBlock: true,
+        isAlwaysGoodDestroy: false,
+        dropId: '18',
+        weight: WEIGHT_OF_BLOCKS,
+        durability: 0.5,
+        brightness: 0,
+        isCollissed: false,
+        isSolid: true,
+        hasGravity: true,
+        update: (x, y, l) => {
+            if (Math.random() <= LEAF_DESTROY_CHANCE) {
+                gameArea.destroyBlock(x, y, l, player, 'fallingLeaf');
+            }
         }
     }
-
-    // TODO : вояснить необходимость
-    // '9017':
-    // {
-    //     id: '9017',
-    //     type: 'flowingWater',
-    //     durability: 1,
-    //     brightness: 6,
-    //     isCollissed: false,
-    //     isNaturalLight: true,
-    //     name: 'flowing-water-17'
-    // },
-
-    // '9018':
-    // {
-    //     id: '9018',
-    //     type: 'flowingWater',
-    //     durability: 1,
-    //     brightness: 6,
-    //     isCollissed: false,
-    //     isNaturalLight: true,
-    //     name: 'flowing-water-18'
-    // },
-
-    // '9019':
-    // {
-    //     id: '9019',
-    //     type: 'flowingWater',
-    //     durability: 1,
-    //     brightness: 6,
-    //     isCollissed: false,
-    //     isNaturalLight: true,
-    //     name: 'flowing-water-19'
-    // },
-
-    // '9020':
-    // {
-    //     id: '9020',
-    //     type: 'flowingWater',
-    //     durability: 1,
-    //     brightness: 6,
-    //     isCollissed: false,
-    //     isNaturalLight: true,
-    //     name: 'flowing-water-20'
-    // },
-
-    // '9021':
-    // {
-    //     id: '9021',
-    //     type: 'flowingWater',
-    //     durability: 1,
-    //     brightness: 6,
-    //     isCollissed: false,
-    //     isNaturalLight: true,
-    //     name: 'flowing-water-21'
-    // },
-
-    // '9022':
-    // {
-    //     id: '9022',
-    //     type: 'flowingWater',
-    //     durability: 1,
-    //     brightness: 6,
-    //     isCollissed: false,
-    //     isNaturalLight: true,
-    //     name: 'flowing-water-22'
-    // },
-
-    // '9023':
-    // {
-    //     id: '9023',
-    //     type: 'flowingWater',
-    //     durability: 1,
-    //     brightness: 6,
-    //     isCollissed: false,
-    //     isNaturalLight: true,
-    //     name: 'flowing-water-23'
-    // }
 }

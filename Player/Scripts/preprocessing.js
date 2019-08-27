@@ -26,6 +26,7 @@ image.onload = () => {
 		playerImage.onload = () => {
 			render.init(image, background, playerImage);
 			render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
+			initRain();
 
 			// Отправка образцов объектов
 			{
@@ -34,7 +35,7 @@ image.onload = () => {
 				let objects = [];
 				for (let i = 0; i < blocksCountX; i++) {
 					for (let j = 0; j < blocksCountY; j++) {
-						objects.push({
+						objects[j * blocksCountX + i] = {
 							'id': j * blocksCountX + i + 1,
 							'a': [
 								i / blocksCountX + 1 / image.width,
@@ -44,7 +45,7 @@ image.onload = () => {
 								(i + 1) / blocksCountX - 1 / image.width,
 								(j + 1) / blocksCountY - 1 / image.height
 							]
-						});
+						};
 					}
 				}
 				render.createObjects(objects);
@@ -54,7 +55,7 @@ image.onload = () => {
 				let playerAnims = [];
 				for (let j = 0; j < playerAnimsCountY; j++) {
 					for (let i = 0; i < playerAnimsCountX; i++) {
-						playerAnims.push({
+						playerAnims[j * playerAnimsCountY + i] = {
 							'head': [
 								[
 									i / playerAnimsCountX,
@@ -91,7 +92,7 @@ image.onload = () => {
 								],
 								38 // конец ног (снизу вверх)
 							]
-						});
+						};
 					}
 				}
 				render.createAnimations(playerResolutionX, playerResolutionY, playerAnims);
@@ -121,25 +122,24 @@ image.onload = () => {
 						chunk: [], x: xLocate, y: yLocate
 					};
 
-					for (let i = startX; i < stopX; i++) {
-						layoutChunk.chunk[i - startX] = [];
-						for (let j = startY; j < stopY; j++) {
+					for (let j = startY; j < stopY; j++) {
+						layoutChunk.chunk[j - startY] = [];
+						for (let i = startX; i < stopX; i++) {
 							if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
 								// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 								if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) {
-									layoutChunk.chunk[i - startX][j - startY] = 9;
+									layoutChunk.chunk[j - startY][i - startX] = 9;
 								} else {
-									layoutChunk.chunk[i - startX][j - startY] =
+									layoutChunk.chunk[j - startY][i - startX] =
 										gameArea.map[Math.floor(i)][Math.floor(j)][layout];
 								}
 							} else {
-								layoutChunk.chunk[i - startX][j - startY] = undefined;
+								layoutChunk.chunk[j - startY][i - startX] = undefined;
 							}
 						}
 					}
 
-					arrOfChunks[xLocate + "x" + yLocate + "x" + layout] =
-						layoutChunk;
+					arrOfChunks[xLocate + "x" + yLocate + "x" + layout] = layoutChunk;
 				}
 
 				arrOfChunks[xLocate + "x" + yLocate + "xL"] = {
@@ -159,16 +159,23 @@ image.onload = () => {
 									? 0 : (j >= gameArea.height
 										? gameArea.height - 1 : j))));
 					}
-					for (let i = 0; i < chunkWidth - 2; i++) {
-						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-					}
 				}
-				for (let i = 0; i < chunkWidth * 2; i++) {
-					for (let j = 0; j < chunkHeight - 2; j++) {
-						arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-					}
-				}
-				
+				// TODO : Добавить учет прозрачности
+				// for (let i = 0; i < chunkWidth; i++) {
+				// 	for (let j = 0; j < chunkHeight; j++) {
+				// 		if (arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT]
+				// 			.chunk[i][j] !== undefined) {
+
+				// 			arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT].chunk[i][j] = undefined;
+				// 			arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk[i][j] = undefined;
+				// 		} else if (arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.SECOND_LAYOUT]
+				// 		.chunk[i][j] !== undefined) {
+
+				// 			arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.BACK_LAYOUT].chunk[i][j] = undefined;
+				// 		}
+				// 	}
+				// }
+
 				render.drawChunk(xLocate, yLocate,
 					[
 						arrOfChunks[xLocate + "x" + yLocate + "x" + GameArea.FIRST_LAYOUT].chunk,
@@ -235,7 +242,9 @@ image.onload = () => {
 				gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
 				const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 				const lightOfPlayer = player.getLight(); // освещённость игрока
-				render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer, player.direction);
+				const dynamicLight = [9, 0.2]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение в центре
+				render.render(cameraX, cameraY, player.x, player.y, cameraScale, oldTime, deltaTime, lightOfDay,
+					lightOfPlayer, slicePlayer, player.direction, dynamicLight);
 				fpsUpdate();
 				requestAnimationFrame(update);
 			}

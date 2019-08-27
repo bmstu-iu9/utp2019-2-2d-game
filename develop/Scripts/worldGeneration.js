@@ -1,3 +1,5 @@
+'use strict';
+
 // Генерация земли, changes необходимы при загрузке с изменениями исходного мира
 const generate = (width, height, seed, changes) => {
     let elevationMap = new Array();

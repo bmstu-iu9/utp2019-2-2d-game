@@ -1,8 +1,9 @@
 'use strict';
 
 let imageCounter = 0, totalImages = 0;
-let cameraScale = 1;  // Масштаб, 1 - стандарт
-const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
+let heigthCount = 50;  // Количество блоков, которые влезают на экран по высоте
+let cameraScale = 1;  // Масштаб, 1 - стандарт, зависит от heigthCount
+const blockSize = 32;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
 const minLayout = 2, maxLayout = 4;  // Обрабатываемые слои
@@ -14,8 +15,6 @@ const playerResolutionX = 48, playerResolutionY = 96;
 let loadingResult = undefined;
 let _textureUI;
 let _fontUI;
-
-const render = new Render();
 
 const loadImage = (source) => {
 	totalImages++;
@@ -38,7 +37,7 @@ const _UI = loadImage('Images/UI.png'),  // Загрузка текстур
 	playerImage = loadImage('Images/player.png');
 
 const preprocessing = () => {
-	render.init(image, background, playerImage);
+	render.init([image, background, playerImage, _Items]);
 	render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
 	initRain();
 	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);
@@ -55,12 +54,12 @@ const preprocessing = () => {
 				objects[j * blocksCountX + i] = {
 					'id': j * blocksCountX + i + 1,
 					'a': [
-						i / blocksCountX + 1 / image.width,
-						j / blocksCountY + 1 / image.height
+						i / blocksCountX, //+ 1 / image.width,              Для альтернативного метода сглаживания
+						j / blocksCountY //+ 1 / image.height
 					],
 					'b': [
-						(i + 1) / blocksCountX - 1 / image.width,
-						(j + 1) / blocksCountY - 1 / image.height
+						(i + 1) / blocksCountX, //- 1 / image.width,
+						(j + 1) / blocksCountY //- 1 / image.height
 					]
 				};
 			}
@@ -145,7 +144,8 @@ const preprocessing = () => {
 					if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
 						// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
 						if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) {
-							layoutChunk.chunk[j - startY][i - startX] = 9;
+							layoutChunk.chunk[j - startY][i - startX] =
+							gameArea.map[Math.floor(i)][Math.floor(j)][layout] - 9000 + 129;
 						} else {
 							layoutChunk.chunk[j - startY][i - startX] =
 								gameArea.map[Math.floor(i)][Math.floor(j)][layout];
@@ -199,6 +199,7 @@ const preprocessing = () => {
 			deltaTime = 0.1;
 		}
 		oldTime = newTime;
+		cameraScale = (heigthCount * blockSize) / render.getCanvasSize()[1];
 
 		eventTick();
 
@@ -252,6 +253,7 @@ const preprocessing = () => {
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 		const lightOfPlayer = player.getLight(); // освещённость игрока
 		const dynamicLight = [9, player.light]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение (от 0 до 1)
+
 		render.render(cameraX, cameraY, player.x, player.y, cameraScale, oldTime, deltaTime, lightOfDay, lightOfPlayer,
 			slicePlayer, player.direction, dynamicLight);
 		
@@ -268,10 +270,10 @@ const preprocessing = () => {
 		elem.parentNode.removeChild(elem);
 	}
 
-	if (loadExist()) {
+	if (localStorage.choosedWorld !== undefined) {
 		const wait = async () => {
 			return new Promise (responce => {
-				loadWorld('world')
+				loadWorld(localStorage.choosedWorld)
 				.then(result => {
 					loadingResult = result;
 					responce();

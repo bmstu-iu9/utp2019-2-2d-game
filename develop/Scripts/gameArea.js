@@ -233,7 +233,7 @@ class GameArea{
                     || inv[1][index] == undefined && count > 1) {
                 throw new Error(`Can not delete ${count} item(s) on index ${index}`);
             } else {
-                drop = {
+                drop = inv[0][index].id ? inv[0][index] : {
                     "id" : inv[0][index],
                     "count" : count
                 }
@@ -271,6 +271,11 @@ class GameArea{
             return cnt;
         };
 
+        this.makeFlowingLavaBlock = (cnt) => {
+            // Текучая лава - блок без гравитации
+            return cnt;
+        };
+
         // Есть ли коллизия с этим блоком
         this.hasCollision = (x, y, layout) => {
             if (x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
@@ -283,7 +288,7 @@ class GameArea{
             return false;
         };
 
-        this.updateBlock = (x, y, layout, player, reason) => {
+        this.updateBlock = (x, y, layout, player) => {
             if (x < 0 || x >= this.width
                 || y < 0 || y >= this.height
                 || this.map[x][y][layout] === undefined
@@ -293,186 +298,34 @@ class GameArea{
             const block = items[this.map[x][y][layout]];
 
             if (block.hasGravity) {
-                // Если нет блока снизу
-                if ((y - 1) >= 0 && this.map[x][y - 1][layout] === undefined) {
+                // Если нет блока с коллизией снизу
+                if ((y - 1) >= 0 && (this.map[x][y - 1][layout] === undefined
+                    || !items[this.map[x][y - 1][layout]].isCollissed)) {
                     const lastId = this.map[x][y][layout];
                     setTimeout(() => {
                         const id = this.map[x][y][layout];
                         if (id !== lastId) {
                             return;
                         }
-                        this.gameAreaMapSet(x, y, layout, undefined);  // Без пересчета света
+                        this.destroyBlock(x, y, layout, player);
                         this.placeBlock(x, y - 1, layout, id);
                     }, GameArea.FALLING_BLOCKS * 1000);
                 }
             }
 
             if (block.update !== undefined) {
-                block.update(x, y, layout, this, reason);
-            }
-
-            switch (block.type) {
-                case "wood":
-                    // Если блок дерева не видит под собой опоры в нижнем блоке, либо стоит на листве, плюс
-                    // крайние нижние блоки - это не блоки дерева, то оно рушится
-                {
-                    // if(block.id === '17'){
-                    //     if (y - 1 >= 0 && this.map[x][y - 1][GameArea.FIRST_LAYOUT] === undefined) {
-                    //         for (let i = x - 1; i <= x + 1; i++) {
-                    //             if (i >= 0 && i < this.width && (this.map[x][y - 1][layout] === undefined ||
-                    //                 items[this.map[x][y - 1][layout]].type !== "wood")) {
-                    //             } else {
-                    //                 return;
-                    //             }
-                    //         }
-                    //         this.goodDestroy(x, y, layout, player);
-                    //     }
-                    // }
-                }
-                break;
-                case "leaf":
-                    // Если блок листвы не видит под собой опоры в нижнем, нижнем левом и нижнем правом блоке в виде
-                    // дерева или листвы или же в левом или правом, в виде дерева, то он рушится
-                {
-                    // for (let i = x - 1; i <= x + 1; i++) {
-                    //     if (i >= 0 && i < this.width) {
-                    //         for (let j = y - 1; j <= y; j++) {
-                    //             if (i !== x && j !== y)
-                    //                 if (y - 1 >= 0 && j === y - 1) {
-                    //                     if (this.map[i][j][layout] === undefined ||
-                    //                         items[this.map[i][j][layout]].type !== "leaf" &&
-                    //                         items[this.map[i][j][layout]].type !== "wood") {
-                    //                     } else return;
-                    //                 } else if (this.map[i][j][layout] === undefined ||
-                    //                     items[this.map[i][j][layout]].type !== "wood") {
-                    //                 } else return;
-                    //         }
-                    //     }
-                    // }
-                    // this.destroyBlock(x, y, layout);
-                }
-                    break;
-                case "water": {
-                    // const LIQUID_TYPE = +block.id + 1;
-                    // if (this.map[x][y - 1][layout] === undefined) {
-                    //     setTimeout(() => {
-                    //         if (this.map[x][y - 1][layout] === undefined) {
-                    //             this.placeBlock(x, y - 1, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000 + 16));
-                    //         }
-                    //     })
-                    // } else if (Math.floor((this.map[x][y - 1][layout] - LIQUID_TYPE*1000) / 8) !== 2) {
-                    //     if (this.map[x - 1][y][layout] === undefined) {
-                    //         setTimeout(() => {
-                    //             if (this.map[x - 1][y][layout] === undefined) {
-                    //                 this.placeBlock(x - 1, y, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000));
-                    //             }
-                    //         }, 200);
-                    //     }
-                    //     if (this.map[x + 1][y][layout] === undefined) {
-                    //         setTimeout(() => {
-                    //             if (this.map[x + 1][y][layout] === undefined) {
-                    //                 this.placeBlock(x + 1, y, layout, this.makeFlowingWaterBlock(LIQUID_TYPE*1000 + 8));
-                    //             }
-                    //         }, 200);
-                    //     }
-                    // }
-                }
-                    break;
-
-                case "flowingWater": {
-                    // const LIQUID_TYPE = Math.floor(+block.id / 1000);
-                    // const power = (+block.id - 1000 * LIQUID_TYPE) % 8;
-                    // if (this.map[x + 1][y][layout] !== (LIQUID_TYPE - 1)
-                    //     && this.map[x - 1][y][layout] !== (LIQUID_TYPE - 1)
-                    //     && this.map[x][y + 1][layout] !== (LIQUID_TYPE - 1)
-                    //     && (!this.map[x + 1][y][layout]
-                    //         || (this.map[x + 1][y][layout] - 1000 * LIQUID_TYPE) % 8 >= power
-                    //         || this.map[x + 1][y][layout] < 1000 * LIQUID_TYPE)
-                    //     && (!this.map[x - 1][y][layout]
-                    //         || (this.map[x - 1][y][layout] - 1000 * LIQUID_TYPE) % 8 >= power
-                    //         || this.map[x - 1][y][layout] < 1000 * LIQUID_TYPE)
-                    //     && (!this.map[x][y + 1][layout]
-                    //         || (this.map[x][y + 1][layout] - 1000 * LIQUID_TYPE) % 8 > power
-                    //         || this.map[x][y + 1][layout] < 1000 * LIQUID_TYPE)) {
-
-                    //     setTimeout(() => {
-                    //         if (this.map[x][y][layout] === +block.id) this.destroyBlock(x, y, layout);
-                    //     }, 50);
-                    // } else {
-
-                    //     let direction = Math.floor((+block.id - 1000 * LIQUID_TYPE) / 8);
-                    //     if (this.map[x][y - 1][layout] === undefined) {
-
-                    //         setTimeout(() => {
-                    //             if (this.map[x][y][layout] === +block.id)
-                    //                 this.placeBlock(x, y - 1, layout,
-                    //                     this.makeFlowingWaterBlock(this.map[x][y][layout] + 8 * (2 - direction)));
-                    //         }, 50);
-                    //     } else if (this.map[x][y - 1][layout] !== undefined
-                    //         && items[this.map[x][y - 1][layout]].type !== "flowingWater"
-                    //         && +block.id !== 1000 * LIQUID_TYPE + 23
-                    //         && direction === Math.floor((+block.id - 1000 * LIQUID_TYPE + 1) / 8)) {
-
-                    //         if (this.map[x - 1][y][layout] === undefined && direction !== 1) {
-
-                    //             if (direction === 0) {
-                    //                 setTimeout(() => {
-                    //                     if (this.map[x][y][layout] === +block.id
-                    //                         && this.map[x - 1][y][layout] === undefined) {
-
-                    //                         this.placeBlock(x - 1, y,
-                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                    //                     }
-                    //                 }, 200);
-                    //             } else {
-                    //                 setTimeout(() => {
-                    //                     if (this.map[x][y][layout] === +block.id
-                    //                         && this.map[x - 1][y][layout] === undefined) {
-
-                    //                         this.placeBlock(x - 1, y,
-                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 15));
-                    //                     }
-                    //                 }, 200);
-                    //             }
-                    //         } else if (this.map[x + 1][y][layout] === undefined && direction !== 0) {
-                    //             if (direction === 1) {
-                    //                 setTimeout(() => {
-                    //                     if (this.map[x][y][layout] === +block.id
-                    //                         && this.map[x + 1][y][layout] === undefined) {
-
-                    //                         this.placeBlock(x + 1, y,
-                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] + 1));
-                    //                     }
-                    //                 }, 200);
-                    //             } else {
-                    //                 setTimeout(() => {
-                    //                     if (this.map[x][y][layout] === +block.id
-                    //                         && this.map[x + 1][y][layout] === undefined) {
-
-                    //                         this.placeBlock(x + 1, y,
-                    //                             layout, this.makeFlowingWaterBlock(this.map[x][y][layout] - 7));
-                    //                     }
-                    //                 }, 200);
-                    //             }
-                    //         }
-                    //     }
-                    // }
-                }
-                    break;
-                default:
-                    break;
-                // Какое-либо стандартное поведение
+                block.update(x, y, layout);
             }
         }
 
         // Обновление окружения блока
-        this.updateRadius = (x, y, layout, player, reason) => {
+        this.updateRadius = (x, y, layout, player) => {
             for (let i = x - 1; i <= x + 1; i++) {
                 for (let j = y - 1; j <= y + 1; j++) {
                     if (i !== x || y !== j) {
-                        this.updateBlock(i, j, layout, player, reason);
+                        this.updateBlock(i, j, layout, player);
                         if (layout === GameArea.FIRST_LAYOUT) {
-                            this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player, reason);
+                            this.updateBlock(i, j, GameArea.SECOND_LAYOUT, player);
                         }
                     }
                 }
@@ -480,7 +333,7 @@ class GameArea{
         }
 
         // Действие при разрушении блока
-        this.destroyBlock = (x, y, layout, player) => {
+        this.destroyBlock = (x, y, layout, player, reason) => {
             if (!this.exist(x, y)) return; // проверка на выход из карты
             let lastBlock = this.map[x][y][layout];
             this.gameAreaMapSet(x, y, layout, this.makeAirBlock());
@@ -490,9 +343,9 @@ class GameArea{
                 this.addLightRound(x, y, x, y, 9, true, false);
             }
             if (items[lastBlock].destroyFunction) {
-                items[lastBlock].destroyFunction(x, y, layout);
+                items[lastBlock].destroyFunction(x, y, layout, reason);
             }
-            this.updateRadius(x, y, layout, player, "destroyAround");
+            this.updateRadius(x, y, layout, player);
         }
 
         // К этому блоку можно приставлять другие
@@ -508,7 +361,10 @@ class GameArea{
             return this.exist(x, y)
                     && (this.map[x][y][layout] === undefined
                         || items[this.map[x][y][layout]].type === "water"
-                        || items[this.map[x][y][layout]].type === "flowingWater"); 
+                        || items[this.map[x][y][layout]].type === "flowingWater"
+                        || items[this.map[x][y][layout]].type === "lava"
+                        || items[this.map[x][y][layout]].type === "flowingLava"
+                        || items[this.map[x][y][layout]].type === "fire"); 
         }
 
         // Можно ставить блок на (x, y, layout)
@@ -556,8 +412,8 @@ class GameArea{
                     }
                     this.addLightRound(x, y, x, y, items[id].brightness, items[id].isNaturalLight === true, false);
                 }
-                this.updateRadius(x, y, layout, "placeAround");
-                this.updateBlock(x, y, layout, "place");
+                this.updateRadius(x, y, layout);
+                this.updateBlock(x, y, layout);
 
                 return true;
             }

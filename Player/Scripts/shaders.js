@@ -7,7 +7,7 @@
 let _vertexShader = [];
 let _fragmentShader = [];
 
-// TODO: фон вынести в отдельный шейдер
+// TODO: фон вынести в отдельный шейдер и исправить
 // шейдеры для блоков, фона
 _vertexShader[0] = `
 	attribute vec2 a_position;
@@ -122,16 +122,16 @@ _fragmentShader[2] = `
 		gl_FragColor = vec4(tex.rgb * max(lightTex, light) * u_light, tex.a);
 	}`;
 
-// шейдеры для игрока
+// шейдеры для игрока и блоков
 _vertexShader[3] = `
-	attribute vec2 a_positionPlayer;
-	attribute vec2 a_texCoordPlayer;
+	attribute vec2 a_position;
+	attribute vec2 a_texCoord;
 
 	varying vec2 v_texCoord;
 	
 	void main() {
-		v_texCoord = a_texCoordPlayer;
-		vec4 pos = vec4(a_positionPlayer * 2.0 - 1.0, 0.0, 1.0);
+		v_texCoord = a_texCoord;
+		vec4 pos = vec4(a_position * 2.0 - 1.0, 0.0, 1.0);
 		gl_Position = pos;
 	}`;
 
@@ -145,4 +145,42 @@ _fragmentShader[3] = `
 	void main() {
 		vec4 tex = texture2D(u_texture, v_texCoord);
 		gl_FragColor = tex;
+	}`;
+
+/* ПОЖАЛУЙСТА, НЕ СЛИВАЙТЕ ИЗ Interface В Player САМОСТОЯТЕЛЬНО!!! */
+
+// шейдеры для дождя
+_vertexShader[5] = `
+	attribute float a_id;
+	
+	uniform vec2 u_translate;
+	uniform vec2 u_resolution;
+	uniform float u_number;
+	uniform float u_time;
+	
+	float hash(float i) {
+		vec2 p = fract(vec2(i * 5.3983, i * 5.4427));
+		p += dot(p.yx, p.xy + vec2(21.5351, 14.3137));
+		return fract(p.x * p.y * 95.4337);
+	}
+	
+	void main() {
+		float delta = a_id / u_number;
+		float offset = floor(u_time + delta) / 1000.0;
+		float x = (hash(offset + delta) * u_resolution.x + u_translate.x) * 2.0 ;
+		float y = fract(u_time + hash(delta)) * -2.0 + 1.0;
+		if (y >= u_translate.y) {
+			gl_Position = vec4(x, y, 0.0, 1.0);
+			gl_PointSize = 2.0;
+		} else if (u_translate.y - y < u_resolution.y * 64.0) {
+			gl_Position = vec4(x, u_translate.y, 0.0, 1.0);
+			gl_PointSize = 2.0;
+		}
+	}`;
+
+_fragmentShader[5] = `
+	precision mediump float;
+	
+	void main() {
+		gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
 	}`;

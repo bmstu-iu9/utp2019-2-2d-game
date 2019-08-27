@@ -1,4 +1,4 @@
 * [Ветка `master`](master)
 * [Ветка `develop`](develop)
-* [Ветка `Player`](Player)
+* [Ветка `Graphical-Engine`](GraphicalEngine)
 * [Ветка `Interface`](Interface)

@@ -4,32 +4,41 @@ let _fpsTime = performance.now();
 let _fpsCountner = 0;
 let _startFps = _fpsTime;
 let _fpsCountnerAVG = 0;
+const _classFpsStyle = document.getElementsByClassName('fps')[0].style;
 
 const fpsUpdate = () => {
-	const nowtime = performance.now();
-	const delta = nowtime - _fpsTime;
-	const deltaAvg = nowtime - _startFps;
+	const nowTime = performance.now();
+	const delta = nowTime - _fpsTime;
 	_fpsCountnerAVG++;
 	if (delta < 1000) {
 		_fpsCountner++;
 	} else {
-		document.getElementById('fps').innerHTML = '';
+		const deltaAvg = nowTime - _startFps;
+		let text = '';
 		if (_fpsCountner < 100) {
-			document.getElementById('fps').innerHTML = ' ';
+			text = ' ';
 			if (_fpsCountner < 10) {
-				document.getElementById('fps').innerHTML += ' ';
+				text += ' ';
 			}
 		}
-		document.getElementById('fps').innerHTML += _fpsCountner + ' FPS | ';
+		document.getElementById('fps').innerHTML = text + _fpsCountner;
+		text = '';
 		const AVG = Math.floor(_fpsCountnerAVG / deltaAvg * 1000);
 		if (AVG < 100) {
-			document.getElementById('fps').innerHTML += ' ';
+			text = ' ';
 			if (AVG < 10) {
-				document.getElementById('fps').innerHTML += ' ';
+				text += ' ';
 			}
 		}
-		document.getElementById('fps').innerHTML += AVG + ' AVG';
-		_fpsTime += 1000;
+		document.getElementById('avg').innerHTML = text + AVG;
+		_fpsTime += delta - (delta % 1000);
 		_fpsCountner = 0;
 	}
+	const dpr = 1 / window.devicePixelRatio;
+	_classFpsStyle.top = (20 * dpr) + 'px';
+	_classFpsStyle.left = (20 * dpr) + 'px';
+	_classFpsStyle.fontSize = (20 * dpr) + 'px';
+	_classFpsStyle.padding = (10 * dpr) + 'px ' + (17 * dpr) + 'px';
 }
+
+requestAnimationFrame(fpsUpdate);

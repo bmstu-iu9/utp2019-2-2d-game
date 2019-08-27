@@ -1,8 +1,9 @@
 'use strict';
 
 let imageCounter = 0, totalImages = 0;
-let cameraScale = 1;  // Масштаб, 1 - стандарт
-const blockSize = 16;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
+let heigthCount = 50;  // Количество блоков, которые влезают на экран по высоте
+let cameraScale = 1;  // Масштаб, 1 - стандарт, зависит от heigthCount
+const blockSize = 32;  // Масштаб камеры (пикселей в блоке при cameraScale = 1)
 let cameraX = 0, cameraY = 0;  // Положение камеры
 const chunkWidth = 16, chunkHeight = 16;  // Размеры чанка
 const minLayout = 2, maxLayout = 4;  // Обрабатываемые слои
@@ -12,7 +13,6 @@ let gameArea;  // Игровой мир (объект GameArea)
 let slicePlayer = 1; // 1 - игрок на переднем слое, 2 - за передним слоем
 const playerResolutionX = 48, playerResolutionY = 96;
 let loadingResult = undefined;
-const render = new Render();
 let _textureUI;
 let _fontUI;
 
@@ -37,8 +37,9 @@ const _UI = loadImage('Images/UI.png'),  // Загрузка текстур
 	playerImage = loadImage('Images/player.png');
 
 const preprocessing = () => {
-	render.init(image, background, playerImage);
+	render.init([image, background, playerImage, _Items]);
 	render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
+	initRain();
 	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);
 	_fontUI = render.createTexture(_Font, _Font.width, _Font.height);
 	_textureItems = render.createTexture(_Items, _Items.width, _Items.height);
@@ -53,12 +54,12 @@ const preprocessing = () => {
 				objects[j * blocksCountX + i] = {
 					'id': j * blocksCountX + i + 1,
 					'a': [
-						i / blocksCountX + 1 / image.width,
-						j / blocksCountY + 1 / image.height
+						i / blocksCountX, //+ 1 / image.width,              Для альтернативного метода сглаживания
+						j / blocksCountY //+ 1 / image.height
 					],
 					'b': [
-						(i + 1) / blocksCountX - 1 / image.width,
-						(j + 1) / blocksCountY - 1 / image.height
+						(i + 1) / blocksCountX, //- 1 / image.width,
+						(j + 1) / blocksCountY //- 1 / image.height
 					]
 				};
 			}
@@ -174,14 +175,6 @@ const preprocessing = () => {
 							? 0 : (j >= gameArea.height
 								? gameArea.height - 1 : j))));
 			}
-			for (let i = 0; i < chunkWidth - 2; i++) {
-				arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-			}
-		}
-		for (let i = 0; i < chunkWidth * 2; i++) {
-			for (let j = 0; j < chunkHeight - 2; j++) {
-				arrOfChunks[xLocate + "x" + yLocate + "xL"].chunk.push(0);
-			}
 		}
 
 		render.drawChunk(xLocate, yLocate,
@@ -201,6 +194,9 @@ const preprocessing = () => {
 
 	const update = (newTime) => {
 		deltaTime = (newTime - oldTime) / 1000;
+		if (deltaTime > 0.1) {
+			deltaTime = 0.1;
+		}
 		oldTime = newTime;
 
 		eventTick();
@@ -252,11 +248,13 @@ const preprocessing = () => {
 		}
 
 		gameArea.chunkDifferList = {};  // Очистка изменений для следующего кадра
+		cameraScale = (heigthCount * blockSize) / render.getCanvasSize()[1];
 		const lightOfDay = Math.round((1 + gameArea.timeOfDay * 2) * 30) / 90; // освещённость фона
 		const lightOfPlayer = player.getLight(); // освещённость игрока
 		const dynamicLight = [9, player.light]; // 1 элемент - диаметр в блоках, 2 элемент - максимальное освещение (от 0 до 1)
-		render.render(cameraX, cameraY, player.x, player.y, cameraScale, lightOfDay, lightOfPlayer, slicePlayer,
-			player.direction, dynamicLight);
+
+		render.render(cameraX, cameraY, player.x, player.y, cameraScale, oldTime, deltaTime, lightOfDay, lightOfPlayer,
+			slicePlayer, player.direction, dynamicLight);
 		
 		drawUI();
 		render.drawObjects(_textureUI, _renderingUIArr);
@@ -271,10 +269,10 @@ const preprocessing = () => {
 		elem.parentNode.removeChild(elem);
 	}
 
-	if (loadExist()) {
+	if (localStorage.choosedWorld !== undefined) {
 		const wait = async () => {
 			return new Promise (responce => {
-				loadWorld('world')
+				loadWorld(localStorage.choosedWorld)
 				.then(result => {
 					loadingResult = result;
 					responce();

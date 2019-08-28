@@ -18,7 +18,7 @@ let _fontUI;
 
 const loadImage = (source) => {
 	totalImages++;
-	let tmp = new Image();
+	const tmp = new Image();
 	tmp.src = source;
 	tmp.onload = () => {
 		imageCounter++;
@@ -34,10 +34,12 @@ const _UI = loadImage('Images/UI.png'),  // Загрузка текстур
 	_Font = loadImage('Images/font.png'),
 	image = loadImage('Images/blocks.png'),
 	background = loadImage('Images/background.png'),
-	playerImage = loadImage('Images/player.png');
+	playerImage = loadImage('Images/player.png'),
+	animationWater = loadImage('Images/animations/water.png'),
+	animationLava = loadImage('Images/animations/lava.png');
 
 const preprocessing = () => {
-	render.init([image, background, playerImage, _Items]);
+	render.init([image, background, playerImage, _Items], [animationWater, animationLava]);
 	render.settings(blockSize, chunkWidth, chunkHeight, [1, 0.65, 0.4]);
 	initRain();
 	_textureUI = render.createTexture(_UI, _UI.width, _UI.height);
@@ -113,6 +115,20 @@ const preprocessing = () => {
 		}
 		render.createAnimations(playerResolutionX, playerResolutionY, playerAnims);
 	}
+	
+	{ // инициализация анимаций
+		// вода
+		const waterTex = (id) => {
+			return id === 8 || id === 9 || (id >= 129 && id <= 152);
+		}
+		
+		// лава
+		const lavaTex = (id) => {
+			return id === 10 || id === 11 || (id >= 153 && id <= 176);
+		}
+		
+		render.initAnimations([[waterTex, 191], [lavaTex, 192]]);
+	}
 
 	let OnScreen = {};
 	let arrOfChunks = {};
@@ -138,7 +154,7 @@ const preprocessing = () => {
 				chunk: [], x: xLocate, y: yLocate
 			};
 
-			for (let j = startY; j < stopY; j++) {
+			for (let j = startY; j <= stopY; j++) {
 				layoutChunk.chunk[j - startY] = [];
 				for (let i = startX; i < stopX; i++) {
 					if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {

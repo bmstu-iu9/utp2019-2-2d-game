@@ -1,3 +1,7 @@
+html {
+	height: 100%;
+}
+
 canvas {
 	position: absolute;
 	top: 0px;
@@ -9,6 +13,7 @@ canvas {
 
 body {
 	overflow: hidden;
+	height: 100%;
 }
 
 .fps {
@@ -24,11 +29,17 @@ body {
 }
 
 #loading {
+	position: absolute;
 	width: 100%;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	color: #000;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 100px;
+	text-align: center;
+	text-shadow: red 0 0 5px;
 }
 
 #loading-img {
@@ -36,21 +47,6 @@ body {
 	height: 96px;
 }
 
-#container {
-	width: 100%;
-	height: 100%;
-}
-
-#outer {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-}
-
 #inner {
 	width: 100%;
-	height: 30px;
-	background-color: green;
 }

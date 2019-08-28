@@ -1059,9 +1059,9 @@ const items = {
         interactFunction: (x, y, layout) => {
             gameArea.gameAreaMapSet(x, y, layout, 61);
 
-            if (inRange(x + 1, 0, gameArea.height)
+            if (inRange(x + 1, 0, gameArea.width)
                     && gameArea.map[x + 1][y][layout] === 60) gameArea.interactWithBlock(x + 1, y, layout);
-            if (inRange(x - 1, 0, gameArea.height)
+            if (inRange(x - 1, 0, gameArea.width)
                     && gameArea.map[x - 1][y][layout] === 60) gameArea.interactWithBlock(x - 1, y, layout);
 
             //Сообщение перед входом в данж
@@ -1112,9 +1112,9 @@ const items = {
         interactFunction: (x, y, layout) => {
             gameArea.gameAreaMapSet(x, y, layout, 60);
 
-            if (inRange(x + 1, 0, gameArea.height)
+            if (inRange(x + 1, 0, gameArea.width)
                     && gameArea.map[x + 1][y][layout] === 61) gameArea.interactWithBlock(x + 1, y, layout);
-            if (inRange(x - 1, 0, gameArea.height)
+            if (inRange(x - 1, 0, gameArea.width)
                     && gameArea.map[x - 1][y][layout] === 61) gameArea.interactWithBlock(x - 1, y, layout);
         },
         canPlace: (x, y, layout) => {

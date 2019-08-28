@@ -1,4 +1,5 @@
-# utp2019-2-2d-game
+# TerraCraft
+![logo](Images/TerraCraftLogo.png)
 2D-игра, упрощённый вариант Terraria, команда Алексея Костюченко
 
 

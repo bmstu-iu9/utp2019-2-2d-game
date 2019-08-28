@@ -24,7 +24,7 @@ const prompts = [
 	{
 		startCondition: () => controller.mouse.click === 1,
 		stopCondition: () => controller.f.active,
-		message: "press -f- to save world,	  \npress -g- to delete world.",
+		message: "press -f- to save world,      \npress -g- to delete world.",
 		time: 3
 	},
 
@@ -68,7 +68,7 @@ const prompts = [
 	{
 		startCondition: () => player.inv.weight !== 0,
 		stopCondition: () => controller.inv.active || controller.craft.active,
-		message: "press -i- to open inventary,\npress -o- to open crafts.	   "  // Баг с отчетом символов
+		message: "press -i- to open inventary,\npress -o- to open crafts.       "  // Баг с отчетом символов
 	}
 ];
 

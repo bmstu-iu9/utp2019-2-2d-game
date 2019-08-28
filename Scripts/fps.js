@@ -31,7 +31,6 @@ const fpsUpdate = () => {
 			}
 		}
 		document.getElementById('avg').innerHTML = text + AVG;
-		document.getElementById('fps').innerHTML += ` x:${player.x} y:${player.y}`;
 		_fpsTime += delta - (delta % 1000);
 		_fpsCountner = 0;
 	}

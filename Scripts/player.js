@@ -153,7 +153,7 @@ class Player {
 						- hypotenuse(b.x - this.x, b.y - this.y - Player.HEIGHT / 2);
 			});
 
-			for(let i = 0; i < interactArr.length; i++) {
+			for (let i = 0; i < interactArr.length; i++) {
 				let block = interactArr[i]; 
 				if (this.blockAvailable(block.x, block.y, layout)) {
 					player.direction = Math.sign(block.x + 0.5 - player.x);
@@ -396,7 +396,7 @@ class Player {
 
 			// Меняем местами слоты быстрого инвентаря
 			let fi1, fi2;
-			for(let i = 0; i < this.fastInv.length; i++) {
+			for (let i = 0; i < this.fastInv.length; i++) {
 				if (this.fastInv[i] === i1) {
 					fi1 = i;
 				}
@@ -598,7 +598,7 @@ class Player {
 			let endY = Math.min(Math.floor(y + Player.HEIGHT), gameArea.height - 1);
 			for (let i = startX; i <= endX; i++) {
 				for (let j = startY; j <= endY; j++) {
-					if(gameArea.hasCollision(i, j, layout)) return false;
+					if (gameArea.hasCollision(i, j, layout)) return false;
 				}
 			}
 			return true;

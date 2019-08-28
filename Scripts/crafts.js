@@ -4,7 +4,7 @@
 const getCrafts = (inventory, isCraftingTable, isFurnace) => {
 
 	const addToSet = (array, obj) => {
-		for(let i = 0; i < array.length; i++) {
+		for (let i = 0; i < array.length; i++) {
 			if (array[i] === obj) return;
 		}
 		array[array.length] = obj;
@@ -12,7 +12,7 @@ const getCrafts = (inventory, isCraftingTable, isFurnace) => {
 
 	let ready = [];
 	let notReady = [];
-	for(let i = 0; i < inventory.items.length; i++) {
+	for (let i = 0; i < inventory.items.length; i++) {
 		if (inventory.items[i] === undefined) continue;
 
 		let id = (inventory.items[i].id) ? inventory.items[i].id : inventory.items[i];
@@ -21,7 +21,7 @@ const getCrafts = (inventory, isCraftingTable, isFurnace) => {
 		let canCraft = needForCraft[id];
 
 		if (canCraft) {
-			for(let j = 0; j < canCraft.length; j++) {
+			for (let j = 0; j < canCraft.length; j++) {
 				if (isFurnace && crafts[canCraft[j]].needFurance) {
 					if (isReadyCraft(canCraft[j], inventory)) {
 						addToSet(ready, canCraft[j]);
@@ -60,9 +60,9 @@ const getCrafts = (inventory, isCraftingTable, isFurnace) => {
 }
 const isReadyCraft = (id, inventory, isFurnace) => {
 	let need = crafts[id];
-	for(let i = 0; i < need.needId.length; i++) {
+	for (let i = 0; i < need.needId.length; i++) {
 		let count = 0;
-		for(let j = 0; j < inventory.items.length; j++) {
+		for (let j = 0; j < inventory.items.length; j++) {
 			if (inventory.items[j]) {
 				let invItemId = (inventory.items[j].id) ? inventory.items[j].id : inventory.items[j];
 				if (+invItemId === +need.needId[i]) {
@@ -231,13 +231,13 @@ let crafts = {
 
 // Элемент -> объекты, которые из него крафтятся
 let needForCraft = {};
-for(let i in crafts) {
-	for(let j = 0; j < crafts[i].needId.length; j++) {
+for (let i in crafts) {
+	for (let j = 0; j < crafts[i].needId.length; j++) {
 		if (!needForCraft[crafts[i].needId[j]]) {
 			needForCraft[crafts[i].needId[j]] = [ i ];
 		} else {
 			let added = false;
-			for(let k = 0; k < needForCraft[crafts[i].needId[j]].length; k++) {
+			for (let k = 0; k < needForCraft[crafts[i].needId[j]].length; k++) {
 				if (needForCraft[crafts[i].needId[j]][k] === i) {
 					added = true;
 					break;

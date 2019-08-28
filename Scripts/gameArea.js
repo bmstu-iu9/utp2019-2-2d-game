@@ -384,8 +384,8 @@ class GameArea{
 
 		// Действие при установке блока
 		this.placeBlock = (x, y, layout, id) => {
-			if(!this.exist(x, y)) return false; // проверка на выход из карты
-			if(!this.map[x][y][layout] || this.canPlaceInBlock(x, y, layout)) {
+			if (!this.exist(x, y)) return false; // проверка на выход из карты
+			if (!this.map[x][y][layout] || this.canPlaceInBlock(x, y, layout)) {
 				let lastBlock = this.map[x][y][layout];
 				this.gameAreaMapSet(x, y, layout, id);
 				if (layout === GameArea.FIRST_LAYOUT) {
@@ -407,9 +407,9 @@ class GameArea{
 
 		// Функция взаимодействия с блоком
 		this.interactWithBlock = (x, y, layout) => {
-			if(!this.exist(x, y)) return; // проверка на выход из карты
+			if (!this.exist(x, y)) return; // проверка на выход из карты
 			let block = items[this.map[x][y][layout]];
-			if(block.isClickable) {
+			if (block.isClickable) {
 				block.interactFunction(x, y, layout);
 				return true;
 			}
@@ -448,7 +448,7 @@ class GameArea{
 		// Необходим для отслеживания изменений
 		this.gameAreaMapSet = (x, y, layout, id) => {
 			let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
-			if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+			if (this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
 				this.chunkDifferList[chunkX + "x" + chunkY] = {};
 				this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + layout] = {
 					x: x,
@@ -481,7 +481,7 @@ class GameArea{
 		// Отслеживание изменений света
 		this.gameAreaShadowMapSet = (x, y, n) => {
 			let chunkX = Math.floor(x / chunkHeight), chunkY = Math.floor(y / chunkHeight);
-			if(this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
+			if (this.chunkDifferList[chunkX + "x" + chunkY] === undefined) {
 				this.chunkDifferList[chunkX + "x" + chunkY] = {};
 				this.chunkDifferList[chunkX + "x" + chunkY][x + "x" + y + "x" + "L"] = true;
 			}

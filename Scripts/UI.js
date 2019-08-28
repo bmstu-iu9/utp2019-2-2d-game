@@ -223,7 +223,7 @@ const showFloatMessage = (str, showingTime) => {
 	let height = 1;
 	let width = 0;
 	let counter = 0;
-	for(let i = 0; i < str.length; i++) {
+	for (let i = 0; i < str.length; i++) {
 		if (str[i] === '\n') {
 			height++;
 			counter = 0;
@@ -366,7 +366,7 @@ const showMouseMessage = (str) => {
 	let height = 1;
 	let width = 0;
 	let counter = 0;
-	for(let i = 0; i < str.length; i++) {
+	for (let i = 0; i < str.length; i++) {
 		if (str[i] === '\n') {
 			height++;
 			counter = 0;
@@ -504,7 +504,7 @@ const initUI = () => {
 
 		UIMap.fastInvPanel = fastInvPanel;
 		UIMap.fastInv = [];
-		for(let i = 0; i < 8; i++) {
+		for (let i = 0; i < 8; i++) {
 			let slot = new Sprite([ [0, 0], [0.25, 0.25] ],
 				{
 					pa: {
@@ -529,7 +529,7 @@ const initUI = () => {
 			setOnClickListener(slot, () => {
 				let activeElement = UIMap.activeElement;
 				if (activeElement && activeElement.props.type === 'invSlot') {
-					for(let i = 0; i < player.fastInv.length; i++) {
+					for (let i = 0; i < player.fastInv.length; i++) {
 						if (player.fastInv[i] === activeElement.props.invIndex) {
 							player.fastInv[i] = undefined;
 						}
@@ -1021,7 +1021,7 @@ const UISetBar = (count, bar, length, height, padding, number) => {
 	needUIRedraw = true;
 	let bars = UIMap.bars;
 	let priority = number;
-	for(let i = number - 1; i >= 0; i--) {
+	for (let i = number - 1; i >= 0; i--) {
 		if (bars[i] === undefined || !UIMap.barsPanel.get(bars[i].bar.id)) number--;
 	}
 
@@ -1290,7 +1290,7 @@ const createText = (word, notCompress) => {
 					y: 0
 				}
 			});
-	for(let n = 0; n < strings.length; n++) {
+	for (let n = 0; n < strings.length; n++) {
 		let wordCard = new Sprite(
 			undefined,
 			{
@@ -1321,7 +1321,7 @@ const createText = (word, notCompress) => {
 			}
 		}
 
-		for(let i = 0; i < strings[n].length; i++) {
+		for (let i = 0; i < strings[n].length; i++) {
 			wordCard.add(new Sprite(
 			getLetterTexture(strings[n][i]),
 			{
@@ -2191,7 +2191,7 @@ const reloadCraft = () => {
 
 		let id = availableCraft.ready[i];
 		let recipe = "";
-		for(let i = crafts[id].needId.length; i >= 0; i--) {
+		for (let i = crafts[id].needId.length; i >= 0; i--) {
 			if (crafts[id].needId[i]) {
 				recipe += items[crafts[id].needId[i]].name + ": " + crafts[id].needCount[i] + "\n";
 			}
@@ -2204,8 +2204,8 @@ const reloadCraft = () => {
 		card.indent.pb.y += scrollingContent.props.scrollX;
 
 		setOnClickListener(card, () => {
-			for(let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
-				for(let j = 0; j < player.inv.items.length; j++) {
+			for (let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
+				for (let j = 0; j < player.inv.items.length; j++) {
 					if (+player.inv.items[j] === crafts[availableCraft.ready[i]].needId[k]) {
 						player.deleteFromInvByIndex(j, crafts[availableCraft.ready[i]].needCount[k]);
 						break;
@@ -2230,8 +2230,8 @@ const reloadCraft = () => {
 			while (isReadyCraft(id, player.inv)) {
 				availableCraft = getCrafts(player.inv, isCraftingTable, isFurnace);
 				if (id !== availableCraft.ready[i]) break;
-				for(let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
-					for(let j = 0; j < player.inv.items.length; j++) {
+				for (let k = 0; k < crafts[availableCraft.ready[i]].needId.length; k++) {
+					for (let j = 0; j < player.inv.items.length; j++) {
 						if (+player.inv.items[j] === crafts[availableCraft.ready[i]].needId[k]) {
 							player.deleteFromInvByIndex(j, crafts[availableCraft.ready[i]].needCount[k]);
 							break;
@@ -2255,7 +2255,7 @@ const reloadCraft = () => {
 
 		let id = availableCraft.notReady[i];
 		let recipe = "";
-		for(let i = crafts[id].needId.length; i >= 0; i--) {
+		for (let i = crafts[id].needId.length; i >= 0; i--) {
 			if (crafts[id].needId[i]) {
 				recipe += items[crafts[id].needId[i]].name + ": " + crafts[id].needCount[i] + "\n";
 			}

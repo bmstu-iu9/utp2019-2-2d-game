@@ -194,7 +194,7 @@ const UI = () => {
 const worldChange = () => {
 	for (let chunk in gameArea.chunkDifferList) {
 		for (let change in gameArea.chunkDifferList[chunk]) {
-			if(change[change.length - 1] === "L") {  // Изменение света
+			if (change[change.length - 1] === "L") {  // Изменение света
 				continue;
 			}
 			const obj = gameArea.chunkDifferList[chunk][change];
@@ -211,8 +211,8 @@ const worldChange = () => {
 // Действия при нажатии клавиш действия
 const playerActionButtons = () => {
 	let layout = player.layout;
-	if(controller.shift.active) {
-		if(player.layout === GameArea.FIRST_LAYOUT) {
+	if (controller.shift.active) {
+		if (player.layout === GameArea.FIRST_LAYOUT) {
 			layout = GameArea.SECOND_LAYOUT;
 		} else {
 			layout = GameArea.BACK_LAYOUT;
@@ -237,8 +237,8 @@ const playerActionButtons = () => {
 	}
 
 	// Нажата клавиша I
-	if(controller.inv.active) {
-		 if(!controller.invClick) {
+	if (controller.inv.active) {
+		 if (!controller.invClick) {
 		 	controller.invClick = true;
 		 	if (inventoryOpened) {
 		 		UICloseInv();
@@ -251,8 +251,8 @@ const playerActionButtons = () => {
 	}
 
 	// Нажата клавиша O
-	if(controller.craft.active) {
-		 if(!controller.craftClick) {
+	if (controller.craft.active) {
+		 if (!controller.craftClick) {
 		 	controller.craftClick = true;
 		 	if (craftOpened) {
 		 		UICloseCraft();
@@ -272,11 +272,11 @@ const playerActionButtons = () => {
 // Движение игрока
 const playerMovement = () => {
 
-	if(controller.down.active) {
-		 if(!controller.downClick) {
+	if (controller.down.active) {
+		 if (!controller.downClick) {
 		 	controller.downClick = true;
 		 	let layout = (player.layout === GameArea.FIRST_LAYOUT) ? GameArea.SECOND_LAYOUT : GameArea.FIRST_LAYOUT;
-		 	if(player.canStay(player.fx, player.fy, layout)) {
+		 	if (player.canStay(player.fx, player.fy, layout)) {
 		 		player.layout = layout;
 		 		slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
 		 	}
@@ -494,8 +494,8 @@ const mouseControl = () => {
 	}
 
 	let layout = player.layout;
-	if(controller.shift.active) {
-		if(player.layout === GameArea.FIRST_LAYOUT) {
+	if (controller.shift.active) {
+		if (player.layout === GameArea.FIRST_LAYOUT) {
 			layout = GameArea.SECOND_LAYOUT;
 		} else {
 			layout = GameArea.BACK_LAYOUT;

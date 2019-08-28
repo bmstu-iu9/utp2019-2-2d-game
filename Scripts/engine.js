@@ -968,7 +968,7 @@ class Engine {
 			this.arrayOfChunks[c].exist[count] = false;
 		}
 		
-		for (let i = 0; i < count + 1; i++) {
+		for (let i = 0; i < count; i++) {
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.arrayOfChunks[c].tex[i]);
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
 			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST_MIPMAP_LINEAR);

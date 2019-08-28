@@ -158,7 +158,7 @@ const preprocessing = () => {
 				layoutChunk.chunk[j - startY] = [];
 				for (let i = startX; i < stopX; i++) {
 					if (i >= 0 && j >= 0 && i < gameArea.width && j < gameArea.height) {
-						// TODO : УБРАТЬ, КОГДА ДОБАВЯТ НОРМАЛЬНУЮ ТЕКСТУРУ РАЗНЫХ ВИДОВ ВОДЫ
+						// id блоков выше 9000 на текстуре находятся начиная с половины
 						if (Math.floor(gameArea.map[Math.floor(i)][Math.floor(j)][layout] / 9000) === 1) {
 							layoutChunk.chunk[j - startY][i - startX] =
 							gameArea.map[Math.floor(i)][Math.floor(j)][layout] - 9000 + 129;
@@ -215,7 +215,12 @@ const preprocessing = () => {
 			deltaTime = 0.1;
 		}
 		oldTime = newTime;
-		cameraScale = (heigthCount * blockSize) / render.getCanvasSize()[1];
+		const canvasSize = render.getCanvasSize();
+		if (canvasSize[0] > 2 * canvasSize[1]) {
+			cameraScale = (2 * heigthCount * blockSize) / canvasSize[0];
+		} else {
+			cameraScale = (heigthCount * blockSize) / canvasSize[1];
+		}
 
 		eventTick();
 

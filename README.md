@@ -3,14 +3,14 @@
 
 
 ### Участники:
-* [Алексей Костюченко](https://github.com/Shaniser)
-* [Илья Каркин](https://github.com/Mitbus)
-* [Илья Щербаков](https://github.com/ylyxa)
-* [Искандер Омуров](https://github.com/IskanderO)
-* [Никита Волков](https://github.com/VolkovNik)
-* [Светлана Пирожкова](https://github.com/pirosveta)
-* [Надим Абдул Гани](https://github.com/whitequartz)
-* [Владислав Ломтев](https://github.com/Irautak)
+* [Алексей Костюченко @Shaniser](https://github.com/Shaniser)
+* [Илья Каркин @Mitbus](https://github.com/Mitbus)
+* [Илья Щербаков @ylyxa](https://github.com/ylyxa)
+* [Искандер Омуров @IskanderO](https://github.com/IskanderO)
+* [Никита Волков @VolkovNik](https://github.com/VolkovNik)
+* [Светлана Пирожкова @pirosveta](https://github.com/pirosveta)
+* [Надим Абдул Гани @whitequartz](https://github.com/whitequartz)
+* [Владислав Ломтев @Irautak](https://github.com/Irautak)
 
 
 

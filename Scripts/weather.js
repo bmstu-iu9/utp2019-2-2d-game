@@ -23,11 +23,11 @@ const elevationCalculate = () => {
 const elevationUpdate = (x, y) => {
 	if (y >= _elevationMap[x]) {
 		for (let j = y; j >= 0; j--) {
-			const id = gameArea.get(i, j, GameArea.FIRST_LAYOUT);
+			const id = gameArea.get(x, j, GameArea.FIRST_LAYOUT);
 			if (id !== undefined) {
-				_elevationMap[i] = j;
+				_elevationMap[x] = j;
 				if (id >= 9000 && id <= 9016) {
-					_elevationMap[i] -= Math.abs(9008 - id) * 15 / 128;
+					_elevationMap[x] -= Math.abs(9008 - id) * 15 / 128;
 				}
 				break;
 			}

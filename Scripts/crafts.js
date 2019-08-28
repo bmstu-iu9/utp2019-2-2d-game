@@ -107,7 +107,7 @@ let crafts = {
 		needCradftingTable: true,
 		resultCount: 1
 	},
-    '23': {
+	'23': {
 		needId: [ 5, 4 ],
 		needCount: [ 6, 1 ],
 		resultCount: 1
@@ -145,88 +145,88 @@ let crafts = {
 		needId: [ 267, 5 ],
 		needCount: [ 1, 2 ],
 		resultCount: 1
-    },
+	},
 	'270': {
 		needId: [ 267, 5 ],
 		needCount: [ 1, 2 ],
 		resultCount: 1
-    },
+	},
 	'271': {
 		needId: [ 267, 5 ],
 		needCount: [ 1, 2 ],
 		resultCount: 1
-    },
+	},
 	'273': {
 		needId: [ 267, 4 ],
 		needCount: [ 1, 2 ],
 		needCradftingTable: true,
 		resultCount: 1
-    },
+	},
 	'274': {
 		needId: [ 267, 4 ],
 		needCount: [ 1, 2 ],
 		needCradftingTable: true,
 		resultCount: 1
-    },
+	},
 	'275': {
 		needId: [ 267, 4 ],
 		needCount: [ 1, 2 ],
 		needCradftingTable: true,
 		resultCount: 1
-    },
-    '63': {
-    	needId: [ 5 ],
-    	needCount: [ 5 ],
+	},
+	'63': {
+		needId: [ 5 ],
+		needCount: [ 5 ],
 		needCradftingTable: true,
-    	resultCount: 3
-    },
-    '61': {
-    	needId: [ 5 ],
-    	needCount: [ 5 ],
+		resultCount: 3
+	},
+	'61': {
+		needId: [ 5 ],
+		needCount: [ 5 ],
 		needCradftingTable: true,
-    	resultCount: 3
-    },
-    '19': {
-    	needId: [ 267, 263 ],
-    	needCount: [ 1, 1 ],
-    	resultCount: 1
-    },
-    '277': {
-    	needId: [ 267, 264 ],
-    	needCount: [ 1, 2 ],
+		resultCount: 3
+	},
+	'19': {
+		needId: [ 267, 263 ],
+		needCount: [ 1, 1 ],
+		resultCount: 1
+	},
+	'277': {
+		needId: [ 267, 264 ],
+		needCount: [ 1, 2 ],
 		needCradftingTable: true,
-    	resultCount: 1
-    },
-    '278': {
-    	needId: [ 267, 264 ],
-    	needCount: [ 1, 2 ],
+		resultCount: 1
+	},
+	'278': {
+		needId: [ 267, 264 ],
+		needCount: [ 1, 2 ],
 		needCradftingTable: true,
-    	resultCount: 1
-    },
-    '279': {
-    	needId: [ 267, 264 ],
-    	needCount: [ 1, 2 ],
+		resultCount: 1
+	},
+	'279': {
+		needId: [ 267, 264 ],
+		needCount: [ 1, 2 ],
 		needCradftingTable: true,
-    	resultCount: 1
-    },
-    '256': {
-    	needId: [ 267, 265 ],
-    	needCount: [ 1, 2 ],
+		resultCount: 1
+	},
+	'256': {
+		needId: [ 267, 265 ],
+		needCount: [ 1, 2 ],
 		needCradftingTable: true,
-    	resultCount: 1
-    },
-    '257': {
-    	needId: [ 267, 265 ],
-    	needCount: [ 1, 2 ],
+		resultCount: 1
+	},
+	'257': {
+		needId: [ 267, 265 ],
+		needCount: [ 1, 2 ],
 		needCradftingTable: true,
-    	resultCount: 1
-    },
-    '258': {
-    	needId: [ 267, 265 ],
-    	needCount: [ 1, 2 ],
+		resultCount: 1
+	},
+	'258': {
+		needId: [ 267, 265 ],
+		needCount: [ 1, 2 ],
 		needCradftingTable: true,
-    	resultCount: 1
-    }
+		resultCount: 1
+	}
 }
 
 // Элемент -> объекты, которые из него крафтятся

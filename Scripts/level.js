@@ -1,15 +1,15 @@
 'use strict';
 
 /*
-const cameraScale = 1;                  Масштаб, 1 - стандарт
-const blockSize = 32                    Масштаб камеры (пикселей в блоке при cameraScale = 1)
-let cameraX = 0, cameraY = 0;           Положение камеры
+const cameraScale = 1;				  Масштаб, 1 - стандарт
+const blockSize = 32					Масштаб камеры (пикселей в блоке при cameraScale = 1)
+let cameraX = 0, cameraY = 0;		   Положение камеры
 const chankWidth = 8, chankHeight = 8   Размеры чанка
-const minLayout = 2, maxLayout = 3      Обрабатываемые слои
-const blockResolution = 32              Разрешение текстуры блока
-let deltaTime = 0                       Изменение времени между кадрами в секундах
-let gameArea;                           Игровой мир (объект GameArea)
-cameraSet(x, y)                         Устанавливает ккординаты камеры на (x, y)
+const minLayout = 2, maxLayout = 3	  Обрабатываемые слои
+const blockResolution = 32			  Разрешение текстуры блока
+let deltaTime = 0					   Изменение времени между кадрами в секундах
+let gameArea;						   Игровой мир (объект GameArea)
+cameraSet(x, y)						 Устанавливает ккординаты камеры на (x, y)
 */
 
 
@@ -25,22 +25,24 @@ let player;
 // Вызывается при запуске игры
 const beginPlay = () => {
 	// Управление
-    this.controller = new Controller();
-    const KDU = (event) => {
-    	controller.keyDownUp(event);
-    };
-    window.addEventListener("keydown", KDU);
-    window.addEventListener("keyup", KDU);
-    window.addEventListener("mousemove", (event) => {
-    	controller.mouseMove(event);
-    });
-    window.addEventListener("mouseup", (event) => {  // для yandex mousedown вызывается вместе с mouseup
+	this.controller = new Controller();
+	const KDU = (event) => {
+		controller.keyDownUp(event);
+	};
+	window.addEventListener("keydown", KDU);
+	window.addEventListener("keyup", KDU);
+	window.addEventListener("mousemove", (event) => {
+		controller.mouseMove(event);
+	});
+	window.addEventListener("mouseup", (event) => {  // для yandex mousedown вызывается вместе с mouseup
 		setTimeout((event) => controller.mouseUp(event), 20, event);
-    });
-    window.addEventListener("mousedown", (event) => {
-    	controller.mouseDown(event);
-    });
-    if (choosedWorld() !== undefined) {
+	});
+	window.addEventListener("mousedown", (event) => {
+		controller.mouseDown(event);
+	});
+
+	// Загрузка сохранённого мира, если возможно
+	if (choosedWorld() !== undefined) {
 		key = loadingResult.key;
 		BlocksGlobalChange = loadingResult.change;
 		currentTime = loadingResult.currentTime;
@@ -52,8 +54,8 @@ const beginPlay = () => {
 		gameArea.inventoryBlocks = loadingResult.gameArea.inventoryBlocks;
 		gameArea.timeOfDay = loadingResult.gameArea.timeOfDay;
 
-    	player = new Player();
-    	playerCopy(player, loadingResult.player);
+		player = new Player();
+		playerCopy(player, loadingResult.player);
 		slicePlayer = (player.layout === GameArea.FIRST_LAYOUT) ? 1 : 2;
 		for (let i in BlocksGlobalChange) {
 			gameArea.updateBlock(
@@ -68,7 +70,7 @@ const beginPlay = () => {
 				player);
 		}
 
-    } else {
+	} else {
 		gameArea = generate(2000, 1000, key);
 
 		let px = gameArea.width / 2;
@@ -81,16 +83,14 @@ const beginPlay = () => {
 				break;
 			}
 		}
-    	let py = 0;
-    	for (let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
-    		py = Math.max(py, gameArea.elevationMap[i] + 1);
-    	}
+		let py = 0;
+		for (let i = Math.floor(px - Player.WIDTH / 2); i <= Math.floor(px + Player.WIDTH / 2); i++) {
+			py = Math.max(py, gameArea.elevationMap[i] + 1);
+		}
 
-    	player = new Player(px, py);
+		player = new Player(px, py);
 	}
 	
-	
-	// player.addToInv(items[8]);
 	cameraSet(player.x, player.y);
 	
 	elevationCalculate(); // расчитывает карту высот для погоды
@@ -211,13 +211,13 @@ const worldChange = () => {
 // Действия при нажатии клавиш действия
 const playerActionButtons = () => {
 	let layout = player.layout;
-    if(controller.shift.active) {
-    	if(player.layout === GameArea.FIRST_LAYOUT) {
-    		layout = GameArea.SECOND_LAYOUT;
-    	} else {
-    		layout = GameArea.BACK_LAYOUT;
-    	}
-    }
+	if(controller.shift.active) {
+		if(player.layout === GameArea.FIRST_LAYOUT) {
+			layout = GameArea.SECOND_LAYOUT;
+		} else {
+			layout = GameArea.BACK_LAYOUT;
+		}
+	}
 
 	if (controller.f.active) {  // Сохранение
 		saveWorld('world').then(() => chooseWorld('world'));
@@ -265,7 +265,7 @@ const playerActionButtons = () => {
 	}
 
 	if (staminaNotUsed) {
-    	player.updateSP(player.sp + 4 * deltaTime);
+		player.updateSP(player.sp + 4 * deltaTime);
 	}
 }
 
@@ -312,17 +312,17 @@ const playerMovement = () => {
 						player.vy = Player.JUMP_SPEED * 2 / 3;
 
 						// Уменьшение выносливости
-	                	player.updateSP(player.sp - Player.JUMP_SPEED * 2 / 3 / 30);
-	                	staminaNotUsed = false;
+						player.updateSP(player.sp - Player.JUMP_SPEED * 2 / 3 / 30);
+						staminaNotUsed = false;
 					}
 				} else {
 					if (player.sp >= Player.JUMP_SPEED / 5) {
 						player.vy = Player.JUMP_SPEED;
 
 						// Уменьшение выносливости
-	                	player.updateSP(player.sp - Player.JUMP_SPEED / 30);
-	                	staminaNotUsed = false;
-	                }
+						player.updateSP(player.sp - Player.JUMP_SPEED / 30);
+						staminaNotUsed = false;
+					}
 				}
 			}
 		} else {
@@ -330,8 +330,8 @@ const playerMovement = () => {
 				player.vy -= GameArea.GRAVITY * deltaTime * 2 / 3;
 
 				// Уменьшение выносливости
-	            player.updateSP(player.sp - 3 * deltaTime);
-                staminaNotUsed = false;
+				player.updateSP(player.sp - 3 * deltaTime);
+				staminaNotUsed = false;
 			} else {
 				player.vy -= Math.max(- Player.JUMP_SPEED * 4, GameArea.GRAVITY * deltaTime);
 				if (player.vy > - Player.JUMP_SPEED * 4) {
@@ -370,7 +370,7 @@ const playerMovement = () => {
 	let newX = player.fx + player.vx * deltaTime;
 	let newY = player.fy + player.vy * deltaTime;
 
-    // Пока новые координаты не перестанут конфликтовать с окружением
+	// Пока новые координаты не перестанут конфликтовать с окружением
 	// Выход за карту
 	if (newX - Player.WIDTH / 2 < 0 && newX + Player.WIDTH / 2 > gameArea.width) {
 		player.vx = 0;
@@ -494,16 +494,16 @@ const mouseControl = () => {
 	}
 
 	let layout = player.layout;
-    if(controller.shift.active) {
-    	if(player.layout === GameArea.FIRST_LAYOUT) {
-    		layout = GameArea.SECOND_LAYOUT;
-    	} else {
-    		layout = GameArea.BACK_LAYOUT;
-    	}
-    }
+	if(controller.shift.active) {
+		if(player.layout === GameArea.FIRST_LAYOUT) {
+			layout = GameArea.SECOND_LAYOUT;
+		} else {
+			layout = GameArea.BACK_LAYOUT;
+		}
+	}
 
-    // Когда зажата ЛКМ
-    if (controller.mouse.click === 1) {
+	// Когда зажата ЛКМ
+	if (controller.mouse.click === 1) {
 		// Нажатие по интерфейсу
 		let interactWithUI = false;
 		if (buttonHoldCounter <= buttonLongHoldLength) {
@@ -545,53 +545,53 @@ const mouseControl = () => {
 			UIMap.lastButton = undefined;
 
 			let targetX = Math.floor(controller.mouse.direction.x / (blockSize / cameraScale) + player.x);
-	    	let targetY = Math.floor(controller.mouse.direction.y / (blockSize / cameraScale) + player.y
-	    		+ Player.HEIGHT / 2);
-	    	if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
-	      		&& player.sp > 0) {
-	    		//Неломаемый блок (подсказка)
-	    		if (items[gameArea.get(targetX, targetY, layout)].durability > 300) {
-	    			showFloatMessage("I do not think I can break it");
-	    		}
+			let targetY = Math.floor(controller.mouse.direction.y / (blockSize / cameraScale) + player.y
+				+ Player.HEIGHT / 2);
+			if (gameArea.canDestroy(targetX, targetY, layout) && player.blockAvailable(targetX, targetY, player.layout)
+		  		&& player.sp > 0) {
+				//Неломаемый блок (подсказка)
+				if (items[gameArea.get(targetX, targetY, layout)].durability > 300) {
+					showFloatMessage("I do not think I can break it");
+				}
 
-	            // Анимация
-	            player.setAnimation("body", "kick");
+				// Анимация
+				player.setAnimation("body", "kick");
 
-	            // Уменьшение выносливости
-	            player.updateSP(player.sp - 4 * deltaTime);
-	            staminaNotUsed = false;
+				// Уменьшение выносливости
+				player.updateSP(player.sp - 4 * deltaTime);
+				staminaNotUsed = false;
 
-	    		// Разрушение
-	    		if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
-	    			currentBlock = {
-	    				x: targetX, y: targetY, layout: layout,
-	    				type: items[gameArea.map[targetX][targetY][layout]].type,
-	    				durability: items[gameArea.map[targetX][targetY][layout]].durability
-	    			}
-	    			let effK = ((player.hand.item && player.hand.info.isTool
-	    				&& currentBlock.type == player.hand.info.type))
-	    			? player.hand.info.efficiency : 1;
-	    			currentBlock.durability -= deltaTime * effK;
-	    		} else if (currentBlock.durability > 0) {
-	    			let effK = ((player.hand.item && player.hand.info.isTool
-	    				&& currentBlock.type == player.hand.info.type))
-	    			? player.hand.info.efficiency : 1;
-	    			currentBlock.durability -= deltaTime * effK;
-	    		} else {
-	    			currentBlock = undefined;
-	    			player.destroy(targetX, targetY, layout);
-	    		}
-	    	}
+				// Разрушение
+				if (currentBlock === undefined || currentBlock.x !== targetX || currentBlock.y !== targetY) {
+					currentBlock = {
+						x: targetX, y: targetY, layout: layout,
+						type: items[gameArea.map[targetX][targetY][layout]].type,
+						durability: items[gameArea.map[targetX][targetY][layout]].durability
+					}
+					let effK = ((player.hand.item && player.hand.info.isTool
+						&& currentBlock.type == player.hand.info.type))
+					? player.hand.info.efficiency : 1;
+					currentBlock.durability -= deltaTime * effK;
+				} else if (currentBlock.durability > 0) {
+					let effK = ((player.hand.item && player.hand.info.isTool
+						&& currentBlock.type == player.hand.info.type))
+					? player.hand.info.efficiency : 1;
+					currentBlock.durability -= deltaTime * effK;
+				} else {
+					currentBlock = undefined;
+					player.destroy(targetX, targetY, layout);
+				}
+			}
 		}
-    } else {
-    	currentBlock = undefined;
+	} else {
+		currentBlock = undefined;
 
-    	if (buttonHoldCounter < buttonLongHoldLength) {
-    		clickAction(UIMap.lastButton);
-    	}
+		if (buttonHoldCounter < buttonLongHoldLength) {
+			clickAction(UIMap.lastButton);
+		}
 		UIMap.lastButton = undefined;
 		buttonHoldCounter = 0;
-    }
+	}
 
 	// Когда зажата ПКМ
 	if (controller.mouse.click === 3 && lastPlaceBlockTime < currentTime - 0.2) {
@@ -603,14 +603,14 @@ const mouseControl = () => {
 			if (player.interact(targetX, targetY, layout)) {
 				lastPlaceBlockTime = currentTime;
 
-	            // Анимация
-	            player.setAnimation("body", "kick");
+				// Анимация
+				player.setAnimation("body", "kick");
 			} else if (player.place(targetX, targetY, layout)) { // Установка блока
-		    	lastPlaceBlockTime = currentTime;
+				lastPlaceBlockTime = currentTime;
 
-	            // Анимация
-	            player.setAnimation("body", "kick");
-		    }
+				// Анимация
+				player.setAnimation("body", "kick");
+			}
 		}
 	}
 }

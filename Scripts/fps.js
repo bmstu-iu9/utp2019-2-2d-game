@@ -1,5 +1,6 @@
 'use strict';
 
+// Счётчик FPS
 let _fpsTime = performance.now();
 let _fpsCountner = 0;
 let _startFps = _fpsTime;
